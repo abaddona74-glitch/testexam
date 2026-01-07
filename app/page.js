@@ -311,11 +311,19 @@ export default function Home() {
   };
 
   const startTest = (test) => {
+    // Check if there is a translation available (simple mapping for en.json -> uz.json)
+    let translationContent = null;
+    if (test.id === 'en.json') {
+        const uzTest = tests.defaultTests.find(t => t.id === 'uz.json');
+        if (uzTest) translationContent = uzTest.content;
+    }
+
     // Check if we have saved progress for this test
     if (savedProgress[test.id]) {
         setActiveTest({
             ...test,
             ...savedProgress[test.id],
+            translationContent, // Add translation content to resumable state
             isResumed: true
         });
         setView('test');
@@ -341,6 +349,7 @@ export default function Home() {
     const newTestState = {
       ...test,
       questions: preparedQuestions,
+      translationContent, // Pass translation
       currentQuestionIndex: 0,
       answers: {}, // { questionId: optionId }
       isFinished: false,
@@ -922,6 +931,23 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     );
 }
 
+function TranslatableText({ text, translation, type = 'text' }) {
+    if (!translation) return <span>{text}</span>;
+
+    return (
+        <div className="group relative inline-block cursor-help border-b border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-colors rounded px-1 -mx-1">
+            {text}
+            <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[300px] z-50 pointer-events-none">
+                <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-xl relative text-center leading-relaxed">
+                     <span className="text-[10px] uppercase text-gray-400 font-bold block mb-0.5 border-b border-gray-700 pb-1">Translation</span>
+                     {translation}
+                     <div className="w-2 h-2 bg-gray-900 absolute top-full left-1/2 -translate-x-1/2 -translate-y-1 rotate-45"></div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpdate, onBack }) {
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {}); 
@@ -936,6 +962,9 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
     const [activeUsers, setActiveUsers] = useState([]);
 
     const question = test.questions[currentIndex];
+    // Find translation if available
+    const translatedQuestion = test.translationContent?.test_questions?.find(q => q.id === question.id);
+    
     const totalQuestions = test.questions.length;
     
     // Determine which question is being reported (default to current if not set)
@@ -1313,12 +1342,19 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                      </div>
 
                      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 leading-relaxed">
-                         {question.question}
+                         <TranslatableText 
+                            text={question.question} 
+                            translation={translatedQuestion?.question} 
+                         />
                      </h2>
 
                      <div className="space-y-3 flex-1">
                          {question.shuffledOptions.map((option, idx) => {
                              const isSelected = answers[currentIndex] === option.id;
+                             // Find option translation in translatedQuestion
+                             // Note: option.id is 'A', 'B', etc.
+                             const translatedOptionText = translatedQuestion?.options?.[option.id];
+
                              return (
                                  <button
                                     key={idx}
@@ -1336,7 +1372,12 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                                      )}>
                                          {String.fromCharCode(65 + idx)}
                                      </div>
-                                     <span className="font-medium">{option.text}</span>
+                                     <span className="font-medium">
+                                         <TranslatableText 
+                                            text={option.text} 
+                                            translation={translatedOptionText} 
+                                         />
+                                     </span>
                                  </button>
                              );
                          })}
