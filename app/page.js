@@ -698,7 +698,7 @@ export default function Home() {
                                     <TestCard 
                                         key={test.id} 
                                         test={test} 
-                                        onStart={() => startTest(test)} 
+                                        onStart={(t) => startTest(t || test)} 
                                         badge="Official"
                                         hasProgress={!!savedProgress[test.id]}
                                     />
@@ -725,7 +725,7 @@ export default function Home() {
                                     <TestCard 
                                         key={test.id} 
                                         test={test} 
-                                        onStart={() => startTest(test)} 
+                                        onStart={(t) => startTest(t || test)} 
                                         badge="Community" 
                                         badgeColor="bg-green-100 text-green-700" 
                                         hasProgress={!!savedProgress[test.id]}
@@ -1208,7 +1208,25 @@ export default function Home() {
 }
 
 function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress }) {
-    const questionCount = test.content.test_questions?.length || 0;
+    const [selectedLang, setSelectedLang] = useState(() => {
+        if (!test.translations) return null;
+        return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
+    });
+
+    const activeContent = selectedLang && test.translations ? test.translations[selectedLang] : test.content;
+    const questionCount = activeContent.test_questions?.length || 0;
+
+    const handleStart = () => {
+        if (selectedLang && test.translations) {
+            onStart({
+                ...test,
+                content: activeContent,
+                language: selectedLang
+            });
+        } else {
+            onStart(test);
+        }
+    };
     
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col justify-between group relative overflow-hidden">
@@ -1222,9 +1240,31 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                     <span className={clsx("px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide", badgeColor)}>
                         {badge}
                     </span>
-                    <span className="text-gray-400 text-xs font-medium bg-gray-100 px-2 py-1 rounded">
-                         JSON
-                    </span>
+                    <div className="flex gap-2">
+                        {test.translations && Object.keys(test.translations).length > 1 && (
+                            <div className="flex bg-gray-100 p-0.5 rounded-lg z-10 relative">
+                                {Object.keys(test.translations).map(lang => (
+                                    <button
+                                        key={lang}
+                                        onClick={(e) => { e.stopPropagation(); setSelectedLang(lang); }}
+                                        className={clsx(
+                                            "px-2 py-0.5 text-[10px] font-bold uppercase rounded-md transition-all",
+                                            selectedLang === lang 
+                                                ? "bg-white text-blue-600 shadow-sm" 
+                                                : "text-gray-400 hover:text-gray-600"
+                                        )}
+                                    >
+                                        {lang}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        {(!test.translations || Object.keys(test.translations).length <= 1) && (
+                            <span className="text-gray-400 text-xs font-medium bg-gray-100 px-2 py-1 rounded">
+                                JSON
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <h3 className="font-bold text-lg text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">
                     {test.name}
@@ -1234,7 +1274,7 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 </p>
             </div>
             <button 
-                onClick={onStart}
+                onClick={handleStart}
                 className={clsx(
                     "mt-6 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
                     hasProgress 

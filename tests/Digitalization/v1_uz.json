@@ -1,0 +1,577 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "O'zbekistonda 'Digital Uzbekistan 2030' nima?",
+      "options": {
+        "A": "Raqamlashtirish bo'yicha milliy dastur",
+        "B": "Yangi mobil ilova",
+        "C": "Bank nomi",
+        "D": "Transport kompaniyasi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "O'zbekistonda qaysi fintech platformasi birinchi bo'lib ishga tushgan?",
+      "options": {
+        "A": "Payme",
+        "B": "Click",
+        "C": "Apelsin",
+        "D": "OSON"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 3,
+      "question": "Payme qachon ishga tushgan?",
+      "options": {
+        "A": "2011 yil",
+        "B": "2015 yil",
+        "C": "2018 yil",
+        "D": "2020 yil"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 4,
+      "question": "Click platformasining 2023 yil holatiga ko'ra foydalanuvchilar soni qancha?",
+      "options": {
+        "A": "1 million",
+        "B": "5 million",
+        "C": "10 milliondan ortiq",
+        "D": "500 ming"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 5,
+      "question": "Apelsin platformasining asosiy auditoriyasi kimlar?",
+      "options": {
+        "A": "Keksa avlod",
+        "B": "Yosh, texnologiyaga qiziqadigan auditoriya",
+        "C": "Faqat biznes vakillari",
+        "D": "Faqat chet elliklar"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 6,
+      "question": "OSON platformasining o'ziga xos xususiyati nima?",
+      "options": {
+        "A": "Faqat ovqat yetkazish",
+        "B": "B2B to'lov shlyuzi taklif qiladi",
+        "C": "Kriptovalyuta savdosi",
+        "D": "Xalqaro pul o'tkazmalari"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 7,
+      "question": "KapitalBank'ning mobil bank ilovasi qanday nomlanadi?",
+      "options": {
+        "A": "Mbank",
+        "B": "BankOnline",
+        "C": "KapitalMobile",
+        "D": "UzBank"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 8,
+      "question": "O'zbekistonda HUMO nima?",
+      "options": {
+        "A": "Ovqat yetkazish platformasi",
+        "B": "Milliy raqamli to'lov tizimi",
+        "C": "Bank nomi",
+        "D": "Transport kompaniyasi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "O'zbekistonda qaysi platforma kriptovalyuta savdosi uchun ruxsat etilgan?",
+      "options": {
+        "A": "Uznex",
+        "B": "Payme",
+        "C": "Click",
+        "D": "Apelsin"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 10,
+      "question": "O'zbekistonda sandbox regulyatsiyalari nima uchun joriy qilingan?",
+      "options": {
+        "A": "Fintech startaplarni rivojlantirish uchun",
+        "B": "Qum qutilarini boshqarish",
+        "C": "Banklar uchun",
+        "D": "Transport uchun"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 11,
+      "question": "O'zbekistonda ovqat yetkazib berish platformasi qaysi?",
+      "options": {
+        "A": "Yandex Eats",
+        "B": "Uzum Tezkor",
+        "C": "Express 24",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 12,
+      "question": "Yandex Eats qaysi ekotizimga kiradi?",
+      "options": {
+        "A": "Google",
+        "B": "Yandex",
+        "C": "Facebook",
+        "D": "Amazon"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 13,
+      "question": "Uzum Tezkor asosan qaysi hududlarda xizmat ko'rsatadi?",
+      "options": {
+        "A": "Faqat Toshkentda",
+        "B": "Shahar hududlarida, tez yetkazib berishga qaratilgan",
+        "C": "Faqat qishloqlarda",
+        "D": "Faqat chet elda"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 14,
+      "question": "Express 24 qanday qo'shimcha xizmatlarni taklif qiladi?",
+      "options": {
+        "A": "Faqat ovqat yetkazish",
+        "B": "Do'kon mahsulotlari va dorilarni yetkazish",
+        "C": "Transport xizmatlari",
+        "D": "Bank xizmatlari"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 15,
+      "question": "COVID-19 pandemiyasi O'zbekistondagi raqamli to'lovlarga qanday ta'sir ko'rsatdi?",
+      "options": {
+        "A": "Naqd pulga qaytdi",
+        "B": "Raqamli to'lovlarni tezlashtirdi",
+        "C": "Hech qanday ta'siri bo'lmadi",
+        "D": "Platformalarni yopishga olib keldi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 16,
+      "question": "O'zbekiston Markaziy Banki fintechni rivojlantirish uchun nima qildi?",
+      "options": {
+        "A": "Regulyator ramkalarni joriy qildi",
+        "B": "Barcha fintechlarni taqiqladi",
+        "C": "Faqat banklarga ruxsat berdi",
+        "D": "Hech narsa qilmadi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 17,
+      "question": "O'zbekistonda fintech platformalari uchun eng katta muammo qaysi?",
+      "options": {
+        "A": "Qishloq joylarda naqd pulga qaramlik",
+        "B": "Regulyator muammolar",
+        "C": "An'anaviy banklar bilan raqobat",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 18,
+      "question": "Payme qanday xizmatlarni taklif qiladi?",
+      "options": {
+        "A": "Kommunal to'lovlar",
+        "B": "P2P pul o'tkazmalari",
+        "C": "Mobil to'ldirish",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 19,
+      "question": "Click platformasi qanday to'lov usulini taklif qiladi?",
+      "options": {
+        "A": "QR kodli to'lovlar",
+        "B": "Faqat naqd pul",
+        "C": "Faqat kredit karta",
+        "D": "Cheklar"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 20,
+      "question": "Apelsin qanday innovatsion xususiyatlarga ega?",
+      "options": {
+        "A": "Saqlash hamyonlari",
+        "B": "Investitsiya imkoniyatlari",
+        "C": "Yosh auditoriya uchun interfeys",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 21,
+      "question": "O'zbekistonda e-ticaret va fintech platformalari o'rtasidagi sinergiya qanday?",
+      "options": {
+        "A": "Uzum Market va ZoodMall Payme va Click bilan integratsiyalashgan",
+        "B": "Aloqasi yo'q",
+        "C": "Fa raqobat",
+        "D": "Faqat banklar bilan ishlaydi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 22,
+      "question": "O'zbekistonda fintechni rivojlanishiga qanday omillar ta'sir ko'rsatdi?",
+      "options": {
+        "A": "Mobil va internet tarqalishi",
+        "B": "Hukumat dasturlari",
+        "C": "COVID-19 pandemiyasi",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 23,
+      "question": "2023 yil holatiga ko'ra O'zbekistonda qancha mobil foydalanuvchi bor?",
+      "options": {
+        "A": "10 million",
+        "B": "15 million",
+        "C": "25 milliondan ortiq",
+        "D": "5 million"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 24,
+      "question": "O'zbekistonda fintech platformalari qishloq joylarga qanday ta'sir ko'rsatishi mumkin?",
+      "options": {
+        "A": "Moliyaviy inklyuziyani kengaytirish",
+        "B": "Naqd pulni yo'qotish",
+        "C": "Banklarni yopish",
+        "D": "Hech qanday ta'siri yo'q"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 25,
+      "question": "O'zbekistonda blokcheyn texnologiyalari bilan qanday ishlanmoqda?",
+      "options": {
+        "A": "Dastlabki bosqichda, qiziqish o'sib bormoqda",
+        "B": "To'liq rivojlangan",
+        "C": "Ta'qiqlangan",
+        "D": "Hech qanday ish olib borilmayapti"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 26,
+      "question": "2019 yilda O'zbekiston hukumati kriptovalyutalar haqida qanday qaror qabul qildi?",
+      "options": {
+        "A": "Muayyan shartlarda savdo va miningni ruxsat berdi",
+        "B": "To'liq taqiqladi",
+        "C": "Hech qanday qaror qabul qilmadi",
+        "D": "Faqat banklarga ruxsat berdi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 27,
+      "question": "O'zbekistonda Buy Now Pay Later (BNPL) modeli qanday rivojlanishi mumkin?",
+      "options": {
+        "A": "E-ticaret xaridlarini rag'batlantirish uchun",
+        "B": "Faqat naqd pul uchun",
+        "C": "Banklar uchun",
+        "D": "Ishlanmaydi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 28,
+      "question": "O'zbekistonda ochiq bank (Open Banking) nima uchun muhim?",
+      "options": {
+        "A": "Bank va fintech platformalari hamkorligini rivojlantirish",
+        "B": "Banklarni ochiq qoldirish",
+        "C": "Bank hisoblarini ochish",
+        "D": "Bank xizmatlarini bepul qilish"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 29,
+      "question": "O'zbekistondagi mehnat migrantlari uchun fintech platformalar qanday yechim taklif qilishi mumkin?",
+      "options": {
+        "A": "Tezroq va arzonroq pul o'tkazmalari",
+        "B": "An'anaviy pul o'tkazmalariga qaramlik",
+        "C": "Hech qanday yechim yo'q",
+        "D": "Faqat naqd pul"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 30,
+      "question": "O'zbekistonda fintech startaplari qanday yo'nalishlarda ishlashi mumkin?",
+      "options": {
+        "A": "Mikrokreditlar",
+        "B": "Qishloq xo'jaligi moliyalashtirish",
+        "C": "Chegaradan tashqari pul o'tkazmalari",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 31,
+      "question": "Payme'ning muvaffaqiyat omillari qaysilar?",
+      "options": {
+        "A": "Bozorga birinchi bo'lib kirish",
+        "B": "Banklar va yirik savdogarlar bilan hamkorlik",
+        "C": "Oddiy foydalanuvchi interfeysi",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 32,
+      "question": "O'zbekistonda fintech platformalar ishonch muammosi qanday hal qilinadi?",
+      "options": {
+        "A": "Xavfsiz transaktsiyalar orqali",
+        "B": "Aholi o'rtasida moliyaviy savodxonlikni oshirish",
+        "C": "Aksiyadorlik jamiyatini rivojlantirish",
+        "D": "A va B to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 33,
+      "question": "OSON platformasi qanday ko'p platformali yondashuvni qo'llaydi?",
+      "options": {
+        "A": "Veb, mobil, SMS orqali to'lovlar",
+        "B": "Faqat mobil ilova",
+        "C": "Faqat veb-sayt",
+        "D": "Faqat ofislarda"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 34,
+      "question": "O'zbekistonda an'anaviy banklar fintechga qanday munosabatda?",
+      "options": {
+        "A": "Raqobat, lekin ular ham raqamlashtirmoqda",
+        "B": "Hech qanday aloqasi yo'q",
+        "C": "Faqat hamkorlik",
+        "D": "Faqat raqobat"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 35,
+      "question": "O'zbekistonda milliy to'lov tizimi HUMO nima maqsadda yaratildi?",
+      "options": {
+        "A": "Raqamli to'lovlarni birlashtirish",
+        "B": "Visa va MasterCard'ga qaramlikni kamaytirish",
+        "C": "Mahalliy to'lov tizimini rivojlantirish",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 36,
+      "question": "O'zbekistonda fintech platformalari qanday daromad modellariga ega?",
+      "options": {
+        "A": "Tranzaksiya to'lovlari",
+        "B": "Hamkorlikdagi to'lovlar",
+        "C": "Obuna modellari",
+        "D": "A va B to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 37,
+      "question": "Yandex Eats O'zbekistonda qanday texnologiyalardan foydalanadi?",
+      "options": {
+        "A": "Yandex xaritalari",
+        "B": "Sun'iy intellekt",
+        "C": "Marshrut optimallashtirish",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 38,
+      "question": "Uzum Tezkor asosan qaysi hududlarda faol?",
+      "options": {
+        "A": "Yirik shaharlar",
+        "B": "Faqat poytaxt",
+        "C": "Faqat qishloqlar",
+        "D": "Chet elda"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 39,
+      "question": "Express 24 O'zbekistonda qanday o'rin tutadi?",
+      "options": {
+        "A": "Eyetakchi mahalliy ovqat yetkazish platformalaridan biri",
+        "B": "Kichik platforma",
+        "C": "Faqat Toshkentda ishlaydi",
+        "D": "Yopilgan platforma"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 40,
+      "question": "O'zbekistonda ovqat yetkazish platformalari qanday muammolarga duch keladi?",
+      "options": {
+        "A": "Yuqori komissiyalar",
+        "B": "Logistika muammolari",
+        "C": "Restoranlar bilan munosabatlar",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 41,
+      "question": "O'zbekistonda moliyaviy savodxonlik darajasi fintech rivojlanishiga qanday ta'sir ko'rsatadi?",
+      "options": {
+        "A": "Past daraja rivojlanishni sekinlashtiradi",
+        "B": "Hech qanday ta'siri yo'q",
+        "C": "Faqat ijobiy ta'sir",
+        "D": "Faqat salbiy ta'sir"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 42,
+      "question": "O'zbekistonda fintech platformalar kelajakda qanday yo'nalishlarda rivojlanishi mumkin?",
+      "options": {
+        "A": "Qishloq joylarga xizmat ko'rsatish",
+        "B": "Kichik biznes uchun yechimlar",
+        "C": "Xalqaro integratsiya",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 43,
+      "question": "Payme 2023 yil holatiga ko'ra qancha foydalanuvchiga ega?",
+      "options": {
+        "A": "5 million",
+        "B": "7 million",
+        "C": "9 milliondan ortiq",
+        "D": "3 million"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 44,
+      "question": "O'zbekistonda fintech regulyator muammolari qanday hal qilinmoqda?",
+      "options": {
+        "A": "Markaziy Bank tomonidan ramkalar yaratish",
+        "B": "Sandbox regulyatsiyalari",
+        "C": "Innovatsiyalarni qo'llab-quvvatlash",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 45,
+      "question": "O'zbekistonda qaysi e-ticaret platformalari fintech bilan integratsiyalashgan?",
+      "options": {
+        "A": "Uzum Market",
+        "B": "ZoodMall",
+        "C": "Ikkovi ham",
+        "D": "Hech biri"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 46,
+      "question": "Apelsin platformasi qanday hamkorliklarga ega?",
+      "options": {
+        "A": "Onlayn savdogarlar bilan",
+        "B": "Xizmat ko'rsatuvchi provayderlar bilan",
+        "C": "Yosh auditoriya bilan",
+        "D": "A va B to'g'ri"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 47,
+      "question": "O'zbekistonda mobil telefonlar sonining o'sishi fintechga qanday ta'sir ko'rsatdi?",
+      "options": {
+        "A": "Mobil asosidagi fintech xizmatlarini rivojlantirdi",
+        "B": "Hech qanday ta'siri yo'q",
+        "C": "Faqat salbiy ta'sir",
+        "D": "Faqat banklar foydalandi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 48,
+      "question": "O'zbekistonda shaxsiy ma'lumotlarning xavfsizligi fintech platformalar uchun qanday muammo?",
+      "options": {
+        "A": "Muhim muammo, chunki sezuvli moliyaviy ma'lumotlar bilan ishlashadi",
+        "B": "Muammo emas",
+        "C": "Faqat banklar uchun muammo",
+        "D": "Hech kimni qiziqtirmaydi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 49,
+      "question": "O'zbekistonda keksa avlod fintech platformalarni qanday qabul qiladi?",
+      "options": {
+        "A": "Ishonchsizlik, chunki raqamli xizmatlarga moslashish qiyin",
+        "B": "Oson qabul qiladi",
+        "C": "Faqat yoshlar foydalanadi",
+        "D": "Hech qanday muammo yo'q"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 50,
+      "question": "O'zbekiston fintech sohasida kelajakda qanday imkoniyatlarga ega?",
+      "options": {
+        "A": "Moliyaviy inklyuziyani kengaytirish",
+        "B": "Mahalliy innovatsiyalarni rivojlantirish",
+        "C": "Xalqaro hamkorliklar",
+        "D": "Barchasi to'g'ri"
+      },
+      "correct_answer": "D"
+    }
+  ],
+  "instructions": "Har bir savolga faqat bitta to'g'ri javob bor. Barcha savollar O'zbekistondagi raqamlashtirish va platformalar haqida.",
+  "total_questions": 50,
+  "topics_covered": [
+    "O'zbekistondagi Fintech Platformalar",
+    "O'zbekistondagi Ovqat Yetkazish Platformalari",
+    "Digital Uzbekistan 2030",
+    "Milliy To'lov Tizimlari",
+    "Regulyator Muhit",
+    "Mahalliy Startaplar",
+    "Challenges va Opportunities"
+  ],
+  "specific_platforms": [
+    "Payme",
+    "Click", 
+    "Apelsin",
+    "OSON",
+    "Mbank",
+    "Yandex Eats",
+    "Uzum Tezkor",
+    "Express 24",
+    "Uznex",
+    "HUMO"
+  ]
+}
