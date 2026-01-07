@@ -165,11 +165,17 @@ function getDeviceType() {
     return 'desktop';
 }
 
-// Country Flag Helper
-function getFlagEmoji(countryCode) {
-    if (!countryCode) return '';
-    return countryCode.toUpperCase().replace(/./g, char => 
-        String.fromCodePoint(127397 + char.charCodeAt(0))
+// Country Flag Component
+function CountryFlag({ countryCode }) {
+    if (!countryCode) return <span className="text-lg">🏳️</span>;
+    return (
+        <img 
+            src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+            alt={countryCode}
+            width={24}
+            height={18}
+            className="inline-block shadow-sm rounded-[2px] object-cover"
+        />
     );
 }
 
@@ -849,8 +855,8 @@ export default function Home() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center gap-1.5 truncate">
-                                                <span title={user.country || "Unknown Country"} className="text-sm cursor-help select-none grayscale hover:grayscale-0 transition-all">
-                                                    {getFlagEmoji(user.country) || "🏳️"}
+                                                <span title={user.country || "Unknown Country"} className="cursor-help select-none transition-all">
+                                                    <CountryFlag countryCode={user.country} />
                                                 </span>
                                                 {user.device === 'mobile' 
                                                     ? <Smartphone size={12} className="text-gray-400" />
@@ -1086,7 +1092,7 @@ export default function Home() {
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-bold text-gray-900">Watching {spectatingUser.name}</h3>
                                         {spectatingUser.device === 'mobile' ? <Smartphone size={14} className="text-gray-400"/> : <Monitor size={14} className="text-gray-400"/>}
-                                        <span className="text-lg">{getFlagEmoji(spectatingUser.country)}</span>
+                                        <span className="text-lg"><CountryFlag countryCode={spectatingUser.country} /></span>
                                     </div>
                                     <p className="text-xs text-gray-500 flex items-center gap-1">
                                         <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
