@@ -1053,6 +1053,7 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
     const [answers, setAnswers] = useState(test.answers || {}); 
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
     const [showConfirmFinish, setShowConfirmFinish] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     // Report System State
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState("");
@@ -1176,40 +1177,53 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
     }, [test.id, userId]);
 
     const confirmFinish = async () => {
-        let score = 0;
-        test.questions.forEach((q, idx) => {
-            if (answers[idx] === q.correct_answer) {
-                score++;
-            }
-        });
-        
-        // Calculate duration
-        const endTime = Date.now();
-        const durationMs = endTime - (test.startTime || endTime); // prevent negative if startTime missing based on reload
-        
-        // Remove from active users list specifically on finish
-        await fetch(`/api/active?userId=${userId}`, { method: 'DELETE' });
-        
-        // Submit to leaderboard
-        await fetch('/api/leaderboard', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: userName,
-                testName: test.name,
-                score: score,
-                total: totalQuestions,
-                date: new Date().toISOString(),
-                duration: durationMs,
-                questions: test.questions, // Store snapshot
-                answers: answers
-            })
-        });
+        if (isSubmitting) return;
+        setIsSubmitting(true);
 
-        setIsFinished(true);
-        setShowConfirmFinish(false);
-        // Pass up results
-        onFinish({ answers, isFinished: true, score });
+        try {
+            let score = 0;
+            test.questions.forEach((q, idx) => {
+                if (answers[idx] === q.correct_answer) {
+                    score++;
+                }
+            });
+            
+            // Calculate duration
+            const endTime = Date.now();
+            const durationMs = endTime - (test.startTime || endTime); // prevent negative if startTime missing based on reload
+            
+            // Remove from active users list specifically on finish
+            try {
+                await fetch(`/api/active?userId=${userId}`, { method: 'DELETE' });
+            } catch (e) {
+                console.error("Failed to clear active session", e);
+            }
+            
+            // Submit to leaderboard
+            await fetch('/api/leaderboard', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: userName,
+                    testName: test.name, // Ensure this matches schema
+                    score: score,
+                    total: totalQuestions,
+                    date: new Date().toISOString(),
+                    duration: durationMs,
+                    questions: test.questions, // Store snapshot
+                    answers: answers
+                })
+            });
+
+            setIsFinished(true);
+            setShowConfirmFinish(false);
+            // Pass up results
+            onFinish({ answers, isFinished: true, score });
+        } catch (error) {
+            console.error("Finish error", error);
+            alert("Error submitting results. Please try again.");
+            setIsSubmitting(false);
+        }
     };
 
     if (isFinished) {
@@ -1535,9 +1549,15 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                             </button>
                             <button 
                                 onClick={confirmFinish}
-                                className="flex-1 py-2.5 rounded-lg bg-blue-600 font-semibold text-white hover:bg-blue-700 transition-colors shadow-md"
+                                disabled={isSubmitting}
+                                className="flex-1 py-2.5 rounded-lg bg-blue-600 font-semibold text-white hover:bg-blue-700 transition-colors shadow-md disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                Yes, Finish
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={18} />
+                                        Saving...
+                                    </>
+                                ) : "Yes, Finish"}
                             </button>
                         </div>
                     </div>
