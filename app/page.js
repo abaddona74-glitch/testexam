@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock } from 'lucide-react';
 import clsx from 'clsx';
 
 function getLeague(score, total) {
@@ -65,6 +65,24 @@ function getLeague(score, total) {
     };
 }
 
+// Helper for Duration Formatting
+function formatDuration(ms) {
+    if (!ms) return "-";
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}m ${seconds}s`;
+}
+
+// Helper for relative time (simple version)
+function timeAgo(dateString) {
+    if (!dateString) return "-";
+    const diff = (new Date() - new Date(dateString)) / 1000;
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
+}
+
 function shuffleArray(array) {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
@@ -74,11 +92,80 @@ function shuffleArray(array) {
   return newArray;
 }
 
+// Separate component or reused part for detailed review
+function DetailedReview({ questions, answers }) {
+    const [reportReason, setReportReason] = useState("");
+    const [activeReportQuestion, setActiveReportQuestion] = useState(null);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [isReporting, setIsReporting] = useState(false);
+
+    // Reporting logic (Replicated or can be passed)
+    // For simplicity, we keep it visual or basic here since this might be history view
+    // Real reporting needs testId, which we might not have in pure history view unless passed
+    
+    // We can disable reporting in History view for now or assume it works
+    const reportingQuestion = activeReportQuestion || {};
+
+    return (
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="p-0">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 className="font-bold text-gray-700">Detailed Review</h3>
+                </div>
+                <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
+                    {questions.map((q, idx) => {
+                        const userAnswer = answers[idx]; // Note: this relies on index, assumes questions order is same
+                        const isCorrect = userAnswer === q.correct_answer;
+                        const userOption = q.shuffledOptions.find(o => o.id === userAnswer);
+                        const correctOption = q.shuffledOptions.find(o => o.id === q.correct_answer);
+
+                        return (
+                            <div key={q.id || idx} className="p-6 hover:bg-gray-50 transition-colors group">
+                                <div className="flex gap-4">
+                                    <div className="mt-1">
+                                        {isCorrect ? (
+                                            <CheckCircle2 className="text-green-500" size={24} />
+                                        ) : (
+                                            <XCircle className="text-red-500" size={24} />
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <p className="font-medium text-gray-900 pr-4">
+                                                <span className="text-gray-400 mr-2">#{idx + 1}</span>
+                                                {q.question}
+                                            </p>
+                                        </div>
+                                        <div className="text-sm space-y-1">
+                                            <div className={clsx("flex items-center gap-2", isCorrect ? "text-green-700" : "text-red-700")}>
+                                                <span className="font-semibold w-24 flex-shrink-0">Your Answer:</span>
+                                                <span>{userOption ? userOption.text : `Skipped or invalid (${userAnswer || 'None'})`}</span>
+                                            </div>
+                                            {!isCorrect && (
+                                                <div className="flex items-center gap-2 text-green-700">
+                                                    <span className="font-semibold w-24 flex-shrink-0">Correct:</span>
+                                                    <span>{correctOption?.text || "Unknown"}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Home() {
   const [tests, setTests] = useState({ defaultTests: [], uploadedTests: [] });
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('list'); // 'list', 'test', 'upload'
+  const [view, setView] = useState('list'); // 'list', 'test', 'upload', 'history', 'review'
   const [activeTest, setActiveTest] = useState(null);
+  const [activeReview, setActiveReview] = useState(null); // For history review
+
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState(''); // Unique Session ID
   const [nameInput, setNameInput] = useState('');
@@ -257,7 +344,8 @@ export default function Home() {
       currentQuestionIndex: 0,
       answers: {}, // { questionId: optionId }
       isFinished: false,
-      score: 0
+      score: 0,
+      startTime: Date.now() // Track start time
     };
 
     setActiveTest(newTestState);
@@ -369,6 +457,16 @@ export default function Home() {
             </div>
             <div className="flex gap-2">
                 <button 
+                  onClick={() => setView('history')}
+                  className={clsx(
+                    "p-2 rounded-lg transition-colors",
+                    view === 'history' ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  )}
+                  title="History"
+                >
+                    <Clock size={20} />
+                </button>
+                <button 
                   onClick={() => {
                       setNameInput(userName);
                       setShowSettings(true);
@@ -472,21 +570,23 @@ export default function Home() {
 
             {/* Leaderboard Section */}
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center justify-center gap-2">
                     <Trophy className="text-yellow-500" /> Leaderboard
                 </h2>
                 {leaderboard.length === 0 ? (
                     <div className="text-center py-8 text-gray-400 italic">No results yet. Be the first!</div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-center">
                             <thead>
                                 <tr className="border-b border-gray-100 text-xs uppercase text-gray-400 font-semibold tracking-wider">
-                                    <th className="pb-3 pl-2 w-16">Rank</th>
-                                    <th className="pb-3 w-48">User</th>
-                                    <th className="pb-3 w-32">Title</th>
-                                    <th className="pb-3">Test</th>
-                                    <th className="pb-3 text-right pr-2">Score</th>
+                                    <th className="pb-3 w-16 px-2">Rank</th>
+                                    <th className="pb-3 w-48 px-2 text-left">User</th>
+                                    <th className="pb-3 w-32 px-2">Title</th>
+                                    <th className="pb-3 px-2">Test</th>
+                                    <th className="pb-3 w-24 px-2">Time</th>
+                                    <th className="pb-3 w-24 px-2">Duration</th>
+                                    <th className="pb-3 w-24 px-2 text-right">Score</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -496,7 +596,7 @@ export default function Home() {
                                     const LeagueIcon = league.icon;
                                     return (
                                         <tr key={idx} className={clsx("transition-all", league.rowClass)}>
-                                            <td className="py-4 pl-4">
+                                            <td className="py-4 px-2 flex justify-center">
                                                 {idx < 3 ? (
                                                     <div className={clsx(
                                                         "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm border-2",
@@ -507,32 +607,34 @@ export default function Home() {
                                                         {idx + 1}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-gray-400 font-mono text-sm ml-2.5">#{idx + 1}</span>
+                                                    <span className="text-gray-400 font-mono text-sm">#{idx + 1}</span>
                                                 )}
                                             </td>
-                                            <td className="py-3">
+                                            <td className="py-3 px-2 text-left">
                                                 <div className="flex flex-col">
                                                     <span className={clsx("text-base font-medium", league.textClass)}>
                                                         {entry.name}
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="py-3">
-                                                <span className={clsx("w-fit flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-sm font-semibold", league.badgeClass)}>
+                                            <td className="py-3 px-2">
+                                                <span className={clsx("inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-sm font-semibold mx-auto", league.badgeClass)}>
                                                     <LeagueIcon size={12} className={percentage === 100 ? "animate-pulse" : ""} /> 
                                                     {league.name}
                                                 </span>
                                             </td>
-                                            <td className="py-3 text-sm text-gray-500 font-medium">{entry.testName}</td>
-                                            <td className="py-3 text-right pr-4">
+                                            <td className="py-3 text-sm text-gray-500 font-medium px-2">{entry.testName}</td>
+                                            <td className="py-3 text-sm text-gray-400 px-2">{timeAgo(entry.date)}</td>
+                                            <td className="py-3 text-sm text-gray-500 font-mono px-2">{formatDuration(entry.duration)}</td>
+                                            <td className="py-3 text-right px-2">
                                                     <span className="font-bold text-lg text-gray-700">{entry.score}</span>
                                                     <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                         </div>
                     )}
                 </section>
@@ -617,11 +719,130 @@ export default function Home() {
           </div>
         )}
 
+        {view === 'history' && (
+            <div className="max-w-4xl mx-auto">
+                <div className="mb-6 flex items-center justify-between">
+                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <Clock className="text-blue-500" /> Your History
+                    </h2>
+                    <button 
+                        onClick={() => setView('list')}
+                        className="text-gray-500 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
+                    >
+                        <ArrowLeft size={16} /> Back
+                    </button>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    {leaderboard.filter(e => e.name === userName).length === 0 ? (
+                        <div className="text-center py-12 text-gray-400">
+                            <Clock size={48} className="mx-auto mb-4 opacity-20" />
+                            <p>No test history found for <strong>{userName}</strong>.</p>
+                            <button onClick={() => setView('list')} className="text-blue-500 hover:underline mt-2">Take a test</button>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-center">
+                                <thead>
+                                    <tr className="border-b border-gray-100 text-xs uppercase text-gray-400 font-semibold tracking-wider">
+                                        <th className="pb-3 w-48 text-left pl-4">Test</th>
+                                        <th className="pb-3 w-32">Rank</th>
+                                        <th className="pb-3 w-32">Date</th>
+                                        <th className="pb-3 w-24">Duration</th>
+                                        <th className="pb-3 text-right pr-4">Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50">
+                                    {leaderboard
+                                        .filter(e => e.name === userName)
+                                        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by newest
+                                        .map((entry, idx) => {
+                                        const percentage = (entry.score / entry.total) * 100;
+                                        const league = getLeague(entry.score, entry.total);
+                                        const LeagueIcon = league.icon;
+                                        return (
+                                            <tr 
+                                                key={idx} 
+                                                className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                                                onClick={() => {
+                                                    if (entry.questions && entry.answers) {
+                                                        setActiveReview(entry);
+                                                        setView('review');
+                                                    } else {
+                                                        alert("Detailed review not available for this record.");
+                                                    }
+                                                }}
+                                            >
+                                                <td className="py-4 pl-4 text-left font-medium text-gray-700 group-hover:text-blue-600">
+                                                    {entry.testName}
+                                                    {(!entry.questions || !entry.answers) && <span className="ml-2 text-[10px] text-gray-400 border px-1 rounded">No Details</span>}
+                                                </td>
+                                                <td className="py-4">
+                                                    <span className={clsx("inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-sm font-semibold", league.badgeClass)}>
+                                                        <LeagueIcon size={12} /> {league.name}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 text-sm text-gray-500">
+                                                    {new Date(entry.date).toLocaleDateString()} <span className="text-xs opacity-50">{new Date(entry.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                                </td>
+                                                <td className="py-4 text-sm text-gray-500 font-mono">
+                                                    {formatDuration(entry.duration)}
+                                                </td>
+                                                <td className="py-4 text-right pr-4">
+                                                    <span className="font-bold text-lg text-gray-700">{entry.score}</span>
+                                                    <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {view === 'review' && activeReview && (
+            <div className="max-w-4xl mx-auto">
+                <div className="mb-6 flex items-center justify-between">
+                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <CheckCircle2 className="text-green-500" /> Test Review: {activeReview.testName}
+                    </h2>
+                    <button 
+                        onClick={() => setView('history')}
+                        className="text-gray-500 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
+                    >
+                        <ArrowLeft size={16} /> Back to History
+                    </button>
+                </div>
+                
+                {/* Score Summary */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 flex justify-around items-center">
+                    <div className="text-center">
+                        <div className="text-3xl font-bold text-gray-900">{activeReview.score} / {activeReview.total}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Score</div>
+                    </div>
+                     <div className="text-center">
+                        <div className="text-3xl font-bold text-blue-600">{Math.round((activeReview.score / activeReview.total) * 100)}%</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Accuracy</div>
+                    </div>
+                     <div className="text-center">
+                        <div className="text-xl font-bold text-gray-700">{formatDuration(activeReview.duration)}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Time</div>
+                    </div>
+                </div>
+
+                <DetailedReview questions={activeReview.questions} answers={activeReview.answers} />
+            </div>
+        )}
+
         {view === 'test' && activeTest && (
             <TestRunner 
                 test={activeTest} 
                 userName={userName}
                 userId={userId}
+                onBack={() => setView('list')}
                 onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
                 onFinish={(results) => {
                     setActiveTest(prev => ({ ...prev, isFinished: true, ...results }));
@@ -701,15 +922,24 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     );
 }
 
-function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpdate }) {
+function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpdate, onBack }) {
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {}); 
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
     const [showConfirmFinish, setShowConfirmFinish] = useState(false);
+    // Report System State
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState("");
+    const [isReporting, setIsReporting] = useState(false);
+    const [activeReportQuestion, setActiveReportQuestion] = useState(null);
+
     const [activeUsers, setActiveUsers] = useState([]);
 
     const question = test.questions[currentIndex];
     const totalQuestions = test.questions.length;
+    
+    // Determine which question is being reported (default to current if not set)
+    const reportingQuestion = activeReportQuestion || question;
 
     // Use a ref to access current onProgressUpdate without triggering effect
     const onProgressUpdateRef = useRef(onProgressUpdate);
@@ -761,6 +991,35 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
         return () => clearInterval(interval);
     }, [test.id, userId]);
 
+    const handleReportSubmit = async () => {
+        if (!reportReason.trim()) return;
+        
+        setIsReporting(true);
+        try {
+            await fetch('/api/report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    testId: test.id,
+                    questionId: reportingQuestion.id, 
+                    questionText: reportingQuestion.question,
+                    reason: reportReason,
+                    user: userName
+                })
+            });
+            
+            setShowReportModal(false);
+            setReportReason("");
+            setActiveReportQuestion(null);
+            alert("Thanks! We'll review this question.");
+        } catch (error) {
+            console.error(error);
+            alert("Failed to submit report");
+        } finally {
+            setIsReporting(false);
+        }
+    };
+
     const handleAnswer = (optionId) => {
         setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
     };
@@ -795,6 +1054,10 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
             }
         });
         
+        // Calculate duration
+        const endTime = Date.now();
+        const durationMs = endTime - (test.startTime || endTime); // prevent negative if startTime missing based on reload
+        
         // Remove from active users list specifically on finish
         await fetch(`/api/active?userId=${userId}`, { method: 'DELETE' });
         
@@ -806,7 +1069,11 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                 name: userName,
                 testName: test.name,
                 score: score,
-                total: totalQuestions
+                total: totalQuestions,
+                date: new Date().toISOString(),
+                duration: durationMs,
+                questions: test.questions, // Store snapshot
+                answers: answers
             })
         });
 
@@ -821,6 +1088,15 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
         const percentage = Math.round((score / totalQuestions) * 100);
 
         return (
+            <>
+            {/* Back Button for Finished View */}
+            <button 
+                onClick={onBack}
+                className="mb-6 flex items-center gap-2 text-gray-500 hover:text-gray-700 font-medium transition-colors bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+            >
+                <ArrowLeft size={16} /> Back to List
+            </button>
+
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="p-8 text-center bg-gray-900 text-white">
                     <h2 className="text-3xl font-bold mb-2">Test Completed!</h2>
@@ -850,7 +1126,7 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                             const correctOption = q.shuffledOptions.find(o => o.id === q.correct_answer);
 
                             return (
-                                <div key={q.id} className="p-6 hover:bg-gray-50 transition-colors">
+                                <div key={q.id} className="p-6 hover:bg-gray-50 transition-colors group">
                                     <div className="flex gap-4">
                                         <div className="mt-1">
                                             {isCorrect ? (
@@ -860,18 +1136,30 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-medium text-gray-900 mb-2">
-                                                <span className="text-gray-400 mr-2">#{idx + 1}</span>
-                                                {q.question}
-                                            </p>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <p className="font-medium text-gray-900 pr-4">
+                                                    <span className="text-gray-400 mr-2">#{idx + 1}</span>
+                                                    {q.question}
+                                                </p>
+                                                <button 
+                                                    onClick={() => {
+                                                        setActiveReportQuestion(q);
+                                                        setShowReportModal(true);
+                                                    }}
+                                                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                    title="Report Issue"
+                                                >
+                                                    <Flag size={16} />
+                                                </button>
+                                            </div>
                                             <div className="text-sm space-y-1">
                                                 <div className={clsx("flex items-center gap-2", isCorrect ? "text-green-700" : "text-red-700")}>
-                                                    <span className="font-semibold w-16">Your Answer:</span>
+                                                    <span className="font-semibold w-24 flex-shrink-0">Your Answer:</span>
                                                     <span>{userOption ? userOption.text : "Skipped"}</span>
                                                 </div>
                                                 {!isCorrect && (
                                                     <div className="flex items-center gap-2 text-green-700">
-                                                        <span className="font-semibold w-16">Correct:</span>
+                                                        <span className="font-semibold w-24 flex-shrink-0">Correct:</span>
                                                         <span>{correctOption?.text}</span>
                                                     </div>
                                                 )}
@@ -892,23 +1180,94 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                     </button>
                 </div>
             </div>
+
+            {/* Report Modal (Duplicate for Finished State) */}
+            {showReportModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center gap-3 text-gray-900 mb-4">
+                            <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                <Flag size={20} />
+                            </div>
+                            <h3 className="text-lg font-bold">Report Issue</h3>
+                        </div>
+                        <p className="text-gray-500 mb-4 text-sm">
+                            Help us improve! What's wrong with Question <span className="font-mono bg-gray-100 px-1 rounded">#{reportingQuestion.id}</span>?
+                        </p>
+                        
+                        {/* Quick Reason Buttons */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {["Answer is incorrect", "Question is incomplete", "Spelling mistake", "Duplicate question"].map((reason) => (
+                                <button
+                                    key={reason}
+                                    onClick={() => setReportReason(prev => prev ? prev + ", " + reason : reason)}
+                                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium rounded-full transition-colors border border-gray-200"
+                                >
+                                    {reason}
+                                </button>
+                            ))}
+                        </div>
+
+                        <textarea
+                            value={reportReason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                            placeholder="E.g. The correct answer should be B because..."
+                            className="w-full border border-gray-200 bg-gray-50 rounded-xl p-4 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none mb-4 min-h-[120px] resize-none transition-all placeholder:text-gray-400"
+                            autoFocus
+                        />
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => {
+                                    setShowReportModal(false);
+                                    setReportReason("");
+                                    setActiveReportQuestion(null);
+                                }}
+                                className="flex-1 py-2.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleReportSubmit}
+                                disabled={!reportReason.trim() || isReporting}
+                                className="flex-1 py-2.5 rounded-xl bg-red-600 font-semibold text-white hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                            >
+                                {isReporting ? 'Submitting...' : 'Submit Report'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            </>
         );
     }
 
     return (
         <>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[500px]">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col min-h-[500px] mt-12 relative">
                  {/* Progress Bar */}
-                 <div className="h-8 bg-gray-100 w-full relative">
+                 <div className="h-8 bg-gray-200 w-full relative rounded-t-2xl">
+                     {/* Steps */}
+                     <div className="absolute inset-0 w-full h-full pointer-events-none z-10">
+                        {Array.from({ length: totalQuestions - 1 }).map((_, i) => (
+                            <div 
+                                key={i} 
+                                className="absolute top-0 bottom-0 w-px bg-white/40" 
+                                style={{ left: `${((i + 1) / totalQuestions) * 100}%` }}
+                            />
+                        ))}
+                     </div>
                      <div 
-                        className="h-full bg-blue-600 transition-all duration-300 ease-out"
+                        className={clsx(
+                            "h-full bg-blue-600 transition-all duration-300 ease-out rounded-tl-2xl",
+                            currentIndex === totalQuestions - 1 && "rounded-tr-2xl"
+                        )}
                         style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
                      />
                      {/* Active User Markers */}
                      {/* Current User Marker */}
                      <div 
-                         className="absolute top-[-2px] -translate-x-1/2 flex flex-col items-center z-20 group"
-                         style={{ left: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
+                         className="absolute bottom-full flex flex-col items-center z-20 group transition-all duration-300 ease-out -translate-x-1/2"
+                         style={{ left: `calc(${((currentIndex + 1) / totalQuestions) * 100}% - 1px)` }}
                      >
                          <div className="bg-green-600 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded mb-0.5 shadow-sm whitespace-nowrap">You</div>
                          <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-green-600"></div>
@@ -917,19 +1276,40 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                      {activeUsers.map((user, idx) => (
                          <div 
                             key={idx}
-                            className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-amber-400 border-2 border-white rounded-full flex items-center justify-center text-[10px] font-bold text-amber-900 shadow-md transform transition-all z-10"
-                            style={{ left: `calc(${((user.progress + 1) / totalQuestions) * 100}% - 12px)` }}
+                            className="absolute bottom-full flex flex-col items-center z-10 transition-all duration-500 ease-out -translate-x-1/2"
+                            style={{ left: `calc(${((user.progress + 1) / totalQuestions) * 100}% - 1px)` }}
                             title={`${user.name} is here`}
                          >
-                             {user.name.charAt(0).toUpperCase()}
+                             <div className="bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm mb-0.5 whitespace-nowrap min-w-[20px] text-center">
+                                {user.name.charAt(0).toUpperCase()}
+                             </div>
+                             <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-amber-400"></div>
                          </div>
                      ))}
                  </div>
-
+                 
                  <div className="p-6 md:p-10 flex-1 flex flex-col">
                      <div className="flex justify-between items-center mb-6 text-sm text-gray-500">
-                          <span>Question {currentIndex + 1} of {totalQuestions}</span>
-                          <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>
+                          <div className="flex items-center gap-3">
+                              <button 
+                                onClick={onBack}
+                                className="text-gray-400 hover:text-gray-600 transition-colors mr-1 hover:bg-gray-100 p-1 rounded-lg"
+                                title="Back to list"
+                              >
+                                <ArrowLeft size={20} />
+                              </button>
+                              <span>Question {currentIndex + 1} of {totalQuestions}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                              <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>
+                              <button 
+                                onClick={() => setShowReportModal(true)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors mr-1 hover:bg-gray-100 p-1 rounded-lg"
+                                title="Back to listuestion"
+                              >
+                                <Flag size={14} />
+                              </button>
+                          </div>
                      </div>
 
                      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 leading-relaxed">
@@ -1017,6 +1397,63 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                                 className="flex-1 py-2.5 rounded-lg bg-blue-600 font-semibold text-white hover:bg-blue-700 transition-colors shadow-md"
                             >
                                 Yes, Finish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center gap-3 text-gray-900 mb-4">
+                            <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                <Flag size={20} />
+                            </div>
+                            <h3 className="text-lg font-bold">Report Issue</h3>
+                        </div>
+                        <p className="text-gray-500 mb-4 text-sm">
+                            Help us improve! What's wrong with Question <span className="font-mono bg-gray-100 px-1 rounded">#{reportingQuestion.id}</span>?
+                        </p>
+                        
+                        {/* Quick Reason Buttons */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {["Answer is incorrect", "Question is incomplete", "Spelling mistake", "Duplicate question"].map((reason) => (
+                                <button
+                                    key={reason}
+                                    onClick={() => setReportReason(prev => prev ? prev + ", " + reason : reason)}
+                                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium rounded-full transition-colors border border-gray-200"
+                                >
+                                    {reason}
+                                </button>
+                            ))}
+                        </div>
+
+                        <textarea
+                            value={reportReason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                            placeholder="E.g. The correct answer should be B because..."
+                            className="w-full border border-gray-200 bg-gray-50 rounded-xl p-4 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none mb-4 min-h-[120px] resize-none transition-all placeholder:text-gray-400"
+                            autoFocus
+                        />
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => {
+                                    setShowReportModal(false);
+                                    setReportReason("");
+                                    setActiveReportQuestion(null);
+                                }}
+                                className="flex-1 py-2.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleReportSubmit}
+                                disabled={!reportReason.trim() || isReporting}
+                                className="flex-1 py-2.5 rounded-xl bg-red-600 font-semibold text-white hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                            >
+                                {isReporting ? 'Submitting...' : 'Submit Report'}
                             </button>
                         </div>
                     </div>
