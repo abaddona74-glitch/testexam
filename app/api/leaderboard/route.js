@@ -4,21 +4,34 @@ import path from 'path';
 
 const DB_PATH = path.join(process.cwd(), 'leaderboard.json');
 
+// In-memory fallback for Vercel/Serverless where FS is read-only
+let dbCache = null;
+
 function getLeaderboard() {
+    if (dbCache) return dbCache;
+
     try {
         if (!fs.existsSync(DB_PATH)) {
-            fs.writeFileSync(DB_PATH, '[]');
+            dbCache = [];
             return [];
         }
         const data = fs.readFileSync(DB_PATH, 'utf8');
-        return JSON.parse(data);
+        dbCache = JSON.parse(data);
+        return dbCache;
     } catch (e) {
+        console.error("Read error or parsing error:", e);
+        dbCache = [];
         return [];
     }
 }
 
 function saveLeaderboard(data) {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+    dbCache = data;
+    try {
+        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+    } catch (e) {
+        console.warn("Write failed (likely read-only FS on Vercel). Data saved to memory only.", e);
+    }
 }
 
 export async function GET() {

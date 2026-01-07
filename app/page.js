@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder } from 'lucide-react';
 import clsx from 'clsx';
 
 function getLeague(score, total) {
@@ -161,6 +161,7 @@ function DetailedReview({ questions, answers }) {
 
 export default function Home() {
   const [tests, setTests] = useState({ defaultTests: [], uploadedTests: [] });
+  const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('list'); // 'list', 'test', 'upload', 'history', 'review'
   const [activeTest, setActiveTest] = useState(null);
@@ -173,6 +174,10 @@ export default function Home() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
+  
+  // Upload State
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFolder, setUploadFolder] = useState('');
   
   // Persistent state for resuming tests
   const [savedProgress, setSavedProgress] = useState({});
@@ -281,6 +286,7 @@ export default function Home() {
       const res = await fetch('/api/tests');
       const data = await res.json();
       setTests(data);
+      if (data.folders) setFolders(data.folders);
     } catch (error) {
       console.error("Failed to fetch tests", error);
     } finally {
@@ -381,27 +387,33 @@ export default function Home() {
       });
   };
 
-  const handleUpload = async (e) => {
+  const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    const file = e.target.files[0];
+    const fileInput = e.target.elements.fileInput;
+    const file = fileInput?.files[0];
+    
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
         const json = JSON.parse(event.target.result);
-        const name = file.name.replace('.json', '') + ' (Uploaded)';
+        const name = file.name.replace('.json', '');
         
-        // Send to server to share with "everyone" (in memory)
         const res = await fetch('/api/tests', {
              method: 'POST',
              headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ name, content: json })
+             body: JSON.stringify({ 
+                name, 
+                content: json,
+                folder: uploadFolder
+             })
         });
         
         if (res.ok) {
             await fetchTests();
-            setView('list');
+            setShowUploadModal(false);
+            setUploadFolder('');
         } else {
             alert("Failed to upload test");
         }
@@ -532,6 +544,52 @@ export default function Home() {
              </div>
         )}
 
+        {showUploadModal && (
+             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                 <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+                     <button onClick={() => setShowUploadModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                         <XCircle size={24} />
+                     </button>
+                     <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <Upload className="text-blue-600" /> Upload Test
+                     </h2>
+                     <form onSubmit={handleUploadSubmit}>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Select Subject</label>
+                          <select 
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white text-gray-900"
+                            value={uploadFolder}
+                            onChange={(e) => setUploadFolder(e.target.value)}
+                          >
+                             <option value="">General (Root)</option>
+                             {folders.map(f => (
+                                 <option key={f} value={f}>{f}</option>
+                             ))}
+                          </select>
+
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Test File (JSON)</label>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 transition-colors mb-6 relative">
+                                <input 
+                                    type="file" 
+                                    name="fileInput"
+                                    accept=".json"
+                                    required
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <Upload className="mx-auto text-gray-400 mb-2" />
+                                <p className="text-sm text-gray-500">Click or Drag JSON file here</p>
+                          </div>
+
+                          <button  
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+                          >
+                              Upload Test
+                          </button>
+                      </form>
+                 </div>
+             </div>
+        )}
+
         {view === 'list' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-9 space-y-8">
@@ -540,34 +598,76 @@ export default function Home() {
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                         <List className="text-blue-500" /> Available Tests
                     </h2>
-                    <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                    <button 
+                        onClick={() => { setUploadFolder(folders[0] || ''); setShowUploadModal(true); }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
                         <Upload size={16} /> Upload Test
-                        <input type="file" accept=".json" className="hidden" onChange={handleUpload} />
-                    </label>
+                    </button>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-4">
-                    {/* Default Tests */}
-                    {tests.defaultTests.map(test => (
-                        <TestCard 
-                            key={test.id} 
-                            test={test} 
-                            onStart={() => startTest(test)} 
-                            badge="Official"
-                            hasProgress={!!savedProgress[test.id]}
-                        />
+                <div className="space-y-8">
+                    {/* Default Tests Grouped by Category */}
+                    {Object.entries(tests.defaultTests.reduce((acc, test) => {
+                        const category = test.category || 'General';
+                        if (!acc[category]) acc[category] = [];
+                        acc[category].push(test);
+                        return acc;
+                    }, folders.reduce((acc, f) => ({ ...acc, [f]: [] }), {}))).sort(([catA, testsA], [catB, testsB]) => {
+                        const hasTestsA = testsA.length > 0;
+                        const hasTestsB = testsB.length > 0;
+                        if (hasTestsA && !hasTestsB) return -1;
+                        if (!hasTestsA && hasTestsB) return 1;
+                        return catA.localeCompare(catB);
+                    }).map(([category, categoryTests]) => (
+                        <div key={category} className="bg-gray-50/50 rounded-xl p-6 border border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                                <span className="bg-yellow-100 text-yellow-600 p-2 rounded-lg">
+                                    <Folder size={20} className="fill-current" />
+                                </span>
+                                {category}
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {categoryTests.length > 0 ? categoryTests.map(test => (
+                                    <TestCard 
+                                        key={test.id} 
+                                        test={test} 
+                                        onStart={() => startTest(test)} 
+                                        badge="Official"
+                                        hasProgress={!!savedProgress[test.id]}
+                                    />
+                                )) : (
+                                     <div className="col-span-2 text-center py-8 text-gray-400 text-sm italic border-2 border-dashed border-gray-100 rounded-lg">
+                                        No tests available in this subject. <button onClick={() => { setUploadFolder(category); setShowUploadModal(true); }} className="text-blue-500 hover:underline">Upload one?</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     ))}
+
                     {/* Uploaded Tests */}
-                    {tests.uploadedTests.map(test => (
-                        <TestCard 
-                            key={test.id} 
-                            test={test} 
-                            onStart={() => startTest(test)} 
-                            badge="Community" 
-                            badgeColor="bg-green-100 text-green-700" 
-                            hasProgress={!!savedProgress[test.id]}
-                        />
-                    ))}
+                    {tests.uploadedTests.length > 0 && (
+                        <div className="bg-gray-50/50 rounded-xl p-6 border border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                                <span className="bg-blue-100 text-blue-600 p-2 rounded-lg">
+                                    <Upload size={20} />
+                                </span>
+                                Uploaded / Community
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {tests.uploadedTests.map(test => (
+                                    <TestCard 
+                                        key={test.id} 
+                                        test={test} 
+                                        onStart={() => startTest(test)} 
+                                        badge="Community" 
+                                        badgeColor="bg-green-100 text-green-700" 
+                                        hasProgress={!!savedProgress[test.id]}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     
                     {tests.defaultTests.length === 0 && tests.uploadedTests.length === 0 && (
                         <div className="col-span-2 p-12 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
