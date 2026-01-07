@@ -1220,6 +1220,7 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
         if (selectedLang && test.translations) {
             onStart({
                 ...test,
+                id: `${test.id}_${selectedLang}`, // Unique ID for progress saving
                 content: activeContent,
                 language: selectedLang
             });
