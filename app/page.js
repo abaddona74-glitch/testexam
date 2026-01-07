@@ -214,6 +214,7 @@ export default function Home() {
     
     // 4. Set up intervals
     const interval = setInterval(fetchGlobalActiveUsers, 5000);
+    const leaderboardInterval = setInterval(fetchLeaderboard, 5000); // Auto-refresh leaderboard
     
     // 5. Send heartbeat for "Browsing" status if we have a username
     const heartbeatInterval = setInterval(() => {
@@ -226,7 +227,11 @@ export default function Home() {
         }
     }, 10000);
 
-    return () => clearInterval(interval);
+    return () => {
+        clearInterval(interval);
+        clearInterval(leaderboardInterval);
+        clearInterval(heartbeatInterval);
+    };
   }, []);
 
   // Separate effect for main page heartbeat
