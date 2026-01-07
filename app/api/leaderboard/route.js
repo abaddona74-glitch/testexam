@@ -1,47 +1,20 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-
-const DB_PATH = path.join(process.cwd(), 'leaderboard.json');
-
-// In-memory fallback for Vercel/Serverless where FS is read-only
-let dbCache = null;
-
-function getLeaderboard() {
-    if (dbCache) return dbCache;
-
-    try {
-        if (!fs.existsSync(DB_PATH)) {
-            dbCache = [];
-            return [];
-        }
-        const data = fs.readFileSync(DB_PATH, 'utf8');
-        dbCache = JSON.parse(data);
-        return dbCache;
-    } catch (e) {
-        console.error("Read error or parsing error:", e);
-        dbCache = [];
-        return [];
-    }
-}
-
-function saveLeaderboard(data) {
-    dbCache = data;
-    try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
-    } catch (e) {
-        console.warn("Write failed (likely read-only FS on Vercel). Data saved to memory only.", e);
-    }
-}
+import dbConnect from '../../../lib/mongodb';
+import Leaderboard from '../../../models/Leaderboard';
 
 export async function GET() {
-  const leaderboard = getLeaderboard();
-  // Return sorted by score (descending)
-  const sorted = [...leaderboard].sort((a, b) => b.score - a.score);
-  return NextResponse.json(sorted);
+  await dbConnect();
+  try {
+      const leaderboard = await Leaderboard.find({}).sort({ score: -1 }).limit(100);
+      return NextResponse.json(leaderboard);
+  } catch (error) {
+      console.error("Leaderboard GET Error:", error);
+      return NextResponse.json({ error: "Failed to fetch leaderboard" }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
+  await dbConnect();
   try {
     const body = await request.json();
     const { name, testName, score, total, duration, questions, answers } = body;
@@ -50,25 +23,20 @@ export async function POST(request) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    const leaderboard = getLeaderboard();
-    const newEntry = {
-        id: Date.now().toString(),
+    const newEntry = await Leaderboard.create({
         name,
         testName,
         score,
         total,
-        date: new Date().toISOString(),
+        date: new Date(),
         duration,
-        questions, // Save snapshot of questions for review
-        answers   // Save user answers
-    };
+        questions, 
+        answers   
+    });
     
-    leaderboard.push(newEntry);
-    saveLeaderboard(leaderboard);
-    
-    return NextResponse.json(newEntry);    
-    return NextResponse.json({ success: true, entry: newEntry });
+    return NextResponse.json(newEntry);
   } catch (error) {
+    console.error("Leaderboard POST Error:", error);
     return NextResponse.json({ error: "Internal Error" }, { status: 500 });
   }
 }

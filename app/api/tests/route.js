@@ -1,22 +1,28 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
+import dbConnect from '../../../lib/mongodb';
+import Test from '../../../models/Test';
 
 // In-memory store for uploaded tests (persists only while server is running)
 // For permanent storage, you'd need a database (Postgres, MongoDB, etc.) or Blob storage.
+// NOW USING MONGODB
 let uploadedTests = [];
 
 export async function GET() {
+  await dbConnect();
+
   const testsDirectory = path.join(process.cwd(), 'tests');
   let defaultTests = [];
-  let folders = [];
+  let folders = new Set(); 
 
+  // 1. Load from File System (Legacy/Static Tests)
   try {
     const entries = await fs.readdir(testsDirectory, { withFileTypes: true });
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        folders.push(entry.name);
+         folders.add(entry.name);
         // Handle Subject Folder
         const subjectPath = path.join(testsDirectory, entry.name);
         try {
@@ -64,14 +70,36 @@ export async function GET() {
     console.error("Error reading tests directory:", error);
   }
 
+  // 2. Load from MongoDB
+  try {
+    const dbTests = await Test.find({});
+    dbTests.forEach(test => {
+        defaultTests.push({
+            id: test._id.toString(),
+            name: test.name,
+            category: test.folder || 'General',
+            type: 'uploaded', // Treated as regular tests now
+            content: test.content
+        });
+        if (test.folder) folders.add(test.folder);
+    });
+  } catch (e) {
+      console.error("DB Fetch Error", e);
+  }
+
+  // Convert Set to Array for response
+  const foldersArray = Array.from(folders);
+
   return NextResponse.json({ 
     defaultTests, 
-    uploadedTests,
-    folders
+    uploadedTests: [], // Empty as we merged everything
+    folders: foldersArray
   });
 }
 
 export async function POST(request) {
+  await dbConnect();
+
   try {
     const body = await request.json();
     const { name, content, folder } = body;
@@ -80,38 +108,16 @@ export async function POST(request) {
         return NextResponse.json({ error: "Name and content are required" }, { status: 400 });
     }
 
-    if (folder) {
-        // Validation sanitize folder path to prevent traversal
-        const safeFolder = path.basename(folder);
-        const safeName = path.basename(name).replace(/[^a-zA-Z0-9_\-\. ]/g, '') + '.json';
-        
-        const testsDirectory = path.join(process.cwd(), 'tests');
-        const folderPath = path.join(testsDirectory, safeFolder);
-        const filePath = path.join(folderPath, safeName);
+    // Save to MongoDB
+    const newTest = await Test.create({
+        name,
+        content,
+        folder: folder || 'General'
+    });
 
-        // Ensure folder exists (it should, but just in case)
-        try {
-            await fs.access(folderPath);
-        } catch {
-             await fs.mkdir(folderPath, { recursive: true });
-        }
-
-        await fs.writeFile(filePath, JSON.stringify(content, null, 2));
-
-        return NextResponse.json({ success: true, message: "File saved to disk" });
-    } else {
-        const newTest = {
-            id: `uploaded-${Date.now()}`,
-            name: name,
-            type: 'uploaded',
-            content: content
-        };
-
-        uploadedTests.push(newTest);
-
-        return NextResponse.json({ success: true, test: newTest });
-    }
+    return NextResponse.json({ success: true, test: newTest });
   } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Upload error", error);
+    return NextResponse.json({ error: "Failed to process upload" }, { status: 500 });
   }
 }

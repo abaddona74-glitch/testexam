@@ -2,3 +2,5 @@ node_modules
 .next
 .DS_Store
 leaderboard.json
+.env
+.env.local
