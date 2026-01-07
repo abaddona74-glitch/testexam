@@ -16,7 +16,10 @@ export async function GET(request) {
       }
   });
 
-  if (!testId) return NextResponse.json([]);
+  if (!testId) {
+      // Return all active users across all tests
+      return NextResponse.json(Object.values(activeSessions));
+  }
 
   // Filter by testId
   const result = Object.values(activeSessions).filter(s => s.testId === testId);
@@ -26,15 +29,18 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { testId, userId, name, progress, total } = body; // progress is index
+    const { testId, userId, name, progress, total, status } = body; 
+    
+    // Key by userId to ensure user appears only once
+    const key = userId; 
 
-    const key = `${testId}-${userId}`; // Simple key
     activeSessions[key] = {
-        testId,
+        testId, // can be null if just browsing
         userId,
         name,
-        progress,
-        total,
+        progress: progress || 0,
+        total: total || 0,
+        status: status || (testId ? 'in-test' : 'browsing'),
         lastUpdated: Date.now()
     };
 
@@ -46,12 +52,13 @@ export async function POST(request) {
 
 export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
-    const testId = searchParams.get('testId');
     const userId = searchParams.get('userId');
 
-    if (testId && userId) {
-        const key = `${testId}-${userId}`; // Simple key must match POST
-        delete activeSessions[key];
+    if (userId) {
+        // Direct delete by userId key
+        if (activeSessions[userId]) {
+            delete activeSessions[userId];
+        }
     }
     
     return NextResponse.json({ success: true });

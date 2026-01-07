@@ -80,33 +80,113 @@ export default function Home() {
   const [view, setView] = useState('list'); // 'list', 'test', 'upload'
   const [activeTest, setActiveTest] = useState(null);
   const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState(''); // Unique Session ID
+  const [nameInput, setNameInput] = useState('');
   const [isNameSet, setIsNameSet] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
   
   // Persistent state for resuming tests
   const [savedProgress, setSavedProgress] = useState({});
 
   useEffect(() => {
-    // Load persisted state if needed (currently using memory state for savedProgress during session)
-    fetchTests();
-    fetchLeaderboard();
-    
-    // Load persisted user name
+    // 0. Initialize User ID
+    let currentUserId = localStorage.getItem('examApp_userId');
+    if (!currentUserId) {
+         currentUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+         localStorage.setItem('examApp_userId', currentUserId);
+    }
+    setUserId(currentUserId);
+
+    // 1. Load persisted user name FIRST
     const storedName = localStorage.getItem('examApp_userName');
     if (storedName) {
         setUserName(storedName);
+        setNameInput(storedName);
         setIsNameSet(true);
     }
 
-    // Load persisted progress
+    // 2. Load persisted progress
     const storedProgress = localStorage.getItem('examApp_progress');
     if (storedProgress) {
         try {
             setSavedProgress(JSON.parse(storedProgress));
         } catch(e) { console.error("Failed to parse progress", e); }
     }
+
+    // 3. Fetch initial data
+    fetchTests();
+    fetchLeaderboard();
+    fetchGlobalActiveUsers();
+    
+    // 4. Set up intervals
+    const interval = setInterval(fetchGlobalActiveUsers, 5000);
+    
+    // 5. Send heartbeat for "Browsing" status if we have a username
+    const heartbeatInterval = setInterval(() => {
+        const currentName = localStorage.getItem('examApp_userName');
+        if (currentName) {
+            // Only send if NOT in a test (activeTest handles its own heartbeat)
+            // But we can't easily access current activeTest state here inside effect closure without refs or dependencies
+            // So we rely on a check. However, activeTest state is available in render scope, but this effect runs ONCE.
+            // Better to use a separate effect that depends on [view, userName]
+        }
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  // Separate effect for main page heartbeat
+  useEffect(() => {
+      if (view === 'list' && isNameSet && userName && userId) {
+          const sendHeartbeat = () => {
+              fetch('/api/active', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      userId: userId,
+                      name: userName,
+                      status: 'browsing'
+                  })
+              }).catch(e => console.error(e));
+          };
+          
+          sendHeartbeat(); // Immediate
+          const interval = setInterval(sendHeartbeat, 10000); // Pulse every 10s
+
+          // Cleanup on unmount/close
+          const cleanup = () => {
+              fetch('/api/active?userId=' + userId, { 
+                  method: 'DELETE',
+                  keepalive: true
+              });
+          };
+          window.addEventListener('beforeunload', cleanup);
+          
+          return () => {
+              clearInterval(interval);
+              window.removeEventListener('beforeunload', cleanup);
+              // Optional: cleanup(); // Don't allow cleanup on component unmount (navigating within app), only on unload/close. 
+              // Actually, component unmount happens on route change too.
+              // If we navigate to "Test", we want to remove "Browsing" status.
+              // But "Test" component will immediately establish "Taking Test" status.
+              // So updating status is better than delete.
+              // Let's rely on heartbeat overwrite for status change.
+              // But for closing tab, we need DELETE.
+          };
+      }
+  }, [view, isNameSet, userName, userId]); // Remove dependency on empty array content changes
+
+  const fetchGlobalActiveUsers = async () => {
+      try {
+          const res = await fetch('/api/active');
+          if (res.ok) {
+              const data = await res.json();
+              setGlobalActiveUsers(data);
+          }
+      } catch (e) { console.error(e); }
+  };
 
   const fetchTests = async () => {
     setLoading(true);
@@ -135,8 +215,9 @@ export default function Home() {
 
   const handleNameSubmit = (e) => {
       e.preventDefault();
-      if (userName.trim()) {
-          localStorage.setItem('examApp_userName', userName);
+      if (nameInput.trim()) {
+          setUserName(nameInput);
+          localStorage.setItem('examApp_userName', nameInput);
           setIsNameSet(true);
           setShowSettings(false);
       }
@@ -251,8 +332,8 @@ export default function Home() {
                         required
                         className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900"
                         placeholder="Your full name"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
                       />
                       <button 
                         type="submit"
@@ -274,8 +355,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 font-sans p-4 md:p-8 pb-32">
-      <div className="max-w-4xl mx-auto">
-        <header className="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-4 z-10 transition-shadow hover:shadow-md">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-4 z-40 transition-shadow hover:shadow-md">
             <div className="flex items-center gap-4">
               <div>
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -288,7 +369,10 @@ export default function Home() {
             </div>
             <div className="flex gap-2">
                 <button 
-                  onClick={() => setShowSettings(true)}
+                  onClick={() => {
+                      setNameInput(userName);
+                      setShowSettings(true);
+                  }}
                   className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                     <Settings size={20} />
@@ -327,10 +411,10 @@ export default function Home() {
                             required
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900"
                             placeholder="Your full name"
-                            value={userName}
-                            onChange={(e) => setUserName(e.target.value)}
+                            value={nameInput}
+                            onChange={(e) => setNameInput(e.target.value)}
                           />
-                          <button 
+                          <button  
                             type="submit"
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
                           >
@@ -342,7 +426,8 @@ export default function Home() {
         )}
 
         {view === 'list' && (
-          <div className="space-y-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-9 space-y-8">
             <section>
                 <div className="flex justify-between items-end mb-6">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -440,17 +525,95 @@ export default function Home() {
                                             </td>
                                             <td className="py-3 text-sm text-gray-500 font-medium">{entry.testName}</td>
                                             <td className="py-3 text-right pr-4">
-                                                <span className="font-bold text-lg text-gray-700">{entry.score}</span>
-                                                <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </section>
+                                                    <span className="font-bold text-lg text-gray-700">{entry.score}</span>
+                                                    <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </section>
+            </div>
+
+            {/* Sidebar - Online Users */}
+            <div className="lg:col-span-3">
+                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-28">
+                     <div className="flex items-center gap-2 mb-4">
+                        <div className="relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <div className="w-2.5 h-2.5 bg-green-500 rounded-full relative"></div>
+                        </div>
+                        <h3 className="font-bold text-gray-800">Online Users</h3>
+                        <span className="text-xs font-mono text-gray-400 ml-auto bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                            {globalActiveUsers.length}
+                        </span>
+                     </div>
+                     
+                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                        {globalActiveUsers.length === 0 ? (
+                            <p className="text-sm text-gray-400 text-center py-4">No active users.</p>
+                        ) : (
+                            [...globalActiveUsers]
+                                .sort((a, b) => (a.userId === userId ? -1 : b.userId === userId ? 1 : 0))
+                                .map((user, idx) => {
+                                const isMe = user.userId === userId;
+                                return (
+                                <div key={idx} className={clsx(
+                                    "flex items-center gap-3 p-2 rounded-lg transition-colors border",
+                                    isMe 
+                                        ? "bg-blue-50 border-blue-100" 
+                                        : "hover:bg-gray-50 border-transparent hover:border-gray-100"
+                                )}>
+                                    <div className={clsx(
+                                        "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border",
+                                        isMe 
+                                            ? "bg-blue-600 text-white border-blue-600"
+                                            : "bg-gradient-to-br from-blue-100 to-indigo-100 text-indigo-600 border-indigo-200"
+                                    )}>
+                                        {isMe ? <User size={14} /> : user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-center">
+                                            <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700" : "text-gray-700")}>
+                                                {isMe ? "Me" : user.name}
+                                            </p>
+                                            {user.status === 'browsing' && (
+                                                <span className="w-2 h-2 rounded-full bg-green-500" title="Browsing"></span>
+                                            )}
+                                        </div>
+                                        
+                                        {user.status === 'in-test' ? (
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 rounded truncate max-w-[100px] inline-block">
+                                                    Taking Test
+                                                </span>
+                                                <div className="h-1 flex-1 bg-gray-100 rounded-full overflow-hidden max-w-[60px]">
+                                                    <div 
+                                                        className="h-full bg-blue-500" 
+                                                        style={{ width: `${((user.progress + 1) / user.total) * 100}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className={clsx("text-[10px] mt-0.5", isMe ? "text-blue-400" : "text-gray-400")}>Browsing list...</p>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                            })
+                        )}
+                     </div>
+
+                     <div className="mt-6 pt-4 border-t border-gray-50">
+                         <p className="text-xs text-center text-gray-400">
+                             Shows users currently active in a test
+                         </p>
+                     </div>
+                 </div>
+            </div>
           </div>
         )}
 
@@ -458,6 +621,7 @@ export default function Home() {
             <TestRunner 
                 test={activeTest} 
                 userName={userName}
+                userId={userId}
                 onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
                 onFinish={(results) => {
                     setActiveTest(prev => ({ ...prev, isFinished: true, ...results }));
@@ -537,7 +701,7 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     );
 }
 
-function TestRunner({ test, userName, onFinish, onRetake, onProgressUpdate }) {
+function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpdate }) {
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {}); 
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
@@ -570,14 +734,14 @@ function TestRunner({ test, userName, onFinish, onRetake, onProgressUpdate }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     testId: test.id,
-                    userId: userName, // Using name as ID for simplicity
+                    userId: userId, // Use stable ID
                     name: userName,
                     progress: currentIndex,
                     total: totalQuestions
                 })
             }).catch(e => console.error("Active status update failed", e));
         }
-    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, totalQuestions]);
+    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions]);
 
     // Poll for other active users
     useEffect(() => {
@@ -585,8 +749,8 @@ function TestRunner({ test, userName, onFinish, onRetake, onProgressUpdate }) {
              try {
                 const res = await fetch(`/api/active?testId=${test.id}`);
                 const data = await res.json();
-                // Filter out self
-                const others = data.filter(u => u.name !== userName);
+                // Filter out self by ID
+                const others = data.filter(u => u.userId !== userId);
                 setActiveUsers(others);
              } catch(e) { console.error(e); }
         };
@@ -595,7 +759,7 @@ function TestRunner({ test, userName, onFinish, onRetake, onProgressUpdate }) {
         fetchActive();
         
         return () => clearInterval(interval);
-    }, [test.id, userName]);
+    }, [test.id, userId]);
 
     const handleAnswer = (optionId) => {
         setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
@@ -611,11 +775,17 @@ function TestRunner({ test, userName, onFinish, onRetake, onProgressUpdate }) {
 
     // Clear active user session on unmount or finish
     useEffect(() => {
-        return () => {
-             // Use beacon if possible for unload, but fetch works in effect cleanup for navigation
-             fetch(`/api/active?testId=${test.id}&userId=${userName}`, { method: 'DELETE' });
+        const cleanup = () => {
+             fetch(`/api/active?userId=${userId}`, { method: 'DELETE', keepalive: true });
         };
-    }, [test.id, userName]);
+        // Add beforeunload for tab close
+        window.addEventListener('beforeunload', cleanup);
+
+        return () => {
+             window.removeEventListener('beforeunload', cleanup);
+             cleanup(); 
+        };
+    }, [test.id, userId]);
 
     const confirmFinish = async () => {
         let score = 0;
@@ -626,7 +796,7 @@ function TestRunner({ test, userName, onFinish, onRetake, onProgressUpdate }) {
         });
         
         // Remove from active users list specifically on finish
-        await fetch(`/api/active?testId=${test.id}&userId=${userName}`, { method: 'DELETE' });
+        await fetch(`/api/active?userId=${userId}`, { method: 'DELETE' });
         
         // Submit to leaderboard
         await fetch('/api/leaderboard', {
