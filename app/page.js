@@ -1,7 +1,69 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords } from 'lucide-react';
 import clsx from 'clsx';
+
+function getLeague(score, total) {
+    const percentage = (score / total) * 100;
+
+    // 100% - MYTHIC (RGB / Shine)
+    if (percentage === 100) return { 
+        name: 'Mythic', 
+        badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.4)] font-extrabold',
+        textClass: 'font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 drop-shadow-sm',
+        rowClass: 'bg-gradient-to-r from-indigo-50/40 via-purple-50/40 to-pink-50/40 border-l-4 border-l-purple-500',
+        icon: Crown
+    };
+
+    // 95-99% - LEGENDARY (Gold / Fire)
+    if (percentage >= 95) return { 
+        name: 'Legendary', 
+        badgeClass: 'bg-amber-100 text-amber-800 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)] font-bold',
+        textClass: 'font-bold text-amber-700 drop-shadow-[0_1px_1px_rgba(251,191,36,0.3)]',
+        rowClass: 'bg-gradient-to-r from-amber-50/50 to-transparent border-l-4 border-l-amber-400',
+        icon: Crown 
+    };
+
+    if (percentage >= 85) return { 
+        name: 'Epic', 
+        badgeClass: 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
+        textClass: 'font-semibold text-purple-700',
+        rowClass: 'hover:bg-purple-50/30 border-l-4 border-l-transparent hover:border-l-purple-300',
+        icon: Swords 
+    };
+
+    if (percentage >= 70) return { 
+        name: 'Diamond', 
+        badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+        textClass: 'font-medium text-cyan-700',
+        rowClass: 'hover:bg-cyan-50/30 transition-colors',
+        icon: Gem 
+    };
+
+    if (percentage >= 55) return { 
+        name: 'Ruby', 
+        badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+        textClass: 'text-rose-600',
+        rowClass: 'hover:bg-rose-50/30 transition-colors',
+        icon: Shield 
+    };
+
+    if (percentage >= 40) return { 
+        name: 'Iron', 
+        badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+        textClass: 'text-slate-600',
+        rowClass: 'hover:bg-slate-50 transition-colors',
+        icon: Shield 
+    };
+
+    return { 
+        name: 'Copper', 
+        badgeClass: 'bg-orange-100 text-orange-800 border-orange-200',
+        textClass: 'text-orange-900',
+        rowClass: 'hover:bg-orange-50 transition-colors',
+        icon: Shield 
+    };
+}
 
 function shuffleArray(array) {
   const newArray = [...array];
@@ -17,9 +79,33 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('list'); // 'list', 'test', 'upload'
   const [activeTest, setActiveTest] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [isNameSet, setIsNameSet] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Persistent state for resuming tests
+  const [savedProgress, setSavedProgress] = useState({});
 
   useEffect(() => {
+    // Load persisted state if needed (currently using memory state for savedProgress during session)
     fetchTests();
+    fetchLeaderboard();
+    
+    // Load persisted user name
+    const storedName = localStorage.getItem('examApp_userName');
+    if (storedName) {
+        setUserName(storedName);
+        setIsNameSet(true);
+    }
+
+    // Load persisted progress
+    const storedProgress = localStorage.getItem('examApp_progress');
+    if (storedProgress) {
+        try {
+            setSavedProgress(JSON.parse(storedProgress));
+        } catch(e) { console.error("Failed to parse progress", e); }
+    }
   }, []);
 
   const fetchTests = async () => {
@@ -35,8 +121,40 @@ export default function Home() {
     }
   };
 
+  const fetchLeaderboard = async () => {
+    try {
+        const res = await fetch('/api/leaderboard');
+        if (res.ok) {
+            const data = await res.json();
+            setLeaderboard(data);
+        }
+    } catch(e) {
+        console.error("Leaderboard fetch error", e);
+    }
+  };
+
+  const handleNameSubmit = (e) => {
+      e.preventDefault();
+      if (userName.trim()) {
+          localStorage.setItem('examApp_userName', userName);
+          setIsNameSet(true);
+          setShowSettings(false);
+      }
+  };
+
   const startTest = (test) => {
-    // Prepare the test data: Shuffle questions and options
+    // Check if we have saved progress for this test
+    if (savedProgress[test.id]) {
+        setActiveTest({
+            ...test,
+            ...savedProgress[test.id],
+            isResumed: true
+        });
+        setView('test');
+        return;
+    }
+
+    // New test setup
     const rawQuestions = test.content.test_questions || [];
     
     const preparedQuestions = shuffleArray(rawQuestions).map(q => {
@@ -52,15 +170,37 @@ export default function Home() {
       };
     });
 
-    setActiveTest({
+    const newTestState = {
       ...test,
       questions: preparedQuestions,
       currentQuestionIndex: 0,
       answers: {}, // { questionId: optionId }
       isFinished: false,
       score: 0
-    });
+    };
+
+    setActiveTest(newTestState);
     setView('test');
+  };
+
+  const saveCurrentProgress = (testId, progressData) => {
+      setSavedProgress(prev => {
+          const newState = {
+              ...prev,
+              [testId]: progressData
+          };
+          localStorage.setItem('examApp_progress', JSON.stringify(newState));
+          return newState;
+      });
+  };
+
+  const clearProgress = (testId) => {
+      setSavedProgress(prev => {
+          const newState = { ...prev };
+          delete newState[testId];
+          localStorage.setItem('examApp_progress', JSON.stringify(newState));
+          return newState;
+      });
   };
 
   const handleUpload = async (e) => {
@@ -94,6 +234,38 @@ export default function Home() {
     reader.readAsText(file);
   };
 
+  if (!isNameSet) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+              <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-gray-100">
+                  <div className="text-center mb-6">
+                      <div className="bg-blue-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-blue-600">
+                          <User size={32} />
+                      </div>
+                      <h1 className="text-2xl font-bold text-gray-900">Welcome!</h1>
+                      <p className="text-gray-500 mt-2">Please enter your name to start.</p>
+                  </div>
+                  <form onSubmit={handleNameSubmit}>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900"
+                        placeholder="Your full name"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                      />
+                      <button 
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+                      >
+                          Continue
+                      </button>
+                  </form>
+              </div>
+          </div>
+      );
+  }
+
   if (loading && view === 'list') {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-800">
         <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
@@ -101,29 +273,81 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900 font-sans p-4 md:p-8">
+    <main className="min-h-screen bg-gray-50 text-gray-900 font-sans p-4 md:p-8 pb-32">
       <div className="max-w-4xl mx-auto">
-        <header className="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Exam & Test Platform
-              </h1>
-              <p className="text-gray-500 text-sm mt-1">
-                  Sharpen your skills with our automated testing system
-              </p>
+        <header className="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-4 z-10 transition-shadow hover:shadow-md">
+            <div className="flex items-center gap-4">
+              <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                      Exam Platform
+                  </h1>
+                  <p className="text-gray-500 text-xs mt-1">
+                      Logged in as <span className="font-semibold text-gray-700">{userName}</span>
+                  </p>
+              </div>
             </div>
-            {view !== 'list' && (
-                <button onClick={() => { setView('list'); setActiveTest(null); }} className="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
-                    Back to List
+            <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowSettings(true)}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                    <Settings size={20} />
                 </button>
-            )}
+                {view !== 'list' && (
+                    <button 
+                        onClick={() => { 
+                            // Just switch view, state is preserved in activeTest/savedProgress via TestRunner effect usually but here we rely on active set
+                            // Actually, if we just set view to list, testrunner unmounts.
+                            // We need to ensure progress is saved. TestRunner does this on unmount/change usually if we pass a handler.
+                            // Ideally "Back" just hides the view.
+                            setView('list'); 
+                            // Note: activeTest in State is kept until we null it or replace it.
+                            // But to be sure, we rely on SavedProgress state which is updated by TestRunner.
+                            setActiveTest(null); 
+                        }} 
+                        className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors bg-gray-50 px-4 py-2 rounded-lg"
+                    >
+                        <List size={16} /> Back to List
+                    </button>
+                )}
+            </div>
         </header>
 
+        {showSettings && (
+             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                 <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
+                     <button onClick={() => setShowSettings(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                         <XCircle size={24} />
+                     </button>
+                     <h2 className="text-xl font-bold text-gray-800 mb-4">Settings</h2>
+                     <form onSubmit={handleNameSubmit}>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                          <input 
+                            type="text" 
+                            required
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900"
+                            placeholder="Your full name"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                          />
+                          <button 
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+                          >
+                              Save Changes
+                          </button>
+                      </form>
+                 </div>
+             </div>
+        )}
+
         {view === 'list' && (
-          <div className="space-y-8">
+          <div className="space-y-12">
             <section>
-                <div className="flex justify-between items-end mb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">Available Tests</h2>
+                <div className="flex justify-between items-end mb-6">
+                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <List className="text-blue-500" /> Available Tests
+                    </h2>
                     <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                         <Upload size={16} /> Upload Test
                         <input type="file" accept=".json" className="hidden" onChange={handleUpload} />
@@ -133,11 +357,24 @@ export default function Home() {
                 <div className="grid md:grid-cols-2 gap-4">
                     {/* Default Tests */}
                     {tests.defaultTests.map(test => (
-                        <TestCard key={test.id} test={test} onStart={() => startTest(test)} badge="Official" />
+                        <TestCard 
+                            key={test.id} 
+                            test={test} 
+                            onStart={() => startTest(test)} 
+                            badge="Official"
+                            hasProgress={!!savedProgress[test.id]}
+                        />
                     ))}
                     {/* Uploaded Tests */}
                     {tests.uploadedTests.map(test => (
-                        <TestCard key={test.id} test={test} onStart={() => startTest(test)} badge="Community" badgeColor="bg-green-100 text-green-700" />
+                        <TestCard 
+                            key={test.id} 
+                            test={test} 
+                            onStart={() => startTest(test)} 
+                            badge="Community" 
+                            badgeColor="bg-green-100 text-green-700" 
+                            hasProgress={!!savedProgress[test.id]}
+                        />
                     ))}
                     
                     {tests.defaultTests.length === 0 && tests.uploadedTests.length === 0 && (
@@ -147,16 +384,110 @@ export default function Home() {
                     )}
                 </div>
             </section>
+
+            {/* Leaderboard Section */}
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <Trophy className="text-yellow-500" /> Leaderboard
+                </h2>
+                {leaderboard.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400 italic">No results yet. Be the first!</div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-gray-100 text-xs uppercase text-gray-400 font-semibold tracking-wider">
+                                    <th className="pb-3 pl-2 w-16">Rank</th>
+                                    <th className="pb-3 w-48">User</th>
+                                    <th className="pb-3 w-32">Title</th>
+                                    <th className="pb-3">Test</th>
+                                    <th className="pb-3 text-right pr-2">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {leaderboard.map((entry, idx) => {
+                                    const percentage = (entry.score / entry.total) * 100;
+                                    const league = getLeague(entry.score, entry.total);
+                                    const LeagueIcon = league.icon;
+                                    return (
+                                        <tr key={idx} className={clsx("transition-all", league.rowClass)}>
+                                            <td className="py-4 pl-4">
+                                                {idx < 3 ? (
+                                                    <div className={clsx(
+                                                        "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm border-2",
+                                                        idx === 0 ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
+                                                        idx === 1 ? "bg-gray-100 text-gray-700 border-gray-200" :
+                                                        "bg-orange-50 text-orange-800 border-orange-200"
+                                                    )}>
+                                                        {idx + 1}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400 font-mono text-sm ml-2.5">#{idx + 1}</span>
+                                                )}
+                                            </td>
+                                            <td className="py-3">
+                                                <div className="flex flex-col">
+                                                    <span className={clsx("text-base font-medium", league.textClass)}>
+                                                        {entry.name}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3">
+                                                <span className={clsx("w-fit flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-sm font-semibold", league.badgeClass)}>
+                                                    <LeagueIcon size={12} className={percentage === 100 ? "animate-pulse" : ""} /> 
+                                                    {league.name}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 text-sm text-gray-500 font-medium">{entry.testName}</td>
+                                            <td className="py-3 text-right pr-4">
+                                                <span className="font-bold text-lg text-gray-700">{entry.score}</span>
+                                                <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
           </div>
         )}
 
         {view === 'test' && activeTest && (
             <TestRunner 
                 test={activeTest} 
+                userName={userName}
+                onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
                 onFinish={(results) => {
                     setActiveTest(prev => ({ ...prev, isFinished: true, ...results }));
+                    clearProgress(activeTest.id); // Clear progress on finish
+                    saveCurrentProgress(activeTest.id, null); // Ensure cleared in state
+                    fetchLeaderboard(); // Refresh leaderboard
                 }}
-                onRetake={() => startTest(activeTest)}
+                onRetake={() => {
+                    clearProgress(activeTest.id);
+                    // We need to re-initiate startTest logic, but since we are inside component, 
+                    // we can pass a signal up or just modify the way startTest works.
+                    // Easiest is to call the passed start handler from parent if available, or just hack it:
+                    // Force restart by clearing progress and calling start again logic:
+                    
+                    // Re-shuffle for retake
+                    const rawQuestions = activeTest.content.test_questions || [];
+                    const preparedQuestions = shuffleArray(rawQuestions).map(q => {
+                        const optionsArray = Object.entries(q.options).map(([key, value]) => ({ id: key, text: value }));
+                        return { ...q, shuffledOptions: shuffleArray(optionsArray) };
+                    });
+
+                    setActiveTest({
+                        ...activeTest,
+                        questions: preparedQuestions,
+                        currentQuestionIndex: 0,
+                        answers: {},
+                        isFinished: false,
+                        score: 0
+                    });
+                }}
             />
         )}
       </div>
@@ -164,11 +495,16 @@ export default function Home() {
   );
 }
 
-function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700" }) {
+function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress }) {
     const questionCount = test.content.test_questions?.length || 0;
     
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col justify-between group">
+        <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col justify-between group relative overflow-hidden">
+            {hasProgress && (
+                <div className="absolute top-0 right-0 bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-bl-lg font-medium flex items-center gap-1">
+                    <Save size={12} /> Resumable
+                </div>
+            )}
             <div>
                 <div className="flex justify-between items-start mb-3">
                     <span className={clsx("px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide", badgeColor)}>
@@ -187,21 +523,79 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
             </div>
             <button 
                 onClick={onStart}
-                className="mt-6 w-full py-2.5 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200 transition-all flex items-center justify-center gap-2"
+                className={clsx(
+                    "mt-6 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
+                    hasProgress 
+                        ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100" 
+                        : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200"
+                )}
             >
-                <Play size={18} /> Start Attempt
+                {hasProgress ? <Play size={18} /> : <Play size={18} />} 
+                {hasProgress ? "Resume Attempt" : "Start Attempt"}
             </button>
         </div>
     );
 }
 
-function TestRunner({ test, onFinish, onRetake }) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState({}); // { questionIndex: optionId }
-    const [isFinished, setIsFinished] = useState(false);
+function TestRunner({ test, userName, onFinish, onRetake, onProgressUpdate }) {
+    const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
+    const [answers, setAnswers] = useState(test.answers || {}); 
+    const [isFinished, setIsFinished] = useState(test.isFinished || false);
+    const [showConfirmFinish, setShowConfirmFinish] = useState(false);
+    const [activeUsers, setActiveUsers] = useState([]);
 
     const question = test.questions[currentIndex];
     const totalQuestions = test.questions.length;
+
+    // Use a ref to access current onProgressUpdate without triggering effect
+    const onProgressUpdateRef = useRef(onProgressUpdate);
+    useEffect(() => {
+        onProgressUpdateRef.current = onProgressUpdate;
+    });
+
+    // Report progress to parent whenever state changes
+    useEffect(() => {
+        if (!isFinished) {
+            if (onProgressUpdateRef.current) {
+                onProgressUpdateRef.current({
+                    questions: test.questions, // Keep the same shuffled order
+                    currentQuestionIndex: currentIndex,
+                    answers: answers
+                });
+            }
+            
+            // Post to active sessions
+            fetch('/api/active', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    testId: test.id,
+                    userId: userName, // Using name as ID for simplicity
+                    name: userName,
+                    progress: currentIndex,
+                    total: totalQuestions
+                })
+            }).catch(e => console.error("Active status update failed", e));
+        }
+    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, totalQuestions]);
+
+    // Poll for other active users
+    useEffect(() => {
+        const fetchActive = async () => {
+             try {
+                const res = await fetch(`/api/active?testId=${test.id}`);
+                const data = await res.json();
+                // Filter out self
+                const others = data.filter(u => u.name !== userName);
+                setActiveUsers(others);
+             } catch(e) { console.error(e); }
+        };
+        
+        const interval = setInterval(fetchActive, 5000);
+        fetchActive();
+        
+        return () => clearInterval(interval);
+    }, [test.id, userName]);
 
     const handleAnswer = (optionId) => {
         setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
@@ -211,19 +605,45 @@ function TestRunner({ test, onFinish, onRetake }) {
         if (currentIndex < totalQuestions - 1) {
             setCurrentIndex(currentIndex + 1);
         } else {
-            finishTest();
+            setShowConfirmFinish(true);
         }
     };
 
-    const finishTest = () => {
+    // Clear active user session on unmount or finish
+    useEffect(() => {
+        return () => {
+             // Use beacon if possible for unload, but fetch works in effect cleanup for navigation
+             fetch(`/api/active?testId=${test.id}&userId=${userName}`, { method: 'DELETE' });
+        };
+    }, [test.id, userName]);
+
+    const confirmFinish = async () => {
         let score = 0;
         test.questions.forEach((q, idx) => {
             if (answers[idx] === q.correct_answer) {
                 score++;
             }
         });
+        
+        // Remove from active users list specifically on finish
+        await fetch(`/api/active?testId=${test.id}&userId=${userName}`, { method: 'DELETE' });
+        
+        // Submit to leaderboard
+        await fetch('/api/leaderboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: userName,
+                testName: test.name,
+                score: score,
+                total: totalQuestions
+            })
+        });
+
         setIsFinished(true);
-        // We handle internal finish state, but could also propagate up
+        setShowConfirmFinish(false);
+        // Pass up results
+        onFinish({ answers, isFinished: true, score });
     };
 
     if (isFinished) {
@@ -306,66 +726,132 @@ function TestRunner({ test, onFinish, onRetake }) {
     }
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[500px]">
-             {/* Progress Bar */}
-             <div className="h-2 bg-gray-100 w-full">
-                 <div 
-                    className="h-full bg-blue-600 transition-all duration-300 ease-out"
-                    style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
-                 />
-             </div>
-
-             <div className="p-6 md:p-10 flex-1 flex flex-col">
-                 <div className="flex justify-between items-center mb-6 text-sm text-gray-500">
-                      <span>Question {currentIndex + 1} of {totalQuestions}</span>
-                      <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>
-                 </div>
-
-                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 leading-relaxed">
-                     {question.question}
-                 </h2>
-
-                 <div className="space-y-3 flex-1">
-                     {question.shuffledOptions.map((option, idx) => {
-                         const isSelected = answers[currentIndex] === option.id;
-                         return (
-                             <button
-                                key={idx}
-                                onClick={() => handleAnswer(option.id)}
-                                className={clsx(
-                                    "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
-                                    isSelected 
-                                        ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm" 
-                                        : "border-gray-100 hover:border-blue-200 hover:bg-gray-50 text-gray-700"
-                                )}
-                             >
-                                 <div className={clsx(
-                                     "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border transiton-colors",
-                                     isSelected ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-200 text-gray-400" 
-                                 )}>
-                                     {String.fromCharCode(65 + idx)}
-                                 </div>
-                                 <span className="font-medium">{option.text}</span>
-                             </button>
-                         );
-                     })}
-                 </div>
-
-                 <div className="mt-10 flex justify-end">
-                     <button 
-                        onClick={handleNext}
-                        disabled={!answers[currentIndex]}
-                        className={clsx(
-                            "px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all",
-                            answers[currentIndex] 
-                                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" 
-                                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        )}
+        <>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[500px]">
+                 {/* Progress Bar */}
+                 <div className="h-8 bg-gray-100 w-full relative">
+                     <div 
+                        className="h-full bg-blue-600 transition-all duration-300 ease-out"
+                        style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
+                     />
+                     {/* Active User Markers */}
+                     {/* Current User Marker */}
+                     <div 
+                         className="absolute top-[-2px] -translate-x-1/2 flex flex-col items-center z-20 group"
+                         style={{ left: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
                      >
-                         {currentIndex === totalQuestions - 1 ? 'Finish Test' : 'Next Question'}
-                     </button>
+                         <div className="bg-green-600 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded mb-0.5 shadow-sm whitespace-nowrap">You</div>
+                         <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-green-600"></div>
+                     </div>
+
+                     {activeUsers.map((user, idx) => (
+                         <div 
+                            key={idx}
+                            className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-amber-400 border-2 border-white rounded-full flex items-center justify-center text-[10px] font-bold text-amber-900 shadow-md transform transition-all z-10"
+                            style={{ left: `calc(${((user.progress + 1) / totalQuestions) * 100}% - 12px)` }}
+                            title={`${user.name} is here`}
+                         >
+                             {user.name.charAt(0).toUpperCase()}
+                         </div>
+                     ))}
                  </div>
-             </div>
-        </div>
+
+                 <div className="p-6 md:p-10 flex-1 flex flex-col">
+                     <div className="flex justify-between items-center mb-6 text-sm text-gray-500">
+                          <span>Question {currentIndex + 1} of {totalQuestions}</span>
+                          <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>
+                     </div>
+
+                     <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 leading-relaxed">
+                         {question.question}
+                     </h2>
+
+                     <div className="space-y-3 flex-1">
+                         {question.shuffledOptions.map((option, idx) => {
+                             const isSelected = answers[currentIndex] === option.id;
+                             return (
+                                 <button
+                                    key={idx}
+                                    onClick={() => handleAnswer(option.id)}
+                                    className={clsx(
+                                        "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
+                                        isSelected 
+                                            ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm" 
+                                            : "border-gray-100 hover:border-blue-200 hover:bg-gray-50 text-gray-700"
+                                    )}
+                                 >
+                                     <div className={clsx(
+                                         "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border transiton-colors",
+                                         isSelected ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-200 text-gray-400" 
+                                     )}>
+                                         {String.fromCharCode(65 + idx)}
+                                     </div>
+                                     <span className="font-medium">{option.text}</span>
+                                 </button>
+                             );
+                         })}
+                     </div>
+
+                     <div className="mt-10 flex justify-between items-center">
+                         <button 
+                            onClick={() => {
+                                // Explicit early finish
+                                setShowConfirmFinish(true);
+                            }}
+                            className="text-gray-500 hover:text-red-600 font-medium text-sm px-4 py-2 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                         >
+                            End Test Now
+                         </button>
+
+                         <button 
+                            onClick={handleNext}
+                            className={clsx(
+                                "px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all",
+                                answers[currentIndex] 
+                                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" 
+                                    : "bg-gray-200 text-gray-400 cursor-not-allowed" // keep it gray if not answered, but NEXT logic usually allows skipping or not? User didn't specify, assuming forced choice or allow check. Let's force choice for Next, or just style.
+                                    // Actually user requirement was "next next bosib davom etib ketadi".
+                            )}
+                            disabled={!answers[currentIndex]} // Force answer
+                         >
+                             {currentIndex === totalQuestions - 1 ? 'Finish Test' : 'Next Question'}
+                         </button>
+                     </div>
+                 </div>
+            </div>
+
+            {/* Confirmation Modal */}
+            {showConfirmFinish && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center gap-3 text-amber-600 mb-4">
+                            <AlertTriangle size={28} />
+                            <h3 className="text-lg font-bold text-gray-900">Finish Test?</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            Are you sure you want to finish? {Object.keys(answers).length < totalQuestions && (
+                                <span className="block mt-2 text-red-600 font-medium">
+                                    You have {totalQuestions - Object.keys(answers).length} unanswered questions.
+                                </span>
+                            )}
+                        </p>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setShowConfirmFinish(false)}
+                                className="flex-1 py-2.5 rounded-lg border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                No, Continue
+                            </button>
+                            <button 
+                                onClick={confirmFinish}
+                                className="flex-1 py-2.5 rounded-lg bg-blue-600 font-semibold text-white hover:bg-blue-700 transition-colors shadow-md"
+                            >
+                                Yes, Finish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }

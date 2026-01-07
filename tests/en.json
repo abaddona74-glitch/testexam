@@ -2,227 +2,227 @@
   "test_questions": [
     {
       "id": 1,
-      "question": "Digitalization nima?",
+      "question": "What is digitalization?",
       "options": {
-        "A": "Analog ma'lumotlarni raqamli formatga o'tkazish",
-        "B": "Faqat kompyuterlar sotib olish",
-        "C": "Internetga ulanish",
-        "D": "Ofis jihozlari sotib olish"
+        "A": "Converting analog information to digital format",
+        "B": "Just buying computers",
+        "C": "Connecting to the internet",
+        "D": "Purchasing office equipment"
       },
       "correct_answer": "A"
     },
     {
       "id": 2,
-      "question": "Digitization va digitalization o'rtasidagi asosiy farq nima?",
+      "question": "What is the main difference between digitization and digitalization?",
       "options": {
-        "A": "Digitization - ma'lumotlarni raqamlashtirish, digitalization - jarayonlarni raqamlashtirish",
-        "B": "Ikkalasi ham bir xil",
-        "C": "Digitization - internet, digitalization - mobil ilovalar",
-        "D": "Farq yo'q"
+        "A": "Digitization converts information, digitalization transforms processes",
+        "B": "They are the same thing",
+        "C": "Digitization is for internet, digitalization for mobile apps",
+        "D": "No difference"
       },
       "correct_answer": "A"
     },
     {
       "id": 3,
-      "question": "Digital transformation nima?",
+      "question": "What is digital transformation?",
       "options": {
-        "A": "Faqat veb-sayt yaratish",
-        "B": "Butun biznesni raqamli texnologiyalar asosida qayta qurish",
-        "C": "Kompyuterlar yangilash",
-        "D": "Internet tezligini oshirish"
+        "A": "Creating a website",
+        "B": "Fundamentally rebuilding business using digital technologies",
+        "C": "Upgrading computers",
+        "D": "Increasing internet speed"
       },
       "correct_answer": "B"
     },
     {
       "id": 4,
-      "question": "Quyidagilardan qaysi biri digitalizationning afzalligi emas?",
+      "question": "Which of the following is NOT a benefit of digitalization?",
       "options": {
-        "A": "Samaradorlikni oshirish",
-        "B": "Xarajatlarni kamaytirish",
-        "C": "Mijoz tajribasini yaxshilash",
-        "D": "Qog'oz iste'molini oshirish"
+        "A": "Increased efficiency",
+        "B": "Cost reduction",
+        "C": "Improved customer experience",
+        "D": "Increased paper consumption"
       },
       "correct_answer": "D"
     },
     {
       "id": 5,
-      "question": "Aggregator modeli qanday ishlaydi?",
+      "question": "How does the aggregator model work?",
       "options": {
-        "A": "To'g'ridan-to'g'ri mahsulot ishlab chiqaradi",
-        "B": "Turli xizmatlarni bitta platformada jamlaydi",
-        "C": "Faqat tovarlarni saqlaydi",
-        "D": "Transport xizmatlari ko'rsatadi"
+        "A": "Produces products directly",
+        "B": "Combines various services on one platform",
+        "C": "Only stores goods",
+        "D": "Provides transport services"
       },
       "correct_answer": "B"
     },
     {
       "id": 6,
-      "question": "Food delivery platformalarning asosiy daromad manbai qaysi?",
+      "question": "What is the main revenue source for food delivery platforms?",
       "options": {
-        "A": "Reklama",
-        "B": "Restoranlardan komissiya olishi",
-        "C": "Foydalanuvchilardan obuna haqi",
-        "D": "Hammasi to'g'ri"
+        "A": "Advertising",
+        "B": "Commission from restaurants",
+        "C": "Subscription fees from users",
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 7,
-      "question": "UberEats qaysi sohada ishlaydi?",
+      "question": "In which sector does UberEats operate?",
       "options": {
-        "A": "Bank xizmatlari",
-        "B": "Ovqat yetkazib berish",
-        "C": "Transport",
-        "D": "Ijara platformasi"
+        "A": "Banking services",
+        "B": "Food delivery",
+        "C": "Transportation",
+        "D": "Rental platform"
       },
       "correct_answer": "B"
     },
     {
       "id": 8,
-      "question": "O'zbekistondagi ovqat yetkazib berish platformasi qaysi?",
+      "question": "Which of these is a food delivery platform in Uzbekistan?",
       "options": {
         "A": "Yandex Eats",
         "B": "Uzum Tezkor",
         "C": "Express 24",
-        "D": "Barchasi to'g'ri"
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 9,
-      "question": "Fintech platformasi nima?",
+      "question": "What is a fintech platform?",
       "options": {
-        "A": "Ovqat yetkazish",
-        "B": "Moliya xizmatlarini raqamlashtirish",
-        "C": "Transport xizmati",
-        "D": "Ijara platformasi"
+        "A": "Food delivery service",
+        "B": "Digital transformation of financial services",
+        "C": "Transportation service",
+        "D": "Rental platform"
       },
       "correct_answer": "B"
     },
     {
       "id": 10,
-      "question": "PayPal qaysi turdagi platforma?",
+      "question": "What type of platform is PayPal?",
       "options": {
-        "A": "Ovqat yetkazish",
-        "B": "To'lov platformasi",
-        "C": "Ijara platformasi",
-        "D": "Transport platformasi"
+        "A": "Food delivery",
+        "B": "Payment platform",
+        "C": "Rental platform",
+        "D": "Transportation platform"
       },
       "correct_answer": "B"
     },
     {
       "id": 11,
-      "question": "O'zbekistondagi eng mashhur to'lov platformasi qaysi?",
+      "question": "Which are popular payment platforms in Uzbekistan?",
       "options": {
         "A": "Payme",
         "B": "Click",
         "C": "Apelsin",
-        "D": "Barchasi to'g'ri"
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 12,
-      "question": "Fintech platformalarining asosiy texnologik innovatsiyasi qaysi?",
+      "question": "What are the main technological innovations in fintech platforms?",
       "options": {
-        "A": "Sun'iy intellekt",
-        "B": "Blokcheyn",
-        "C": "Katta ma'lumotlar tahlili",
-        "D": "Barchasi to'g'ri"
+        "A": "Artificial Intelligence",
+        "B": "Blockchain",
+        "C": "Big Data Analytics",
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 13,
-      "question": "Digital business platform nima?",
+      "question": "What is a digital business platform?",
       "options": {
-        "A": "Faqat veb-sayt",
-        "B": "Turli ishtirokchilarni birlashtiruvchi raqamli tizim",
-        "C": "Kompyuter dasturi",
-        "D": "Mobil ilova"
+        "A": "Just a website",
+        "B": "Digital system connecting various participants",
+        "C": "Computer program",
+        "D": "Mobile application"
       },
       "correct_answer": "B"
     },
     {
       "id": 14,
-      "question": "Renting platformasi nima?",
+      "question": "What is a renting platform?",
       "options": {
-        "A": "Tovarlarni sotish",
-        "B": "Xizmatlarni vaqtincha ijaraga berish",
-        "C": "Transport xizmati",
-        "D": "Ovqat yetkazish"
+        "A": "Selling goods",
+        "B": "Temporarily renting out services",
+        "C": "Transportation service",
+        "D": "Food delivery"
       },
       "correct_answer": "B"
     },
     {
       "id": 15,
-      "question": "Quyidagilardan qaysi biri kelajak trendi emas?",
+      "question": "Which is NOT a future trend in digitalization?",
       "options": {
-        "A": "Sun'iy intellekt",
+        "A": "Artificial Intelligence",
         "B": "Internet of Things (IoT)",
-        "C": "Qog'oz hujjatlar",
-        "D": "Blokcheyn"
+        "C": "Paper documents",
+        "D": "Blockchain"
       },
       "correct_answer": "C"
     },
     {
       "id": 16,
-      "question": "Glovo platformasi qanday xizmatlar ko'rsatadi?",
+      "question": "What services does Glovo provide?",
       "options": {
-        "A": "Faqat ovqat yetkazish",
-        "B": "Ovqat, do'kon mahsulotlari, dorilar yetkazish",
-        "C": "Bank xizmatlari",
-        "D": "Transport xizmati"
+        "A": "Only food delivery",
+        "B": "Food, grocery, and medicine delivery",
+        "C": "Banking services",
+        "D": "Transportation services"
       },
       "correct_answer": "B"
     },
     {
       "id": 17,
-      "question": "Food delivery platformalarining qanday muammolari bor?",
+      "question": "What challenges do food delivery platforms face?",
       "options": {
-        "A": "Yuqori operatsion xarajatlar",
-        "B": "Kuchli raqobat",
-        "C": "Regulyator muammolar",
-        "D": "Barchasi to'g'ri"
+        "A": "High operational costs",
+        "B": "Strong competition",
+        "C": "Regulatory issues",
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 18,
-      "question": "Payme qachon ishga tushgan?",
+      "question": "When was Payme launched?",
       "options": {
-        "A": "2011 yil",
-        "B": "2015 yil",
-        "C": "2018 yil",
-        "D": "2020 yil"
+        "A": "2011",
+        "B": "2015",
+        "C": "2018",
+        "D": "2020"
       },
       "correct_answer": "A"
     },
     {
       "id": 19,
-      "question": "Click platformasining foydalanuvchilar soni qancha?",
+      "question": "What is the user base of Click platform?",
       "options": {
         "A": "1 million",
         "B": "5 million",
-        "C": "10 milliondan ortiq",
-        "D": "100 ming"
+        "C": "Over 10 million",
+        "D": "100 thousand"
       },
       "correct_answer": "C"
     },
     {
       "id": 20,
-      "question": "Digitalization strategiyasining birinchi qadimi nima?",
+      "question": "What is the first step in digitalization strategy?",
       "options": {
-        "A": "Texnologiya sotib olish",
-        "B": "Jarayonlarni baholash va yaxshilash uchun sohalarni aniqlash",
-        "C": "Xodimlarni ishdan bo'shatish",
-        "D": "Ofisni yangilash"
+        "A": "Buying technology",
+        "B": "Assessing processes and identifying improvement areas",
+        "C": "Laying off employees",
+        "D": "Renovating office"
       },
       "correct_answer": "B"
     },
     {
       "id": 21,
-      "question": "Yandex Eats qaysi kompaniya tizimiga kiradi?",
+      "question": "Which company ecosystem does Yandex Eats belong to?",
       "options": {
         "A": "Google",
         "B": "Yandex",
@@ -233,150 +233,150 @@
     },
     {
       "id": 22,
-      "question": "Revolut qanday turdagi platforma?",
+      "question": "What type of platform is Revolut?",
       "options": {
         "A": "Digital bank (Neobank)",
-        "B": "Ovqat yetkazish",
-        "C": "Transport",
-        "D": "Ijara platformasi"
+        "B": "Food delivery",
+        "C": "Transportation",
+        "D": "Rental platform"
       },
       "correct_answer": "A"
     },
     {
       "id": 23,
-      "question": "Food delivery platformalarida GPS tracking nima uchun ishlatiladi?",
+      "question": "Why is GPS tracking used in food delivery platforms?",
       "options": {
-        "A": "Restoranlarni hisoblash uchun",
-        "B": "Yetkazib beruvchilarni real vaqt rejimida kuzatish",
-        "C": "Mijozlarni kuzatish",
-        "D": "Tovarlarni sanash"
+        "A": "To count restaurants",
+        "B": "Real-time tracking of delivery personnel",
+        "C": "To monitor customers",
+        "D": "To count products"
       },
       "correct_answer": "B"
     },
     {
       "id": 24,
-      "question": "O'zbekistonda HUMO nima?",
+      "question": "What is HUMO in Uzbekistan?",
       "options": {
-        "A": "Ovqat yetkazish platformasi",
-        "B": "Milliy to'lov tizimi",
-        "C": "Bank nomi",
-        "D": "Transport kompaniyasi"
+        "A": "Food delivery platform",
+        "B": "National payment system",
+        "C": "Bank name",
+        "D": "Transport company"
       },
       "correct_answer": "B"
     },
     {
       "id": 25,
-      "question": "Dark kitchens nima?",
+      "question": "What are dark kitchens?",
       "options": {
-        "A": "Qorong'i oshxonalar",
-        "B": "Faqat yetkazib berish uchun ishlaydigan oshxonalar",
-        "C": "Restoranlarning yashirin filiallari",
-        "D": "Faqat kechqurun ishlaydigan oshxonalar"
+        "A": "Dark kitchens",
+        "B": "Kitchens operating exclusively for delivery",
+        "C": "Secret restaurant branches",
+        "D": "Kitchens operating only at night"
       },
       "correct_answer": "B"
     },
     {
       "id": 26,
-      "question": "DeFi (Decentralized Finance) nima?",
+      "question": "What is DeFi (Decentralized Finance)?",
       "options": {
-        "A": "Markazlashtirilgan bank tizimi",
-        "B": "Markaziy organlarsiz moliya xizmatlari",
-        "C": "An'anaviy bank tizimi",
-        "D": "Naqd pul tizimi"
+        "A": "Centralized banking system",
+        "B": "Financial services without central authorities",
+        "C": "Traditional banking system",
+        "D": "Cash system"
       },
       "correct_answer": "B"
     },
     {
       "id": 27,
-      "question": "Buy Now Pay Later (BNPL) nima?",
+      "question": "What is Buy Now Pay Later (BNPL)?",
       "options": {
-        "A": "Hozir sotib oling, keyin to'lang",
-        "B": "Avval to'lang, keyin ol",
-        "C": "Faqat naqd pul bilan sotib olish",
-        "D": "Kredit karti talab qilmaydigan to'lov"
+        "A": "Buy now, pay later",
+        "B": "Pay first, receive later",
+        "C": "Purchase only with cash",
+        "D": "Payment without credit card"
       },
       "correct_answer": "A"
     },
     {
       "id": 28,
-      "question": "Open Banking nima?",
+      "question": "What is Open Banking?",
       "options": {
-        "A": "Bank hisob malumotlarini uchinchi tomon ilovalari bilan baham ko'rish",
-        "B": "Banklarni ochiq qoldirish",
-        "C": "Banklarni bepul ochish",
-        "D": "Bank xizmatlarini yashirish"
+        "A": "Sharing bank account data with third-party apps",
+        "B": "Leaving banks open",
+        "C": "Opening banks for free",
+        "D": "Hiding banking services"
       },
       "correct_answer": "A"
     },
     {
       "id": 29,
-      "question": "Fintech platformalari qanday daromad topadi?",
+      "question": "How do fintech platforms generate revenue?",
       "options": {
-        "A": "Tranzaksiya to'lovlari",
-        "B": "Obuna modellari",
-        "C": "Komissiyalar",
-        "D": "Barchasi to'g'ri"
+        "A": "Transaction fees",
+        "B": "Subscription models",
+        "C": "Commissions",
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 30,
-      "question": "Uzbekistonda fintech rivojlanishiga qanday omillar ta'sir ko'rsatdi?",
+      "question": "What factors influenced fintech development in Uzbekistan?",
       "options": {
-        "A": "Mobil va internet tarqalishi",
-        "B": "Hukumat dasturlari",
-        "C": "COVID-19 pandemiyasi",
-        "D": "Barchasi to'g'ri"
+        "A": "Mobile and internet penetration",
+        "B": "Government programs",
+        "C": "COVID-19 pandemic",
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 31,
-      "question": "Food delivery platformalari restoranlarga qanday ta'sir ko'rsatadi?",
+      "question": "How do food delivery platforms affect restaurants?",
       "options": {
-        "A": "Mijozlar bazasini kengaytiradi",
-        "B": "Daromadni oshiradi, lekin marjani kamaytiradi",
-        "C": "Ikkalasi ham to'g'ri",
-        "D": "Hech qanday ta'siri yo'q"
+        "A": "Expand customer base",
+        "B": "Increase revenue but reduce margins",
+        "C": "Both A and B",
+        "D": "No effect"
       },
       "correct_answer": "C"
     },
     {
       "id": 32,
-      "question": "Stripe platformasi kimlar uchun mo'ljallangan?",
+      "question": "Who is Stripe platform designed for?",
       "options": {
-        "A": "Faqat katta kompaniyalar",
-        "B": "Dasturchilar va e-ticaret saytlari",
-        "C": "Faqat banklar",
-        "D": "Faqat fizik shaxslar"
+        "A": "Only large companies",
+        "B": "Developers and e-commerce websites",
+        "C": "Only banks",
+        "D": "Only individuals"
       },
       "correct_answer": "B"
     },
     {
       "id": 33,
-      "question": "M-Pesa qaysi mintaqada mashhur?",
+      "question": "Where is M-Pesa popular?",
       "options": {
-        "A": "Afrikada",
-        "B": "Yevropada",
-        "C": "Amerikada",
-        "D": "Osiyoda"
+        "A": "Africa",
+        "B": "Europe",
+        "C": "America",
+        "D": "Asia"
       },
       "correct_answer": "A"
     },
     {
       "id": 34,
-      "question": "OSON platformasining o'ziga xos xususiyati nima?",
+      "question": "What is unique about OSON platform?",
       "options": {
-        "A": "B2B to'lov shlyuzi",
-        "B": "Faqat ovqat yetkazish",
-        "C": "Kriptovalyuta savdosi",
-        "D": "Transport xizmati"
+        "A": "B2B payment gateway",
+        "B": "Only food delivery",
+        "C": "Cryptocurrency trading",
+        "D": "Transport services"
       },
       "correct_answer": "A"
     },
     {
       "id": 35,
-      "question": "KapitalBank'ning mobil bank ilovasi qanday nomlanadi?",
+      "question": "What is the name of KapitalBank's mobile banking app?",
       "options": {
         "A": "Mbank",
         "B": "BankOnline",
@@ -387,29 +387,29 @@
     },
     {
       "id": 36,
-      "question": "Food delivery platformalarida AI (Sun'iy intellekt) qanday qo'llaniladi?",
+      "question": "How is AI (Artificial Intelligence) used in food delivery platforms?",
       "options": {
-        "A": "Restaurantlarni tavsiya qilish",
-        "B": "Yetkazib berish vaqtini bashorat qilish",
-        "C": "Marshrutlarni optimallashtirish",
-        "D": "Barchasi to'g'ri"
+        "A": "Recommending restaurants",
+        "B": "Predicting delivery times",
+        "C": "Optimizing routes",
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 37,
-      "question": "DoorDash qaysi mamlakatda bozor yetakchisi?",
+      "question": "In which country is DoorDash market leader?",
       "options": {
-        "A": "AQSH",
-        "B": "Buyuk Britaniya",
-        "C": "Germaniya",
-        "D": "Xitoy"
+        "A": "USA",
+        "B": "UK",
+        "C": "Germany",
+        "D": "China"
       },
       "correct_answer": "A"
     },
     {
       "id": 38,
-      "question": "Uzbekistonda kriptovalyuta savdosi uchun platforma qaysi?",
+      "question": "Which platform in Uzbekistan is for cryptocurrency trading?",
       "options": {
         "A": "Uznex",
         "B": "Payme",
@@ -420,117 +420,117 @@
     },
     {
       "id": 39,
-      "question": "Embedded Finance nima?",
+      "question": "What is Embedded Finance?",
       "options": {
-        "A": "Moliya xizmatlarini nofintech platformalarga integratsiya qilish",
-        "B": "Banklarni yopish",
-        "C": "Naqd pulsiz jamiyat",
-        "D": "Mobil bank xizmatlari"
+        "A": "Integrating financial services into non-fintech platforms",
+        "B": "Closing banks",
+        "C": "Cashless society",
+        "D": "Mobile banking services"
       },
       "correct_answer": "A"
     },
     {
       "id": 40,
-      "question": "Food delivery platformalari uchun eng katta xarajat qaysi?",
+      "question": "What is the biggest expense for food delivery platforms?",
       "options": {
-        "A": "Reklama",
-        "B": "Logistika va yetkazib beruvchilar",
-        "C": "Ofis ijarasi",
-        "D": "Dasturiy ta'minot"
+        "A": "Advertising",
+        "B": "Logistics and delivery personnel",
+        "C": "Office rent",
+        "D": "Software"
       },
       "correct_answer": "B"
     },
     {
       "id": 41,
-      "question": "Sandbox regulation nima?",
+      "question": "What are sandbox regulations?",
       "options": {
-        "A": "Fintech startaplar uchun maxsus regulyator shartlar",
-        "B": "Qum qutisi",
-        "C": "Bank qoidalari",
-        "D": "Xalqaro standartlar"
+        "A": "Special regulatory conditions for fintech startups",
+        "B": "Sand boxes",
+        "C": "Banking rules",
+        "D": "International standards"
       },
       "correct_answer": "A"
     },
     {
       "id": 42,
-      "question": "LendingClub qanday platforma?",
+      "question": "What type of platform is LendingClub?",
       "options": {
         "A": "Peer-to-peer lending",
-        "B": "Ovqat yetkazish",
-        "C": "Transport",
-        "D": "To'lov tizimi"
+        "B": "Food delivery",
+        "C": "Transportation",
+        "D": "Payment system"
       },
       "correct_answer": "A"
     },
     {
       "id": 43,
-      "question": "Uzbekistonda fintech uchun asosiy muammo qaysi?",
+      "question": "What is the main challenge for fintech in Uzbekistan?",
       "options": {
-        "A": "Qishloq joylarda naqd pulga qaramlik",
-        "B": "Regulyator muammolar",
-        "C": "An'anaviy banklar bilan raqobat",
-        "D": "Barchasi to'g'ri"
+        "A": "Cash dependency in rural areas",
+        "B": "Regulatory issues",
+        "C": "Competition with traditional banks",
+        "D": "All of the above"
       },
       "correct_answer": "D"
     },
     {
       "id": 44,
-      "question": "Food delivery platformalarida 'Subscription Plans' nima?",
+      "question": "What are 'Subscription Plans' in food delivery platforms?",
       "options": {
-        "A": "Oylik to'lov evaziga bepul yetkazib berish",
-        "B": "Restaurant obunasi",
-        "C": "Xodimlar uchun obuna",
-        "D": "Ilova obunasi"
+        "A": "Free delivery for monthly payment",
+        "B": "Restaurant subscription",
+        "C": "Employee subscription",
+        "D": "App subscription"
       },
       "correct_answer": "A"
     },
     {
       "id": 45,
-      "question": "Robo-advisors nima?",
+      "question": "What are robo-advisors?",
       "options": {
-        "A": "Sun'iy intellekt asosidagi moliyaviy maslahatchilar",
-        "B": "Robotlar",
-        "C": "Bank xodimlari",
-        "D": "Kredit brokerlar"
+        "A": "AI-based financial advisors",
+        "B": "Robots",
+        "C": "Bank employees",
+        "D": "Credit brokers"
       },
       "correct_answer": "A"
     },
     {
       "id": 46,
-      "question": "Digital Uzbekistan 2030 nima?",
+      "question": "What is Digital Uzbekistan 2030?",
       "options": {
-        "A": "O'zbekistondagi raqamlashtirish dasturi",
-        "B": "Yangi ilova",
-        "C": "Bank nomi",
-        "D": "Transport dasturi"
+        "A": "Digitalization program in Uzbekistan",
+        "B": "New application",
+        "C": "Bank name",
+        "D": "Transport program"
       },
       "correct_answer": "A"
     },
     {
       "id": 47,
-      "question": "Foodora qaysi mintaqada mashhur?",
+      "question": "Where is Foodora popular?",
       "options": {
-        "A": "Yevropa",
-        "B": "AQSH",
-        "C": "Osiyo",
-        "D": "Afrika"
+        "A": "Europe",
+        "B": "USA",
+        "C": "Asia",
+        "D": "Africa"
       },
       "correct_answer": "A"
     },
     {
       "id": 48,
-      "question": "TransferWise (Wise) qanday xizmat ko'rsatadi?",
+      "question": "What service does TransferWise (Wise) provide?",
       "options": {
-        "A": "Xalqaro pul o'tkazmalari",
-        "B": "Ovqat yetkazish",
-        "C": "Transport",
-        "D": "Ijara xizmatlari"
+        "A": "International money transfers",
+        "B": "Food delivery",
+        "C": "Transportation",
+        "D": "Rental services"
       },
       "correct_answer": "A"
     },
     {
       "id": 49,
-      "question": "Fintech platformalarida KYC nima?",
+      "question": "What is KYC in fintech platforms?",
       "options": {
         "A": "Know Your Customer",
         "B": "Know Your Company",
@@ -541,15 +541,25 @@
     },
     {
       "id": 50,
-      "question": "Food delivery platformalarining kelajak trendlaridan biri qaysi?",
+      "question": "Which is a future trend for food delivery platforms?",
       "options": {
-        "A": "Avtonom yetkazib berish (dronlar, robotlar)",
-        "B": "Ekologik qadoqlash",
+        "A": "Autonomous delivery (drones, robots)",
+        "B": "Eco-friendly packaging",
         "C": "Dark kitchens",
-        "D": "Barchasi to'g'ri"
+        "D": "All of the above"
       },
       "correct_answer": "D"
     }
   ],
-  "instructions": "Har bir savolga faqat bitta to'g'ri javob bor. Barcha savollar leksiya materiallaridan tayyorlangan."
+  "instructions": "Each question has only one correct answer. All questions are based on the lecture materials.",
+  "total_questions": 50,
+  "topics_covered": [
+    "Digitalization basics",
+    "Digital Transformation",
+    "Food Delivery Platforms",
+    "Fintech Platforms",
+    "Platforms in Uzbekistan",
+    "Business Models",
+    "Future Trends"
+  ]
 }
