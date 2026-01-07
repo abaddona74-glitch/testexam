@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X } from 'lucide-react';
 import clsx from 'clsx';
 
 function getLeague(score, total) {
@@ -99,13 +99,6 @@ function DetailedReview({ questions, answers }) {
     const [showReportModal, setShowReportModal] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
 
-    // Reporting logic (Replicated or can be passed)
-    // For simplicity, we keep it visual or basic here since this might be history view
-    // Real reporting needs testId, which we might not have in pure history view unless passed
-    
-    // We can disable reporting in History view for now or assume it works
-    const reportingQuestion = activeReportQuestion || {};
-
     return (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="p-0">
@@ -114,7 +107,7 @@ function DetailedReview({ questions, answers }) {
                 </div>
                 <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
                     {questions.map((q, idx) => {
-                        const userAnswer = answers[idx]; // Note: this relies on index, assumes questions order is same
+                        const userAnswer = answers[idx]; 
                         const isCorrect = userAnswer === q.correct_answer;
                         const userOption = q.shuffledOptions.find(o => o.id === userAnswer);
                         const correctOption = q.shuffledOptions.find(o => o.id === q.correct_answer);
@@ -159,6 +152,27 @@ function DetailedReview({ questions, answers }) {
     );
 }
 
+// Device Detection
+function getDeviceType() {
+    if (typeof window === 'undefined') return 'desktop';
+    const ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+        return 'mobile'; 
+    }
+    if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+        return 'mobile';
+    }
+    return 'desktop';
+}
+
+// Country Flag Helper
+function getFlagEmoji(countryCode) {
+    if (!countryCode) return '';
+    return countryCode.toUpperCase().replace(/./g, char => 
+        String.fromCodePoint(127397 + char.charCodeAt(0))
+    );
+}
+
 export default function Home() {
   const [tests, setTests] = useState({ defaultTests: [], uploadedTests: [] });
   const [folders, setFolders] = useState([]);
@@ -174,7 +188,19 @@ export default function Home() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
+  const [userCountry, setUserCountry] = useState(null);
+  const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
   
+  // Sync spectating user with realtime data
+  useEffect(() => {
+      if (spectatingUser) {
+          const updatedUser = globalActiveUsers.find(u => u.userId === spectatingUser.userId);
+          if (updatedUser) {
+              setSpectatingUser(updatedUser);
+          }
+      }
+  }, [globalActiveUsers]); // Update whenever global list updates
+
   // Upload State
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadFolder, setUploadFolder] = useState('');
@@ -211,32 +237,53 @@ export default function Home() {
     fetchTests();
     fetchLeaderboard();
     fetchGlobalActiveUsers();
+
+    // Fetch Country (with local storage caching to avoid 429 errors)
+    const storedCountry = localStorage.getItem('examApp_userCountry');
+    if (storedCountry) {
+        setUserCountry(storedCountry);
+    } else {
+        fetch('/api/country')
+            .then(res => res.json())
+            .then(data => {
+                if (data.country_code) {
+                    setUserCountry(data.country_code);
+                    localStorage.setItem('examApp_userCountry', data.country_code);
+                }
+            })
+            .catch(err => console.error("Country fetch failed", err));
+    }
     
     // 4. Set up intervals
     const interval = setInterval(fetchGlobalActiveUsers, 5000);
     const leaderboardInterval = setInterval(fetchLeaderboard, 5000); // Auto-refresh leaderboard
     
     // 5. Send heartbeat for "Browsing" status if we have a username
-    const heartbeatInterval = setInterval(() => {
-        const currentName = localStorage.getItem('examApp_userName');
-        if (currentName) {
-            // Only send if NOT in a test (activeTest handles its own heartbeat)
-            // But we can't easily access current activeTest state here inside effect closure without refs or dependencies
-            // So we rely on a check. However, activeTest state is available in render scope, but this effect runs ONCE.
-            // Better to use a separate effect that depends on [view, userName]
-        }
-    }, 10000);
-
+    // Note: accessing userCountry here directly inside [] dependency effect won't work well 
+    // because this effect runs ONCE on mount.
+    // userCountry is null initially.
+    // Instead of relying on closure for userCountry, we should use a ref or read from state in a separate effect that depends on userCountry.
+    // However, the `heartbeatInterval` is convenient.
+    // Better strategy: Let the separate effect below handle ALL heartbeats when in 'list' view.
+    // And remove this one to avoid duplication?
+    // The separate effect (lines ~280) handles 'list' view heartbeat.
+    // This one (lines ~250) seems to be a general fallback or legacy? 
+    // It runs every 10s regardless of view. If we are in 'test' view, TestRunner sends heartbeat.
+    // If we are in 'list' view, the other effect sends it.
+    // So this one might be redundant or causing conflict if it sends incorrect data (null country).
+    // Let's REMOVE this duplicate heartbeat interval to clean up logic and rely on the reactive effect below.
+    
     return () => {
         clearInterval(interval);
         clearInterval(leaderboardInterval);
-        clearInterval(heartbeatInterval);
     };
   }, []);
 
   // Separate effect for main page heartbeat
   useEffect(() => {
-      if (view === 'list' && isNameSet && userName && userId) {
+      // Send heartbeat for all views EXCEPT 'test' (because TestRunner handles 'in-test' status)
+      // This ensures user stays "Online" even while in History/Upload/Review
+      if (view !== 'test' && isNameSet && userName && userId) {
           const sendHeartbeat = () => {
               fetch('/api/active', {
                   method: 'POST',
@@ -244,7 +291,9 @@ export default function Home() {
                   body: JSON.stringify({
                       userId: userId,
                       name: userName,
-                      status: 'browsing'
+                      status: 'browsing',
+                      device: getDeviceType(),
+                      country: userCountry
                   })
               }).catch(e => console.error(e));
           };
@@ -273,7 +322,7 @@ export default function Home() {
               // But for closing tab, we need DELETE.
           };
       }
-  }, [view, isNameSet, userName, userId]); // Remove dependency on empty array content changes
+  }, [view, isNameSet, userName, userId, userCountry]); // Re-run when country is fetched
 
   const fetchGlobalActiveUsers = async () => {
       try {
@@ -322,11 +371,17 @@ export default function Home() {
   };
 
   const startTest = (test) => {
-    // Check if there is a translation available (simple mapping for en.json -> uz.json)
+    // Check if there is a translation available (auto-detect counterpart in same folder)
     let translationContent = null;
-    if (test.id === 'en.json') {
-        const uzTest = tests.defaultTests.find(t => t.id === 'uz.json');
-        if (uzTest) translationContent = uzTest.content;
+    const isEn = test.id.endsWith('en.json');
+    const isUz = test.id.endsWith('uz.json');
+
+    if (isEn || isUz) {
+        const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
+        // Search in all available tests
+        const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
+        const translation = allTests.find(t => t.id === targetId);
+        if (translation) translationContent = translation.content;
     }
 
     // Check if we have saved progress for this test
@@ -793,23 +848,49 @@ export default function Home() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center">
-                                            <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700" : "text-gray-700")}>
-                                                {isMe ? "Me" : user.name}
-                                            </p>
-                                            {user.status === 'browsing' && (
-                                                <span className="w-2 h-2 rounded-full bg-green-500" title="Browsing"></span>
-                                            )}
+                                            <div className="flex items-center gap-1.5 truncate">
+                                                <span title={user.country || "Unknown Country"} className="text-sm cursor-help select-none grayscale hover:grayscale-0 transition-all">
+                                                    {getFlagEmoji(user.country) || "🏳️"}
+                                                </span>
+                                                {user.device === 'mobile' 
+                                                    ? <Smartphone size={12} className="text-gray-400" />
+                                                    : <Monitor size={12} className="text-gray-400" />
+                                                }
+                                                <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700" : "text-gray-700")}>
+                                                    {isMe ? "Me" : user.name}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {/* Spectate Button */}
+                                                {!isMe && user.status === 'in-test' && (
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSpectatingUser(user);
+                                                        }}
+                                                        title="Watch this user"
+                                                        className="p-1 hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 rounded transition-colors"
+                                                    >
+                                                        <Eye size={14} />
+                                                    </button>
+                                                )}
+                                                {user.status === 'browsing' && (
+                                                    <span className="w-2 h-2 rounded-full bg-green-500" title="Browsing"></span>
+                                                )}
+                                            </div>
                                         </div>
                                         
                                         {user.status === 'in-test' ? (
-                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                            <div className="flex items-center gap-1.5 mt-0.5" 
+                                                 onClick={() => !isMe && setSpectatingUser(user)}
+                                                 className="flex items-center gap-1.5 mt-0.5 cursor-pointer hover:opacity-80">
                                                 <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 rounded truncate max-w-[100px] inline-block">
                                                     Taking Test
                                                 </span>
                                                 <div className="h-1 flex-1 bg-gray-100 rounded-full overflow-hidden max-w-[60px]">
                                                     <div 
                                                         className="h-full bg-blue-500" 
-                                                        style={{ width: `${((user.progress + 1) / user.total) * 100}%` }}
+                                                        style={{ width: `${((user.progress) / user.total) * 100}%` }}
                                                     />
                                                 </div>
                                             </div>
@@ -956,6 +1037,7 @@ export default function Home() {
                 test={activeTest} 
                 userName={userName}
                 userId={userId}
+                userCountry={userCountry}
                 onBack={() => setView('list')}
                 onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
                 onFinish={(results) => {
@@ -990,6 +1072,131 @@ export default function Home() {
             />
         )}
       </div>
+            {/* Spectator Modal */}
+            {spectatingUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+                        {/* Header */}
+                        <div className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg border border-indigo-200">
+                                    {spectatingUser.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-gray-900">Watching {spectatingUser.name}</h3>
+                                        {spectatingUser.device === 'mobile' ? <Smartphone size={14} className="text-gray-400"/> : <Monitor size={14} className="text-gray-400"/>}
+                                        <span className="text-lg">{getFlagEmoji(spectatingUser.country)}</span>
+                                    </div>
+                                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                        Live Stream • Question {(spectatingUser.progress || 0) + 1} of {spectatingUser.total}
+                                    </p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setSpectatingUser(null)}
+                                className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+                            {(() => {
+                                // Try to find the test
+                                // We look in both defaultTests and uploadedTests (from state)
+                                var test;
+                                if (tests) {
+                                    test = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])].find(t => t.id === spectatingUser.testId);
+                                }
+                                
+                                if (!test) return (
+                                    <div className="h-full flex flex-col items-center justify-center text-gray-400 opacity-60">
+                                        <EyeOff size={48} className="mb-4" />
+                                        <p>This user is taking a private or locally uploaded test.</p>
+                                        <p className="text-sm">Cannot display question content.</p>
+                                    </div>
+                                );
+                                
+                                // Safely access questions: test.questions OR test.content.test_questions
+                                const questions = test.questions || test.content?.test_questions;
+                                if (!questions) return <div className="p-4 text-center">Cannot load questions data.</div>;
+
+                                const question = questions[spectatingUser.progress || 0];
+                                if (!question) return <div className="p-4 text-center">Waiting for question data...</div>;
+
+                                return (
+                                    <div className="max-w-2xl mx-auto">
+                                        {/* Question Card */}
+                                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                                    Question {(spectatingUser.progress || 0) + 1}
+                                                </span>
+                                            </div>
+                                            <h2 className="text-xl font-bold text-gray-800 leading-relaxed">
+                                                {question.question}
+                                            </h2>
+                                        </div>
+
+                                        {/* Options */}
+                                        <div className="space-y-3">
+                                            {(() => {
+                                                // Handle options whether they are Array or Object
+                                                let optionsArray = [];
+                                                if (Array.isArray(question.options)) {
+                                                    optionsArray = question.options;
+                                                } else if (typeof question.options === 'object' && question.options !== null) {
+                                                    optionsArray = Object.entries(question.options).map(([key, value]) => ({ 
+                                                        id: key, 
+                                                        text: value 
+                                                    }));
+                                                }
+                                                
+                                                return optionsArray.map((option) => {
+                                                    const isSelected = spectatingUser.currentAnswer === option.id;
+                                                    return (
+                                                        <div key={option.id} className={clsx(
+                                                            "p-4 rounded-xl border-2 transition-all relative overflow-hidden",
+                                                            isSelected 
+                                                                ? "border-indigo-500 bg-indigo-50/50 shadow-md transform scale-[1.01]" 
+                                                                : "border-gray-100 bg-white opacity-60"
+                                                        )}>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={clsx(
+                                                                    "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors border",
+                                                                    isSelected
+                                                                        ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                                                                        : "bg-gray-50 text-gray-500 border-gray-200"
+                                                                )}>
+                                                                    {option.id}
+                                                                </div>
+                                                                <div className="font-medium text-gray-700">{option.text}</div>
+                                                            </div>
+                                                            {isSelected && (
+                                                                <div className="absolute top-1/2 -translate-y-1/2 right-4 text-indigo-600 font-medium text-xs bg-indigo-100 px-2 py-1 rounded-full flex items-center gap-1">
+                                                                    <Eye size={12} />
+                                                                    Selected
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                });
+                                            })()}
+                                        </div>
+
+                                        <div className="mt-8 text-center text-xs text-gray-400">
+                                            Watching in real-time. Content updates as the user progresses.
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            )}
     </main>
   );
 }
@@ -1053,7 +1260,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
     );
 }
 
-function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpdate, onBack }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack }) {
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {}); 
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
@@ -1066,6 +1273,15 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
     const [activeReportQuestion, setActiveReportQuestion] = useState(null);
 
     const [activeUsers, setActiveUsers] = useState([]);
+    
+    // User local country state isn't available inside TestRunner props unless passed.
+    // However, we need to send it in heartbeat.
+    // We can fetch it again or pass it. 
+    // Fetching again is easiest to avoid prop drilling mania for now, or just use localStorage if we saved it.
+    // To keep it clean, let's grab it from localStorage if available or re-fetch lightly.
+    // Actually, TestRunner is child of Home, but Home holds the state `userCountry`.
+    // Let's pass `userCountry` as prop to TestRunner.
+
 
     const question = test.questions[currentIndex];
     // Find translation if available
@@ -1102,11 +1318,14 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                     userId: userId, // Use stable ID
                     name: userName,
                     progress: currentIndex,
-                    total: totalQuestions
+                    total: totalQuestions,
+                    device: getDeviceType(),
+                    country: userCountry,
+                    currentAnswer: answers[currentIndex] // Send the selected answer for the current question
                 })
             }).catch(e => console.error("Active status update failed", e));
         }
-    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions]);
+    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry]);
 
     // Poll for other active users
     useEffect(() => {
@@ -1625,6 +1844,8 @@ function TestRunner({ test, userName, userId, onFinish, onRetake, onProgressUpda
                     </div>
                 </div>
             )}
+
+
         </>
     );
 }

@@ -29,7 +29,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { testId, userId, name, progress, total, status } = body; 
+    const { testId, userId, name, progress, total, status, device, country, currentAnswer } = body; 
     
     // Key by userId to ensure user appears only once
     const key = userId; 
@@ -41,6 +41,9 @@ export async function POST(request) {
         progress: progress || 0,
         total: total || 0,
         status: status || (testId ? 'in-test' : 'browsing'),
+        device: device || 'desktop', 
+        country: country || null,
+        currentAnswer: currentAnswer || null,
         lastUpdated: Date.now()
     };
 
