@@ -6,20 +6,20 @@ import clsx from 'clsx';
 function getLeague(score, total) {
     const percentage = (score / total) * 100;
 
-    // 100% - MYTHIC (RGB / Shine)
+    // 100% - MYTHIC (Blood / Red)
     if (percentage === 100) return { 
         name: 'Mythic', 
-        badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.4)] font-extrabold',
-        textClass: 'font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 drop-shadow-sm',
-        rowClass: 'bg-gradient-to-r from-indigo-50/40 via-purple-50/40 to-pink-50/40 border-l-4 border-l-purple-500',
-        icon: Crown
+        badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-red-800 via-red-600 to-red-800 border-red-600 shadow-[0_0_15px_rgba(255,0,0,0.6)] font-extrabold',
+        textClass: 'font-extrabold mythic-blood',
+        rowClass: 'bg-gradient-to-r from-red-100/30 via-red-50/20 to-red-100/30 border-l-4 border-l-[#ff0000]',
+        icon: Trophy
     };
 
     // 95-99% - LEGENDARY (Gold / Fire)
     if (percentage >= 95) return { 
         name: 'Legendary', 
-        badgeClass: 'bg-amber-100 text-amber-800 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)] font-bold',
-        textClass: 'font-bold text-amber-700 drop-shadow-[0_1px_1px_rgba(251,191,36,0.3)]',
+        badgeClass: 'legendary-border-tail border-transparent legendary-rgb-text font-bold',
+        textClass: 'font-bold legendary-rgb-text drop-shadow-[0_1px_1px_rgba(251,191,36,0.3)]',
         rowClass: 'bg-gradient-to-r from-amber-50/50 to-transparent border-l-4 border-l-amber-400',
         icon: Crown 
     };
@@ -192,6 +192,7 @@ export default function Home() {
   const [nameInput, setNameInput] = useState('');
   const [isNameSet, setIsNameSet] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [filterPeriod, setFilterPeriod] = useState('all'); // Filter state
   const [showSettings, setShowSettings] = useState(false);
   const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
   const [userCountry, setUserCountry] = useState(null);
@@ -356,7 +357,7 @@ export default function Home() {
 
   const fetchLeaderboard = async () => {
     try {
-        const res = await fetch('/api/leaderboard');
+        const res = await fetch(`/api/leaderboard?period=${filterPeriod}`);
         if (res.ok) {
             const data = await res.json();
             setLeaderboard(data);
@@ -365,6 +366,10 @@ export default function Home() {
         console.error("Leaderboard fetch error", e);
     }
   };
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [filterPeriod]);
 
   const handleNameSubmit = (e) => {
       e.preventDefault();
@@ -745,9 +750,28 @@ export default function Home() {
 
             {/* Leaderboard Section */}
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center justify-center gap-2">
-                    <Trophy className="text-yellow-500" /> Leaderboard
-                </h2>
+                <div className="flex flex-col items-center mb-6 gap-4">
+                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <Trophy className="text-yellow-500" /> Leaderboard
+                    </h2>
+                    
+                    <div className="flex justify-center gap-2 bg-gray-50 p-1 rounded-xl border border-gray-100">
+                        {['today', '3days', '7days', 'all'].map((p) => (
+                            <button
+                                key={p}
+                                onClick={() => setFilterPeriod(p)}
+                                className={clsx(
+                                    "px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all",
+                                    filterPeriod === p 
+                                        ? "bg-white text-blue-600 shadow-sm border border-gray-100" 
+                                        : "text-gray-400 hover:text-gray-600"
+                                )}
+                            >
+                                {p === 'all' ? 'All Time' : p === '3days' ? '3 Days' : p === '7days' ? '7 Days' : 'Today'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 {leaderboard.length === 0 ? (
                     <div className="text-center py-8 text-gray-400 italic">No results yet. Be the first!</div>
                 ) : (
@@ -787,16 +811,37 @@ export default function Home() {
                                             </td>
                                             <td className="py-3 px-2 text-left">
                                                 <div className="flex flex-col">
-                                                    <span className={clsx("text-base font-medium", league.textClass)}>
-                                                        {entry.name}
-                                                    </span>
+                                                    {league.name === 'Mythic' ? (
+                                                        <span className="text-base font-medium font-extrabold flex justify-start">
+                                                            {entry.name.split('').map((char, i) => (
+                                                                <span key={i} className="mythic-blood relative inline-block mx-[0.5px]">
+                                                                    {char === ' ' ? '\u00A0' : char}
+                                                                </span>
+                                                            ))}
+                                                        </span>
+                                                    ) : (
+                                                        <span className={clsx("text-base font-medium", league.textClass)}>
+                                                            {entry.name}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="py-3 px-2">
-                                                <span className={clsx("inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-sm font-semibold mx-auto", league.badgeClass)}>
-                                                    <LeagueIcon size={12} className={percentage === 100 ? "animate-pulse" : ""} /> 
-                                                    {league.name}
-                                                </span>
+                                                {league.name === 'Mythic' ? (
+                                                     <span className={clsx(
+                                                        "inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-sm font-semibold mx-auto",
+                                                        league.badgeClass,
+                                                        "animate-pulse" // Added pulse here
+                                                    )}>
+                                                        <Trophy size={12} className="text-[#ff0000] drop-shadow-sm" /> 
+                                                        {league.name}
+                                                    </span>
+                                                ) : (
+                                                    <span className={clsx("inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-sm font-semibold mx-auto", league.badgeClass)}>
+                                                        <LeagueIcon size={12} className={percentage === 100 ? "animate-pulse" : ""} /> 
+                                                        {league.name}
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="py-3 text-sm text-gray-500 font-medium px-2">{entry.testName}</td>
                                             <td className="py-3 text-sm text-gray-400 px-2">{timeAgo(entry.date)}</td>

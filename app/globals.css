@@ -25,3 +25,132 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+
+/* Bloody Text Effect */
+.mythic-blood {
+  color: #ff0000;
+  text-shadow: 
+      2px 2px 0px #570000, 
+      1px 1px 0px #ff7777;
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+
+/* Base Drip */
+.mythic-blood::before {
+  content: '';
+  position: absolute;
+  background: #ff0000;
+  border-radius: 0 0 5px 5px;
+  width: 2px;
+  height: 0;
+  top: 75%;
+  left: 30%;
+  opacity: 0;
+  z-index: -1;
+  animation: drip 3s infinite ease-in;
+}
+
+/* Variations for organic look */
+.mythic-blood:nth-child(2n)::before {
+  left: 60%;
+  animation-duration: 4s;
+  animation-delay: 1s;
+}
+
+.mythic-blood:nth-child(3n)::before {
+  left: 40%;
+  width: 3px;
+  animation-duration: 2.5s;
+  animation-delay: 0.5s;
+}
+
+.mythic-blood:nth-child(4n)::before {
+  left: 20%;
+  animation-duration: 5s;
+  animation-delay: 0s;
+}
+
+/* Some letters get 2 drips */
+.mythic-blood:nth-child(5n)::after {
+  content: '';
+  position: absolute;
+  background: #ff0000;
+  border-radius: 0 0 5px 5px;
+  width: 2px;
+  height: 0;
+  top: 80%;
+  right: 20%;
+  opacity: 0;
+  z-index: -1;
+  animation: drip 3.5s infinite ease-in 2s;
+}
+
+@keyframes drip {
+  0% { height: 0; opacity: 1; }
+  60% { height: 10px; opacity: 1; transform: translateY(0); }
+  80% { height: 15px; opacity: 0.8; transform: translateY(5px); }
+  100% { height: 15px; opacity: 0; transform: translateY(15px); }
+}
+
+/* RGB Text Animation */
+@keyframes rgb-text {
+  0% { color: #ff0000; }
+  14% { color: #ff7f00; }
+  28% { color: #ffff00; }
+  42% { color: #00ff00; }
+  57% { color: #0000ff; }
+  71% { color: #4b0082; }
+  85% { color: #8b00ff; }
+  100% { color: #ff0000; }
+}
+
+.legendary-rgb-text {
+  animation: rgb-text 2s linear infinite;
+  text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+/* RGB Border Loop Animation (Moving Tail) */
+@keyframes border-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.legendary-border-tail {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  /* Ensure parent has some bg if needed, but here we just mask */
+}
+
+.legendary-border-tail::before {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 500%; /* Over-size to ensure rotation covers corners */
+  top: -200%;
+  left: -25%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 280deg, 
+    #ff0000 300deg, 
+    #00ff00 320deg, 
+    #0000ff 340deg,
+    transparent 360deg
+  );
+  animation: border-rotate 3s linear infinite; 
+  z-index: -2;
+}
+
+.legendary-border-tail::after {
+  content: '';
+  position: absolute;
+  inset: 2px; /* Border width */
+  background: #111111; /* Dark background to make RGB pop */
+  border-radius: inherit; /* Follows parent */
+  z-index: -1;
+}
+

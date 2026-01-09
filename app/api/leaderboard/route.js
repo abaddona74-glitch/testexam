@@ -2,10 +2,30 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Leaderboard from '../../../models/Leaderboard';
 
-export async function GET() {
+export async function GET(request) {
   await dbConnect();
   try {
-      const leaderboard = await Leaderboard.find({}).sort({ score: -1 }).limit(100);
+      const { searchParams } = new URL(request.url);
+      const period = searchParams.get('period');
+      
+      let dateQuery = {};
+      const now = new Date();
+      // Set to beginning of today (00:00:00)
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      if (period === 'today') {
+          dateQuery = { date: { $gte: todayStart } };
+      } else if (period === '3days') {
+          const threeDaysAgo = new Date(todayStart);
+          threeDaysAgo.setDate(todayStart.getDate() - 2); // Includes today + 2 previous days
+          dateQuery = { date: { $gte: threeDaysAgo } };
+      } else if (period === '7days') {
+          const sevenDaysAgo = new Date(todayStart);
+          sevenDaysAgo.setDate(todayStart.getDate() - 6); // Includes today + 6 previous days
+          dateQuery = { date: { $gte: sevenDaysAgo } };
+      }
+
+      const leaderboard = await Leaderboard.find(dateQuery).sort({ score: -1 }).limit(100);
       return NextResponse.json(leaderboard);
   } catch (error) {
       console.error("Leaderboard GET Error:", error);
