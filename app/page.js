@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard } from 'lucide-react';
 import clsx from 'clsx';
 
 function getLeague(score, total) {
@@ -194,6 +194,8 @@ export default function Home() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [filterPeriod, setFilterPeriod] = useState('all'); // Filter state
   const [showSettings, setShowSettings] = useState(false);
+  const [showDonateModal, setShowDonateModal] = useState(false);
+  const [cardCopied, setCardCopied] = useState(false);
   const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
   const [userCountry, setUserCountry] = useState(null);
   const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
@@ -548,6 +550,13 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-2">
+                <button
+                    onClick={() => setShowDonateModal(true)}
+                    className="p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors animate-pulse"
+                    title="Support Project"
+                >
+                    <Heart size={20} className={showDonateModal ? "fill-rose-500" : ""} />
+                </button>
                 <button 
                   onClick={() => setView('history')}
                   className={clsx(
@@ -611,6 +620,64 @@ export default function Home() {
                               Save Changes
                           </button>
                       </form>
+                 </div>
+             </div>
+        )}
+
+        {showDonateModal && (
+             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                 <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 relative overflow-hidden">
+                     {/* Decorative Background */}
+                     <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-rose-500 to-pink-600 opacity-10 rounded-b-[3rem] pointer-events-none" />
+                     
+                     <button onClick={() => setShowDonateModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10">
+                         <XCircle size={24} />
+                     </button>
+
+                     <div className="relative z-10 text-center">
+                         <div className="bg-rose-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-rose-600 ring-4 ring-rose-50">
+                             <Heart size={32} className="fill-rose-500 animate-pulse" />
+                         </div>
+                         <h2 className="text-xl font-bold text-gray-900 mb-2">Loyiha Rivojiga Hissa Qo'shing</h2>
+                         <p className="text-gray-500 text-sm mb-6">
+                            Agar ushbu loyiha sizga foydali bo'lgan bo'lsa, o'z minnatdorchiligingizni bildirishingiz mumkin.
+                         </p>
+
+                         <div className="space-y-3 text-left">
+                             {/* Payme */}
+                             <div 
+                                className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors group cursor-pointer active:scale-95 select-none" 
+                                onClick={() => {
+                                    navigator.clipboard.writeText('9860 3566 2415 2985'); 
+                                    setCardCopied(true);
+                                    setTimeout(() => setCardCopied(false), 2000);
+                                }}
+                             >
+                                 <div className="flex items-center justify-between mb-1">
+                                    <span className="font-bold text-[#00cccc]">Payme / Click / Uzum</span> 
+                                    <span className={clsx(
+                                        "text-xs px-2 py-0.5 rounded transition-colors duration-300 font-medium flex items-center gap-1",
+                                        cardCopied ? "bg-green-100 text-green-600" : "text-gray-400 bg-gray-200"
+                                    )}>
+                                        {cardCopied ? (
+                                            <>
+                                                <CheckCircle2 size={12} />
+                                                Nusxalandi
+                                            </>
+                                        ) : "Nusxalash"}
+                                    </span>
+                                 </div>
+                                 <div className="font-mono text-lg text-gray-700 font-semibold tracking-wider group-hover:text-blue-600">
+                                     9860 3566 2415 2985
+                                 </div>
+                                 <div className="text-xs text-gray-400 mt-1">Maxmudbek Muzaffarov</div>
+                             </div>
+                         </div>
+                         
+                         <p className="text-xs text-gray-400 mt-6">
+                             Sizning yordamingiz server xarajatlari va yangi testlar qo'shish uchun sarflanadi. Rahmat! ❤️
+                         </p>
+                     </div>
                  </div>
              </div>
         )}
