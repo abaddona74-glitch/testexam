@@ -236,4 +236,330 @@
       "question": "Nima uchun GPS kuzatish texnologiyasi ovqat yetkazish platformalari uchun muhim?",
       "options": {
         "A": "Restoran oshxona operatsiyalarini kuzatish uchun",
-        "B": "Yetkazib beruvchi xodim
+        "B": "Yetkazib beruvchi xodimlarni real vaqt rejimida kuzatish va taxminiy yetib borish vaqtlari uchun",
+        "C": "Mijozlarning xarid qilish shakllarini kuzatish uchun",
+        "D": "Hamkor restoranlardagi inventarni sanash uchun"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 23,
+      "question": "O'zbekiston moliyaviy infratuzilmasi kontekstida HUMO nima?",
+      "options": {
+        "A": "Mashhur ovqat yetkazish ilovasi",
+        "B": "Milliy ichki to'lov kartasi tizimi",
+        "C": "Tijorat bank muassasasi",
+        "D": "Transport va logistika kompaniyasi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 24,
+      "question": "'Dark kitchens' yoki 'ghost kitchens'ni nima xarakterlaydi?",
+      "options": {
+        "A": "Faqat tungi soatlarda ishlaydigan restoranlar",
+        "B": "Faqat yetkazib berish buyurtmalari uchun mo'ljallangan ovqat ishlab chiqarish inshootlari",
+        "C": "Omma uchun noma'lum bo'lgan maxfiy restoran manzillari",
+        "D": "Yetarli yoritilmagan oshxona sharoitlari"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 25,
+      "question": "Decentralized Finance (DeFi)ning aniqlovchi xususiyati nima?",
+      "options": {
+        "A": "An'anaviy moliyaviy institutlar tomonidan markazlashtirilgan nazorat",
+        "B": "Markaziy vositachilarsiz blokcheyn yordamida ishlaydigan moliyaviy xizmatlar",
+        "C": "Davlat tomonidan tartibga solinadigan bank tizimlari",
+        "D": "Naqd pulga asoslangan iqtisodiy operatsiyalar"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 26,
+      "question": "Buy Now Pay Later (BNPL) modeli qanday ishlaydi?",
+      "options": {
+        "A": "Bo'lib-bo'lib kechiktirilgan to'lov bilan darhol xarid qilish",
+        "B": "Mahsulotni olishdan oldin to'liq to'lov talabi",
+        "C": "Faqat naqd pul tranzaktsiya tizimi",
+        "D": "Kredit kartasiz to'lov alternativasi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 27,
+      "question": "Open Banking qanday printsipga asoslanadi?",
+      "options": {
+        "A": "Bank ma'lumotlarini vakolatli uchinchi tomon provayderlari bilan xavfsiz baham ko'rish",
+        "B": "Uzaytirilgan ish vaqtida ishlaydigan banklar",
+        "C": "To'lovsiz bepul bank xizmatlari",
+        "D": "Hech qanday ma'lumot almashmaydigan maxfiy bank"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 28,
+      "question": "Fintech platformalarining asosiy monetizatsiya strategiyalari qaysilar?",
+      "options": {
+        "A": "Qayta ishlangan har bir to'lov uchun tranzaktsiya to'lovlari",
+        "B": "Obunaga asoslangan takroriy daromad modellari",
+        "C": "Moliyaviy xizmatlar bo'yicha foiz komissiyalari",
+        "D": "Ushbu daromad oqimlarining kombinatsiyalari keng tarqalgan"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 29,
+      "question": "O'zbekistonda fintechni qabul qilishni tezlashtirgan omillar qaysilar?",
+      "options": {
+        "A": "Mobil telefon va internetning tez tarqalishi",
+        "B": "Hukumatning raqamlashtirish tashabbuslari va dasturlari",
+        "C": "COVID-19 pandemiyasi davridagi xulq-atvor o'zgarishlari",
+        "D": "Ushbu omillarning barchasi sezilarli hissa qo'shdi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 30,
+      "question": "Ovqat yetkazish platformalari restoran iqtisodiyotiga qanday ta'sir ko'rsatadi?",
+      "options": {
+        "A": "Ular geografik mijozlarni sezilarli darajada kengaytiradi",
+        "B": "Ular savdo hajmini oshiradi, lekin komissiyalar orqali foyda marjasini kamaytiradi",
+        "C": "Ham kengaytirilgan yetish, ham marja bosimi bir vaqtda sodir bo'ladi",
+        "D": "Ular restoran operatsiyalariga ahamiyatsiz ta'sir ko'rsatadi"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 31,
+      "question": "Stripe'ning asosiy maqsadli mijoz segmenti kimlar?",
+      "options": {
+        "A": "Faqat yirik ko'p millatli korporatsiyalar",
+        "B": "To'lov integratsiyasiga muhtoj dasturchilar va onlayn bizneslar",
+        "C": "Faqat bank muassasalari",
+        "D": "Shaxsiy to'lovlar uchun individual iste'molchilar"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 32,
+      "question": "M-Pesa qaysi geografik mintaqada ajoyib muvaffaqiyatga erishdi?",
+      "options": {
+        "A": "Afrika bozorlari, ayniqsa Keniya va Tanzaniya",
+        "B": "Yevropa Ittifoqi mamlakatlari",
+        "C": "Shimoliy Amerika bozorlari",
+        "D": "Janubi-Sharqiy Osiyo davlatlari"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 33,
+      "question": "OSON platformasi O'zbekiston fintech landshaftida nimasi bilan ajralib turadi?",
+      "options": {
+        "A": "Uning B2B to'lov shlyuzi xizmatlariga ixtisoslashuvi",
+        "B": "Ovqat yetkazish operatsiyalariga eksklyuziv e'tibor",
+        "C": "Kriptovalyuta savdosidagi asosiy ishtirok",
+        "D": "Transport xizmatlariga konsentratsiya"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 34,
+      "question": "KapitalBank'ning rasmiy mobil bank ilovasi qaysi?",
+      "options": {
+        "A": "Bankning raqamli platformasi Mbank",
+        "B": "Umumiy bank ilovasi BankOnline",
+        "C": "Brendlangan yechim KapitalMobile",
+        "D": "Milliy bank ilovasi UzBank"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 35,
+      "question": "Ovqat yetkazish platformalarida Sun'iy Intellekt qanday qo'llaniladi?",
+      "options": {
+        "A": "Foydalanuvchi xatti-harakatlari asosida shaxsiylashtirilgan restoran tavsiyalari",
+        "B": "Aniq yetkazib berish vaqtlarini taxmin qilish uchun bashorat algoritmlari",
+        "C": "Yetkazib berish samaradorligi uchun marshrut optimallashtirish",
+        "D": "Ushbu AI ilovalarining barchasi platforma ishlashini yaxshilaydi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 36,
+      "question": "DoorDash qaysi mamlakatda dominant bozor pozitsiyasiga ega?",
+      "options": {
+        "A": "Kelib chiqish joyi bo'lgan Amerika Qo'shma Shtatlari",
+        "B": "Yevropa markazi bo'lgan Birlashgan Qirollik",
+        "C": "Asosiy Yevropa bozori bo'lgan Germaniya",
+        "D": "Dunyodagi eng yirik yetkazib berish bozori bo'lgan Xitoy"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 37,
+      "question": "O'zbekistonda kriptovalyuta savdosi uchun qaysi platforma vakolatli?",
+      "options": {
+        "A": "Litsenziyalangan raqamli aktiv birjasi Uznex",
+        "B": "Asosan fiatsion to'lovlar uchun Payme",
+        "C": "QR kodli to'lovlarga qaratilgan Click",
+        "D": "Yoshroq foydalanuvchilarga qaratilgan Apelsin"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 38,
+      "question": "Embedded Finance nima?",
+      "options": {
+        "A": "Moliyaviy xizmatlarni no-moliyaviy platformalarga integratsiya qilish",
+        "B": "Bank muassasalarini to'liq yo'q qilish",
+        "C": "Hech qanday naqd pulsiz ishlaydigan jamiyat",
+        "D": "Faqat mobil bank xizmatlari"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 39,
+      "question": "Ovqat yetkazish platformalari uchun eng katta xarajat tarkibiy qismini nima tashkil qiladi?",
+      "options": {
+        "A": "Raqamli marketing va mijozlarni jalb qilish",
+        "B": "Logistika, yetkazib beruvchi xodimlar va haydovchi rag'batlantirishlari",
+        "C": "Fizik ofis maydoni va ob'ektlari",
+        "D": "Dasturiy ta'minotni ishlab chiqish va saqlash"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 40,
+      "question": "Fintech kontekstida regulyator sandbox'lar nima?",
+      "options": {
+        "A": "Innovatsion moliyaviy xizmatlarni sinab ko'rish uchun nazorat qilinadigan muhitlar",
+        "B": "Bank uskunalarini sinash uchun fizik sinov ob'ektlari",
+        "C": "Standart bank muvofiqlik regulyatsiyalari",
+        "D": "Xalqaro moliyaviy hisobot standartlari"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 41,
+      "question": "LendingClub'ning asosiy biznes modeli qanday?",
+      "options": {
+        "A": "Qarz oluvchilar va investorlarni bog'laydigan peer-to-peer kredit berish",
+        "B": "Ovqat yetkazish va restoran xizmatlari",
+        "C": "Transport va harakatchilik yechimlari",
+        "D": "To'lovni qayta ishlash infratuzilmasi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 42,
+      "question": "O'zbekistonda fintech kengayishi uchun jiddiy to'siqlar qaysilar?",
+      "options": {
+        "A": "Qishloq joylarda doimiy naqd puldan foydalanish",
+        "B": "Rivojlanayotgan regulyator ramkalar va muvofiqlik",
+        "C": "O'rnatilgan an'anaviy banklar bilan raqobat",
+        "D": "Ushbu omillarning barchasi to'siqlarni keltirib chiqaradi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 43,
+      "question": "Ovqat yetkazish platformalarida 'Obuna rejalari' nima taklif qiladi?",
+      "options": {
+        "A": "Cheksiz yoki chegirmali yetkazib berish uchun oylik to'lovlar",
+        "B": "Restoran a'zolik dasturlari",
+        "C": "Xodimlar imtiyozlari paketlari",
+        "D": "Ilova foydalanish obunalari"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 44,
+      "question": "Moliyaviy xizmatlarda robo-maslahatchilar nima?",
+      "options": {
+        "A": "Algoritmga asoslangan avtomatlashtirilgan investitsiya maslahat platformalari",
+        "B": "Bank filiallaridagi fizik robotlar",
+        "C": "An'anaviy inson moliyaviy maslahatchilari",
+        "D": "Kredit baholash xodimlari"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 45,
+      "question": "'Digital Uzbekistan 2030' nima?",
+      "options": {
+        "A": "Har tomonlama raqamli transformatsiya uchun milliy strategik dastur",
+        "B": "Yangi mobil ilova ishlab chiqish",
+        "C": "Tijorat bank muassasasi",
+        "D": "Transport infratuzilmasini modernizatsiya qilish rejasi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 46,
+      "question": "Foodora asosan qayerda operatsion?",
+      "options": {
+        "A": "Bir nechta mamlakatlardagi Yevropa bozorlari",
+        "B": "Amerika Qo'shma Shtatlari va Kanada",
+        "C": "Janubi-Sharqiy Osiyo davlatlari",
+        "D": "Afrika qit'asi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 47,
+      "question": "Wise (sobiq TransferWise) qaysi xizmatga ixtisoslashgan?",
+      "options": {
+        "A": "Shaffof to'lovlar bilan xalqaro pul o'tkazmalari",
+        "B": "Mahalliy ovqat yetkazish xizmatlari",
+        "C": "Shahar transport yechimlari",
+        "D": "Mulk ijarasi bozori"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 48,
+      "question": "Fintech muvofiqlikda KYC nifoda nimani ifodalaydi?",
+      "options": {
+        "A": "Mijozni bilish identifikatsiyasini tekshirish tartiblari",
+        "B": "Kompaniyani bilish korporativ tekshiruv",
+        "C": "Naqd pulingizni saqlash xavfsizlik choralari",
+        "D": "Kartangizni kalitlash shifrlash standartlari"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 49,
+      "question": "Ovqat yetkazish platformalarining evolyutsiyasida paydo bo'layotgan trendlar qaysilar?",
+      "options": {
+        "A": "Dronlar va robotlarni o'z ichiga olgan avtonom yetkazish transport vositalari",
+        "B": "Barqaror va ekologik qadoqlash yechimlari",
+        "C": "Dark kitchen ob'ektlarini kengaytirish",
+        "D": "Ushbu trendlarning barchasi sanoat kelajagini shakllantirmoqda"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 50,
+      "question": "2023 yil holatiga ko'ra O'zbekistonda qancha mobil foydalanuvchi mavjud edi?",
+      "options": {
+        "A": "Taxminan 10 million mobil abonent",
+        "B": "Taxminan 15 million ulanadigan qurilma",
+        "C": "Mamlakat bo'ylab 25 milliondan ortiq mobil foydalanuvchi",
+        "D": "5 milliondan kam mobil foydalanuvchi"
+      },
+      "correct_answer": "C"
+    }
+  ],
+  "instructions": "Har bir savolga faqat bitta to'g'ri javob bor. Savollar raqamlashtirish tushunchalari, platforma biznes modellari va O'zbekistonning raqamli ekotizimini qamrab oladi.",
+  "total_questions": 50,
+  "topics_covered": [
+    "Raqamli Transformatsiya Asoslari",
+    "Platforma Biznes Modellari",
+    "Fintech Innovatsiyasi",
+    "Ovqat Yetkazish Ekotizimlari",
+    "O'zbekistonning Raqamli Landshafti",
+    "Paydo Bo'layotgan Texnologiyalar",
+    "Regulyator Muhitlar"
+  ]
+}
