@@ -17,6 +17,10 @@ const LeaderboardSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  difficulty: {
+    type: String,
+    required: false, // Make it optional for backward compatibility
+  },
   duration: {
     type: Number, // milliseconds
     required: false,

@@ -37,7 +37,7 @@ export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { name, testName, score, total, duration, questions, answers } = body;
+    const { name, testName, score, total, duration, questions, answers, difficulty } = body;
     
     if (!name || score === undefined || !total) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 });
@@ -51,7 +51,8 @@ export async function POST(request) {
         date: new Date(),
         duration,
         questions, 
-        answers   
+        answers,
+        difficulty
     });
     
     return NextResponse.json(newEntry);

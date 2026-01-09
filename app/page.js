@@ -311,6 +311,130 @@ export default function Home() {
     };
   }, []);
 
+  // Block screenshots during test
+  useEffect(() => {
+    if (view !== 'test') return;
+
+    // Create Warning Overlay
+    let warningEl = document.getElementById('anti-cheat-overlay');
+    if (!warningEl) {
+        warningEl = document.createElement('div');
+        warningEl.id = 'anti-cheat-overlay';
+        warningEl.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2147483647;
+            font-family: system-ui, -apple-system, sans-serif;
+            text-align: center;
+        `;
+        warningEl.innerHTML = `
+            <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+            <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 10px; color: #ef4444;">No Screenshots Allowed</h1>
+            <p style="font-size: 18px; color: #fff;">Please focus on your test.</p>
+        `;
+        document.body.appendChild(warningEl);
+    }
+
+    const showWarning = () => {
+        if(warningEl) warningEl.style.display = 'flex';
+    };
+
+    const hideWarning = () => {
+        if(warningEl) warningEl.style.display = 'none';
+    };
+
+    const handleKeyDown = (e) => {
+       const isPrintScreen = e.key === 'PrintScreen' || e.keyCode === 44;
+       const isSnippingTool = (e.ctrlKey) && e.shiftKey && (e.key.toLowerCase() === 's');
+       const isMeta = e.key === 'Meta'; 
+
+       if (isPrintScreen || isSnippingTool || isMeta) {
+          if (isPrintScreen || isSnippingTool) e.preventDefault();
+          
+          showWarning();
+          navigator.clipboard.writeText('');
+
+          // For PrintScreen/Snipping, keep the warning visible for 3 seconds
+          if (isPrintScreen || isSnippingTool) {
+               // Clear any existing timeout to avoid premature hiding if pressed multiple times
+               if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
+               
+               window.screenshotTimeout = setTimeout(() => {
+                  hideWarning();
+               }, 3000);
+          }
+       }
+    };
+
+    const handleKeyUp = (e) => {
+        // Restore visibility when Meta key is released
+        if (e.key === 'Meta') {
+            setTimeout(hideWarning, 300);
+        }
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+             navigator.clipboard.writeText('');
+             // Re-enforce warning on keyup just in case
+             showWarning();
+             if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
+             window.screenshotTimeout = setTimeout(() => {
+                  hideWarning();
+             }, 3000);
+        }
+    };
+
+    // Also hide when window loses focus (e.g. switching to Snipping Tool overlay or Mobile App Switcher)
+    const handleBlur = () => {
+        showWarning();
+    };
+
+    const handleFocus = () => {
+        // Only hide if we aren't currently showing the screenshot warning timer
+        // But for simplicity, we usually want to recover on focus
+        // Unless it was a blur caused by Snipping Tool... 
+        
+        // Let's just clear clipboard and hide warning, assuming user returned to app
+        navigator.clipboard.writeText(''); 
+        
+        // Wait a tiny bit before hiding to ensure no screenshot is being finished
+        setTimeout(hideWarning, 200);
+    };
+
+    // Mobile: Handle page visibility change (browsers minimize/background)
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            showWarning();
+        } else {
+            hideWarning();
+            navigator.clipboard.writeText('');
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('keyup', handleKeyUp);
+        window.removeEventListener('blur', handleBlur);
+        window.removeEventListener('focus', handleFocus);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        if (warningEl) warningEl.remove();
+        if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
+    };
+  }, [view]);
+
   // Separate effect for main page heartbeat
   useEffect(() => {
       // Send heartbeat for all views EXCEPT 'test' (because TestRunner handles 'in-test' status)
@@ -1182,6 +1306,7 @@ export default function Home() {
                                     <th className="pb-3 w-48 px-2 text-left">User</th>
                                     <th className="pb-3 w-32 px-2">Title</th>
                                     <th className="pb-3 px-2">Test</th>
+                                    <th className="pb-3 w-24 px-2">Mode</th>
                                     <th className="pb-3 w-24 px-2">Time</th>
                                     <th className="pb-3 w-24 px-2">Duration</th>
                                     <th className="pb-3 w-24 px-2 text-right">Score</th>
@@ -1190,7 +1315,11 @@ export default function Home() {
                             <tbody className="divide-y divide-gray-50">
                                 {leaderboard.map((entry, idx) => {
                                     const percentage = (entry.score / entry.total) * 100;
-                                    const league = getLeague(entry.score, entry.total);
+                                    const league = getLeague(entry.score, entry.total, entry.difficulty, entry.duration);
+                                    
+                                    const diffConfig = DIFFICULTIES.find(d => d.id === (entry.difficulty || 'easy')) || DIFFICULTIES[0];
+                                    const DiffIcon = diffConfig.icon;
+
                                     const LeagueIcon = league.icon;
                                     return (
                                         <tr key={idx} className={clsx("transition-all", league.rowClass)}>
@@ -1243,6 +1372,12 @@ export default function Home() {
                                                 )}
                                             </td>
                                             <td className="py-3 text-sm text-gray-500 font-medium px-2">{entry.testName}</td>
+                                            <td className="py-3 px-2">
+                                                <div className={clsx("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold border", diffConfig.bg, diffConfig.color, diffConfig.border)}>
+                                                    <DiffIcon size={10} />
+                                                    {diffConfig.name}
+                                                </div>
+                                            </td>
                                             <td className="py-3 text-sm text-gray-400 px-2">{timeAgo(entry.date)}</td>
                                             <td className="py-3 text-sm text-gray-500 font-mono px-2">{formatDuration(entry.duration)}</td>
                                             <td className="py-3 text-right px-2">
