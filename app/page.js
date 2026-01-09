@@ -1,29 +1,48 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap } from 'lucide-react';
 import clsx from 'clsx';
 
-function getLeague(score, total) {
+const DIFFICULTIES = [
+    { id: 'easy', name: 'Easy', hints: 3, icon: Lightbulb, color: 'text-green-500', bg: 'bg-green-100', border: 'border-green-200', timeLimit: null },
+    { id: 'middle', name: 'Middle', hints: 1, icon: Zap, color: 'text-yellow-500', bg: 'bg-yellow-100', border: 'border-yellow-200', timeLimit: null },
+    { id: 'hard', name: 'Hard', hints: 0, icon: Swords, color: 'text-orange-500', bg: 'bg-orange-100', border: 'border-orange-200', timeLimit: 30 },
+    { id: 'insane', name: 'Insane', hints: 0, icon: Skull, color: 'text-red-500', bg: 'bg-red-100', border: 'border-red-200', timeLimit: 20 },
+    { id: 'impossible', name: 'Impossible', hints: 0, icon: Ghost, color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', timeLimit: 8 }
+];
+
+function getLeague(score, total, difficulty, duration = 0) {
     const percentage = (score / total) * 100;
+    
+    // Mythic: Impossible Mode + 240s Survival (Duration > 240,000ms)
+    // Note: Duration here refers to total test duration. 240s = 4 minutes.
+    if (difficulty === 'impossible' && duration >= 240000) {
+        return { 
+            name: 'Mythic', 
+            badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-red-800 via-red-600 to-red-800 border-red-600 shadow-[0_0_15px_rgba(255,0,0,0.6)] font-extrabold',
+            textClass: 'font-extrabold mythic-blood',
+            rowClass: 'bg-gradient-to-r from-red-100/30 via-red-50/20 to-red-100/30 border-l-4 border-l-[#ff0000]',
+            icon: Trophy
+        };
+    }
 
-    // 100% - MYTHIC (Blood / Red)
-    if (percentage === 100) return { 
-        name: 'Mythic', 
-        badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-red-800 via-red-600 to-red-800 border-red-600 shadow-[0_0_15px_rgba(255,0,0,0.6)] font-extrabold',
-        textClass: 'font-extrabold mythic-blood',
-        rowClass: 'bg-gradient-to-r from-red-100/30 via-red-50/20 to-red-100/30 border-l-4 border-l-[#ff0000]',
-        icon: Trophy
-    };
+    // Legendary: Insane Mode + 100% Score
+    if (difficulty === 'insane' && percentage === 100) {
+        return { 
+            name: 'Legendary', 
+            badgeClass: 'legendary-border-tail border-transparent legendary-rgb-text font-bold',
+            textClass: 'font-bold legendary-rgb-text drop-shadow-[0_1px_1px_rgba(251,191,36,0.3)]',
+            rowClass: 'bg-gradient-to-r from-amber-50/50 to-transparent border-l-4 border-l-amber-400',
+            icon: Crown 
+        };
+    }
 
-    // 95-99% - LEGENDARY (Gold / Fire)
-    if (percentage >= 95) return { 
-        name: 'Legendary', 
-        badgeClass: 'legendary-border-tail border-transparent legendary-rgb-text font-bold',
-        textClass: 'font-bold legendary-rgb-text drop-shadow-[0_1px_1px_rgba(251,191,36,0.3)]',
-        rowClass: 'bg-gradient-to-r from-amber-50/50 to-transparent border-l-4 border-l-amber-400',
-        icon: Crown 
-    };
-
+    // Hard Mode max cap: Epic (Or simply apply percentage rules below, but block Legendary/Mythic)
+    // Actually, normal percentage rules apply, but we just ensured Legendary/Mythic are harder to get.
+    // However, if someone gets 100% in Hard mode, they shouldn't get Legendary. They get Epic or Diamond?
+    // User requested: "hard mode niki 30sek vaqti unda legendary dan pastlarni ochsa boladi (epic ruby shunga oxwawlarni)"
+    // So 100% in Hard -> Epic.
+    
     if (percentage >= 85) return { 
         name: 'Epic', 
         badgeClass: 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
@@ -186,6 +205,9 @@ export default function Home() {
   const [view, setView] = useState('list'); // 'list', 'test', 'upload', 'history', 'review'
   const [activeTest, setActiveTest] = useState(null);
   const [activeReview, setActiveReview] = useState(null); // For history review
+  const [showDifficultyModal, setShowDifficultyModal] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [pendingTest, setPendingTest] = useState(null);
 
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState(''); // Unique Session ID
@@ -524,8 +546,19 @@ export default function Home() {
         return;
     }
 
+    // Open Difficulty Modal
+    setPendingTest({ ...test, translationContent });
+    setShowDifficultyModal(true);
+  };
+
+  const launchTest = (difficultyId) => {
+    if (!pendingTest) return;
+    
+    // Find Difficulty Settings
+    const difficulty = DIFFICULTIES.find(d => d.id === difficultyId);
+    
     // New test setup
-    const rawQuestions = test.content.test_questions || [];
+    const rawQuestions = pendingTest.content.test_questions || [];
     
     const preparedQuestions = shuffleArray(rawQuestions).map(q => {
       // Allow flexible options (object to array)
@@ -541,18 +574,25 @@ export default function Home() {
     });
 
     const newTestState = {
-      ...test,
+      ...pendingTest,
       questions: preparedQuestions,
-      translationContent, // Pass translation
+      translationContent: pendingTest.translationContent, // Retrieve translation
       currentQuestionIndex: 0,
       answers: {}, // { questionId: optionId }
       isFinished: false,
       score: 0,
-      startTime: Date.now() // Track start time
+      startTime: Date.now(), // Track start time
+      
+      // Difficulty Setting
+      hintsLeft: difficulty ? difficulty.hints : 0,
+      difficultyMode: difficultyId,
+      revealedHints: {}
     };
 
     setActiveTest(newTestState);
     setView('test');
+    setShowDifficultyModal(false);
+    setPendingTest(null);
   };
 
   const saveCurrentProgress = (testId, progressData) => {
@@ -758,6 +798,86 @@ export default function Home() {
              </div>
         )}
 
+        {/* Achievements Modal */}
+        {showAchievements && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in zoom-in duration-200">
+                <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+                        <div>
+                             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                                <Trophy className="text-yellow-500" fill="currentColor" /> 
+                                Achievements
+                             </h2>
+                             <p className="text-gray-500 text-sm mt-1">Unlock badges by dominating the tests.</p>
+                        </div>
+                        <button onClick={() => setShowAchievements(false)} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
+                             <X size={24} />
+                        </button>
+                    </div>
+                    
+                    <div className="overflow-y-auto p-6 space-y-4">
+                         {/* Mythic */}
+                         <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-red-50 to-white border border-red-100 relative overflow-hidden group">
+                             <div className="bg-red-100 p-3 rounded-full text-red-600 z-10">
+                                 <Trophy size={32} />
+                             </div>
+                             <div className="flex-1 z-10">
+                                 <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                                     Mythic
+                                     <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">Ultimate</span>
+                                 </h3>
+                                 <p className="text-sm text-gray-600 mt-1">
+                                     Survive <span className="font-bold text-gray-900">240 seconds</span> in <span className="font-bold text-purple-600">Impossible Mode</span>.
+                                 </p>
+                             </div>
+                             <div className="absolute -right-6 -bottom-6 text-red-500/10 z-0">
+                                 <Trophy size={120} />
+                             </div>
+                         </div>
+
+                         {/* Legendary */}
+                         <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-white border border-amber-100 relative overflow-hidden group">
+                             <div className="bg-amber-100 p-3 rounded-full text-amber-600 z-10">
+                                 <Crown size={32} />
+                             </div>
+                             <div className="flex-1 z-10">
+                                 <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                                     Legendary
+                                     <span className="text-[10px] bg-amber-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">Elite</span>
+                                 </h3>
+                                 <p className="text-sm text-gray-600 mt-1">
+                                     Get <span className="font-bold text-gray-900">100% Score</span> in <span className="font-bold text-red-600">Insane Mode</span>.
+                                 </p>
+                             </div>
+                         </div>
+
+                         {/* Epic */}
+                         <div className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                             <div className="bg-purple-100 p-3 rounded-full text-purple-600">
+                                 <Swords size={28} />
+                             </div>
+                             <div>
+                                 <h3 className="font-bold text-gray-900">Epic</h3>
+                                 <p className="text-sm text-gray-500">Score 85% or higher (Max available in Hard Mode).</p>
+                             </div>
+                         </div>
+
+                         {/* Diamond */}
+                         <div className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                             <div className="bg-cyan-100 p-3 rounded-full text-cyan-600">
+                                 <Gem size={28} />
+                             </div>
+                             <div>
+                                 <h3 className="font-bold text-gray-900">Diamond</h3>
+                                 <p className="text-sm text-gray-500">Score 70% or higher.</p>
+                             </div>
+                         </div>
+
+                    </div>
+                </div>
+            </div>
+        )}
+
         {showDonateModal && (
              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                  <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 relative overflow-hidden">
@@ -783,25 +903,30 @@ export default function Home() {
                          <div className="space-y-3 text-left">
                              {/* TBC Bank Card */}
                              <div 
-                                className="relative w-full aspect-[1.586/1] bg-gradient-to-br from-cyan-600 to-blue-700 rounded-xl p-5 shadow-lg text-white group cursor-pointer hover:scale-[1.02] transition-transform duration-300 select-none overflow-hidden" 
+                                className="relative w-full aspect-[1.586/1] rounded-xl shadow-lg group cursor-pointer hover:scale-[1.02] transition-transform duration-300 select-none overflow-hidden bg-gray-900" 
                                 onClick={() => {
-                                    navigator.clipboard.writeText('9860 3566 2415 2985'); 
+                                    navigator.clipboard.writeText('9860356624152985'); 
                                     setCardCopied(true);
                                     setTimeout(() => setCardCopied(false), 2000);
                                 }}
                              >
-                                 {/* Background Patterns */}
-                                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -translate-y-1/3 translate-x-1/3 pointer-events-none"></div>
-                                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+                                 <img 
+                                    src="/card.webp" 
+                                    alt="Bank Card" 
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                 />
+                                 
+                                 {/* Dark Overlay for reliability if image is too bright */}
+                                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors"></div>
 
-                                 <div className="flex flex-col justify-between h-full relative z-10">
+                                 <div className="flex flex-col justify-between h-full relative z-10 p-5">
                                      <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-bold text-lg tracking-wider">TBC BANK</span>
+                                            <span className="font-bold text-lg tracking-wider text-white drop-shadow-md">TBC BANK</span>
                                         </div>
                                         <span className={clsx(
-                                            "text-[10px] px-2 py-1 rounded-md transition-colors duration-300 font-medium flex items-center gap-1 backdrop-blur-md shadow-sm",
-                                            cardCopied ? "bg-green-500/90 text-white" : "bg-white/20 text-white hover:bg-white/30"
+                                            "text-[10px] px-2 py-1 rounded-md transition-colors duration-300 font-medium flex items-center gap-1 backdrop-blur-md shadow-sm border border-white/20",
+                                            cardCopied ? "bg-green-500 text-white" : "bg-black/40 text-white"
                                         )}>
                                             {cardCopied ? (
                                                 <>
@@ -813,19 +938,19 @@ export default function Home() {
                                      </div>
                                      
                                      <div className="flex flex-col items-center justify-center flex-1 my-2">
-                                        <div className="font-mono text-xl sm:text-2xl tracking-[0.14em] drop-shadow-md text-white/95 whitespace-nowrap">
+                                        <div className="font-mono text-xl sm:text-2xl tracking-[0.14em] drop-shadow-md text-white whitespace-nowrap">
                                             9860 3566 2415 2985
                                         </div>
                                      </div>
                                      
                                      <div className="flex justify-between items-end">
                                         <div className="flex flex-col">
-                                            <span className="text-[8px] text-cyan-100/80 uppercase tracking-widest mb-0.5">Card Holder</span>
-                                            <div className="text-sm font-medium uppercase tracking-widest text-shadow text-white/90">Maxmudbek Muzaffarov</div>
+                                            <span className="text-[8px] text-white/80 uppercase tracking-widest mb-0.5">Card Holder</span>
+                                            <div className="text-sm font-medium uppercase tracking-widest text-shadow text-white">Maxmudbek Muzaffarov</div>
                                         </div>
                                         <div className="mb-0.5">
-                                            {/* Humo Logo */}
-                                            <span className="font-bold italic text-xl tracking-widest opacity-90 drop-shadow-md">HUMO</span>
+                                            {/* Humo Logo text fallback or icon */}
+                                            <span className="font-bold italic text-xl tracking-widest text-white/90 drop-shadow-md">HUMO</span>
                                         </div>
                                      </div>
                                  </div>
@@ -1015,26 +1140,35 @@ export default function Home() {
 
             {/* Leaderboard Section */}
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex flex-col items-center mb-6 gap-4">
+                <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                         <Trophy className="text-yellow-500" /> Leaderboard
                     </h2>
                     
-                    <div className="flex justify-center gap-2 bg-gray-50 p-1 rounded-xl border border-gray-100">
-                        {['today', '3days', '7days', 'all'].map((p) => (
-                            <button
-                                key={p}
-                                onClick={() => setFilterPeriod(p)}
-                                className={clsx(
-                                    "px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all",
-                                    filterPeriod === p 
-                                        ? "bg-white text-blue-600 shadow-sm border border-gray-100" 
-                                        : "text-gray-400 hover:text-gray-600"
-                                )}
-                            >
-                                {p === 'all' ? 'All Time' : p === '3days' ? '3 Days' : p === '7days' ? '7 Days' : 'Today'}
-                            </button>
-                        ))}
+                    <div className="flex flex-wrap justify-center items-center gap-3">
+                         <button 
+                            onClick={() => setShowAchievements(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border bg-white text-gray-500 border-gray-200 hover:text-yellow-600 hover:border-yellow-200 shadow-sm"
+                        >
+                            <Crown size={14} /> Achievements Rules
+                        </button>
+                        
+                        <div className="flex justify-center gap-2 bg-gray-50 p-1 rounded-xl border border-gray-100">
+                            {['today', '3days', '7days', 'all'].map((p) => (
+                                <button
+                                    key={p}
+                                    onClick={() => setFilterPeriod(p)}
+                                    className={clsx(
+                                        "px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all",
+                                        filterPeriod === p 
+                                            ? "bg-white text-blue-600 shadow-sm border border-gray-100" 
+                                            : "text-gray-400 hover:text-gray-600"
+                                    )}
+                                >
+                                    {p === 'all' ? 'All Time' : p === '3days' ? '3 Days' : p === '7days' ? '7 Days' : 'Today'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
                 {leaderboard.length === 0 ? (
@@ -1354,8 +1488,8 @@ export default function Home() {
                                         .filter(e => e.name === userName)
                                         .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by newest
                                         .map((entry, idx) => {
-                                        const percentage = (entry.score / entry.total) * 100;
-                                        const league = getLeague(entry.score, entry.total);
+                                        // Pass difficulty/duration to get new Badge logic
+                                        const league = getLeague(entry.score, entry.total, entry.difficulty, entry.duration);
                                         const LeagueIcon = league.icon;
                                         return (
                                             <tr 
@@ -1599,6 +1733,53 @@ export default function Home() {
                     </div>
                 </div>
             )}
+
+            {/* Difficulty Selection Modal */}
+            {showDifficultyModal && pendingTest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden scale-100">
+                        <div className="p-8 pb-6 border-b border-gray-100 bg-gray-50/50">
+                             <h3 className="text-2xl font-bold text-gray-900 mb-1">Select Difficulty</h3>
+                             <p className="text-gray-500">Choose your challenge level for <span className="font-semibold text-gray-800">{pendingTest.name}</span></p>
+                        </div>
+                        <div className="p-6 space-y-3">
+                            {DIFFICULTIES.map((diff) => (
+                                <button
+                                    key={diff.id}
+                                    onClick={() => launchTest(diff.id)}
+                                    className={`w-full group relative flex items-center p-4 rounded-xl border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${diff.border} ${diff.bg || 'bg-white'} hover:border-current`}
+                                >
+                                    <div className={`mr-4 p-3 rounded-full bg-white shadow-sm ${diff.color}`}>
+                                        <diff.icon size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <div className={`font-bold text-lg ${diff.color}`}>{diff.name}</div>
+                                        <div className="text-sm text-gray-600 font-medium">
+                                            {diff.hints === 0 ? "No hints available" : `${diff.hints} ${diff.hints === 1 ? 'hint' : 'hints'} available`}
+                                        </div>
+                                    </div>
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity -mr-2">
+                                        <div className={`p-2 rounded-full ${diff.color} bg-white shadow-sm`}>
+                                            <Play size={20} fill="currentColor" />
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
+                            <button 
+                                onClick={() => {
+                                    setShowDifficultyModal(false);
+                                    setPendingTest(null);
+                                }}
+                                className="text-gray-500 hover:text-gray-800 font-medium text-sm py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
     </main>
   );
 }
@@ -1707,6 +1888,46 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {}); 
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
+    const [hintsLeft, setHintsLeft] = useState(test.hintsLeft !== undefined ? test.hintsLeft : 0);
+    const [revealedHints, setRevealedHints] = useState(test.revealedHints || {}); // { qIdx: [id1, id2] }
+
+    // Timed Mode State
+    const difficultyConfig = DIFFICULTIES.find(d => d.id === test.difficultyMode) || DIFFICULTIES[0];
+    const initialTime = difficultyConfig.timeLimit; // seconds or null
+    const [timeLeft, setTimeLeft] = useState(initialTime);
+
+    // Initial load setup for timer if resuming
+    useEffect(() => {
+        // Reset timer on question change
+        if (initialTime !== null && !isFinished) {
+            setTimeLeft(initialTime);
+        }
+    }, [currentIndex, initialTime, isFinished]);
+
+    // Timer Countdown Effect
+    useEffect(() => {
+        if (initialTime === null || isFinished) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    // Time's up!
+                    // Auto-skip logic
+                    // If no answer selected, mark as skipped (or just move next)
+                    // If we want to record emptiness:
+                    // handleAnswer(null) ??? 
+                    // Let's just move next. If nothing selected, answers[currentIndex] remains undefined.
+                    clearInterval(timer);
+                    handleNext();
+                    return initialTime; // Reset visually immediately (optional, effect will reset anyway)
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [initialTime, currentIndex, isFinished, answers]); // Depend on answers to avoid stale closure if we were to auto-submit? No, handleNext works on index.
+
     const [showConfirmFinish, setShowConfirmFinish] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     // Report System State
@@ -1727,6 +1948,30 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
 
     const question = test.questions[currentIndex];
+    
+    // Hint Logic
+    const handleUseHint = () => {
+        if (hintsLeft <= 0 || isFinished) return;
+        
+        const currentRevealed = revealedHints[currentIndex] || [];
+        // Only consider options that are WRONG and NOT YET REVEALED
+        const incorrectOptions = question.shuffledOptions.filter(o => 
+            o.id !== question.correct_answer && 
+            !currentRevealed.includes(o.id)
+        );
+        
+        if (incorrectOptions.length === 0) return; // No more hints possible
+
+        // Eliminate one random incorrect option
+        const toEliminate = incorrectOptions[Math.floor(Math.random() * incorrectOptions.length)];
+        
+        setRevealedHints(prev => ({ 
+            ...prev, 
+            [currentIndex]: [...(prev[currentIndex] || []), toEliminate.id] 
+        }));
+        setHintsLeft(prev => prev - 1);
+    };
+
     // Find translation if available
     const translatedQuestion = test.translationContent?.test_questions?.find(q => q.id === question.id);
     
@@ -1748,7 +1993,9 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 onProgressUpdateRef.current({
                     questions: test.questions, // Keep the same shuffled order
                     currentQuestionIndex: currentIndex,
-                    answers: answers
+                    answers: answers,
+                    hintsLeft,
+                    revealedHints
                 });
             }
             
@@ -1768,7 +2015,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 })
             }).catch(e => console.error("Active status update failed", e));
         }
-    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry]);
+    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints]);
 
     // Poll for other active users
     useEffect(() => {
@@ -1878,7 +2125,8 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     date: new Date().toISOString(),
                     duration: durationMs,
                     questions: test.questions, // Store snapshot
-                    answers: answers
+                    answers: answers,
+                    difficulty: test.difficultyMode // Save Difficulty to Leaderboard
                 })
             });
 
@@ -2068,7 +2316,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                      </div>
                      <div 
                         className={clsx(
-                            "h-full bg-blue-600 transition-all duration-300 ease-out rounded-tl-2xl",
+                            "h-full bg-blue-600 progress-wave transition-all duration-300 ease-out rounded-tl-2xl shadow-[0_0_15px_rgba(37,99,235,0.4)]",
                             currentIndex === totalQuestions - 1 && "rounded-tr-2xl"
                         )}
                         style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
@@ -2110,7 +2358,30 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                               </button>
                               <span>Question {currentIndex + 1} of {totalQuestions}</span>
                           </div>
+                          
+                          {/* Timer Display */}
+                          {timeLeft !== null && (
+                              <div className={clsx(
+                                  "flex items-center gap-1.5 font-bold font-mono text-lg rounded px-2 py-0.5",
+                                  timeLeft <= 5 ? "text-red-600 bg-red-100 animate-pulse" : "text-gray-700 bg-gray-100"
+                              )}>
+                                  <Clock size={16} />
+                                  {timeLeft}s
+                              </div>
+                          )}
+
                           <div className="flex items-center gap-2">
+                              {/* Hint Button */}
+                              {hintsLeft > 0 && (
+                                  <button
+                                      onClick={handleUseHint}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-lg transition-colors text-xs font-bold mr-2 animate-in fade-in"
+                                      title="Use a hint to remove one wrong answer"
+                                  >
+                                      <Lightbulb size={14} className="fill-yellow-500 text-yellow-500" />
+                                      <span>Use Hint ({hintsLeft})</span>
+                                  </button>
+                              )}
                               <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>
                               <button 
                                 onClick={() => setShowReportModal(true)}
@@ -2132,6 +2403,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                      <div className="space-y-3 flex-1">
                          {question.shuffledOptions.map((option, idx) => {
                              const isSelected = answers[currentIndex] === option.id;
+                             const isEliminated = (revealedHints[currentIndex] || []).includes(option.id);
                              // Find option translation in translatedQuestion
                              // Note: option.id is 'A', 'B', etc.
                              const translatedOptionText = translatedQuestion?.options?.[option.id];
@@ -2139,12 +2411,15 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                              return (
                                  <button
                                     key={idx}
-                                    onClick={() => handleAnswer(option.id)}
+                                    disabled={isEliminated}
+                                    onClick={() => !isEliminated && handleAnswer(option.id)}
                                     className={clsx(
                                         "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
-                                        isSelected 
-                                            ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm" 
-                                            : "border-gray-100 hover:border-blue-200 hover:bg-gray-50 text-gray-700"
+                                        isEliminated ? "opacity-30 cursor-not-allowed border-gray-100 bg-gray-50 grayscale" : (
+                                            isSelected 
+                                                ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm" 
+                                                : "border-gray-100 hover:border-blue-200 hover:bg-gray-50 text-gray-700"
+                                        )
                                     )}
                                  >
                                      <div className={clsx(

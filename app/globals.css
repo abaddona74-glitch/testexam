@@ -154,3 +154,43 @@ body {
   z-index: -1;
 }
 
+/* Liquid/Wave Progress Bar */
+.progress-wave {
+  background: repeating-linear-gradient(
+    45deg,
+    #2563eb,
+    #2563eb 10px,
+    #3b82f6 10px,
+    #3b82f6 20px
+  );
+  background-size: 200% 200%;
+  animation: wave-move 1s linear infinite;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+@keyframes wave-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 28px 0; }
+}
+
+.liquid-bar {
+    background: linear-gradient(270deg, #2563eb, #60a5fa, #2563eb);
+    background-size: 200% 100%;
+    animation: rainbow 3s linear infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Top "Foam" or Wave Edge */
+.liquid-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 1s infinite;
+}
+
+
