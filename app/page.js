@@ -195,6 +195,7 @@ export default function Home() {
   const [filterPeriod, setFilterPeriod] = useState('all'); // Filter state
   const [showSettings, setShowSettings] = useState(false);
   const [showDonateModal, setShowDonateModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('uzum');
   const [cardCopied, setCardCopied] = useState(false);
   const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
   const [userCountry, setUserCountry] = useState(null);
@@ -690,13 +691,51 @@ export default function Home() {
                                             <div className="text-sm font-medium uppercase tracking-widest text-shadow text-white/90">Maxmudbek Muzaffarov</div>
                                         </div>
                                         <div className="mb-0.5">
-                                            {/* Simulated Chip/Logo */}
-                                            <div className="flex overlap-circles">
-                                                <div className="w-8 h-5 bg-white/20 rounded-sm backdrop-blur-sm border border-white/30"></div>
-                                            </div>
+                                            {/* Humo Logo */}
+                                            <span className="font-bold italic text-xl tracking-widest opacity-90 drop-shadow-md">HUMO</span>
                                         </div>
                                      </div>
                                  </div>
+                             </div>
+                         </div>
+
+                         {/* Payment Method Selection & QR Code */}
+                         <div className="mt-6">
+                             <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
+                                 {['payme', 'click', 'uzum'].map((method) => (
+                                     <button
+                                         key={method}
+                                         onClick={() => setPaymentMethod(method)}
+                                         className={clsx(
+                                             "flex-1 py-2 rounded-lg text-sm font-semibold capitalize transition-all duration-200",
+                                             paymentMethod === method 
+                                                 ? "bg-white text-gray-900 shadow-sm" 
+                                                 : "text-gray-500 hover:text-gray-700"
+                                         )}
+                                     >
+                                         {method}
+                                     </button>
+                                 ))}
+                             </div>
+                             
+                             <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center relative group min-h-[180px]">
+                                 <div className="w-40 h-40 bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden shadow-inner relative">
+                                     {/* Default Placeholder Icon if image fails to load */}
+                                     <div className="absolute inset-0 flex items-center justify-center z-0">
+                                        <Smartphone className="text-gray-300 w-12 h-12" />
+                                     </div>
+                                     
+                                     {/* Actual QR Image - Place files named qr-payme.jpg, qr-click.jpg, qr-uzum.jpg in public folder */}
+                                     <img 
+                                        key={paymentMethod}
+                                        src={`/qr-${paymentMethod}.jpg`} 
+                                        alt={`${paymentMethod} QR`} 
+                                        className="w-full h-full object-cover relative z-10"
+                                        onError={(e) => e.currentTarget.style.display = 'none'} // Hide if not found
+                                     />
+                                 </div>
+                                 <p className="text-sm font-medium text-gray-600">Scan to pay via <span className="capitalize font-bold text-gray-800">{paymentMethod}</span></p>
+                                 <p className="text-[10px] text-gray-400 mt-1">Camera to'g'rilang</p>
                              </div>
                          </div>
                          
