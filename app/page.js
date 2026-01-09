@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar } from 'lucide-react';
 import clsx from 'clsx';
 
 function getLeague(score, total) {
@@ -630,7 +630,10 @@ export default function Home() {
                      {/* Decorative Background */}
                      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-rose-500 to-pink-600 opacity-10 rounded-b-[3rem] pointer-events-none" />
                      
-                     <button onClick={() => setShowDonateModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10">
+                     <button 
+                        onClick={() => setShowDonateModal(false)} 
+                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-50"
+                     >
                          <XCircle size={24} />
                      </button>
 
@@ -644,33 +647,56 @@ export default function Home() {
                          </p>
 
                          <div className="space-y-3 text-left">
-                             {/* Payme */}
+                             {/* TBC Bank Card */}
                              <div 
-                                className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors group cursor-pointer active:scale-95 select-none" 
+                                className="relative w-full aspect-[1.586/1] bg-gradient-to-br from-cyan-600 to-blue-700 rounded-xl p-5 shadow-lg text-white group cursor-pointer hover:scale-[1.02] transition-transform duration-300 select-none overflow-hidden" 
                                 onClick={() => {
                                     navigator.clipboard.writeText('9860 3566 2415 2985'); 
                                     setCardCopied(true);
                                     setTimeout(() => setCardCopied(false), 2000);
                                 }}
                              >
-                                 <div className="flex items-center justify-between mb-1">
-                                    <span className="font-bold text-[#00cccc]">Payme / Click / Uzum</span> 
-                                    <span className={clsx(
-                                        "text-xs px-2 py-0.5 rounded transition-colors duration-300 font-medium flex items-center gap-1",
-                                        cardCopied ? "bg-green-100 text-green-600" : "text-gray-400 bg-gray-200"
-                                    )}>
-                                        {cardCopied ? (
-                                            <>
-                                                <CheckCircle2 size={12} />
-                                                Nusxalandi
-                                            </>
-                                        ) : "Nusxalash"}
-                                    </span>
+                                 {/* Background Patterns */}
+                                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -translate-y-1/3 translate-x-1/3 pointer-events-none"></div>
+                                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+
+                                 <div className="flex flex-col justify-between h-full relative z-10">
+                                     <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-lg tracking-wider">TBC BANK</span>
+                                        </div>
+                                        <span className={clsx(
+                                            "text-[10px] px-2 py-1 rounded-md transition-colors duration-300 font-medium flex items-center gap-1 backdrop-blur-md shadow-sm",
+                                            cardCopied ? "bg-green-500/90 text-white" : "bg-white/20 text-white hover:bg-white/30"
+                                        )}>
+                                            {cardCopied ? (
+                                                <>
+                                                    <CheckCircle2 size={12} />
+                                                    Nusxalandi
+                                                </>
+                                            ) : "Nusxalash"}
+                                        </span>
+                                     </div>
+                                     
+                                     <div className="flex flex-col items-center justify-center flex-1 my-2">
+                                        <div className="font-mono text-xl sm:text-2xl tracking-[0.14em] drop-shadow-md text-white/95 whitespace-nowrap">
+                                            9860 3566 2415 2985
+                                        </div>
+                                     </div>
+                                     
+                                     <div className="flex justify-between items-end">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] text-cyan-100/80 uppercase tracking-widest mb-0.5">Card Holder</span>
+                                            <div className="text-sm font-medium uppercase tracking-widest text-shadow text-white/90">Maxmudbek Muzaffarov</div>
+                                        </div>
+                                        <div className="mb-0.5">
+                                            {/* Simulated Chip/Logo */}
+                                            <div className="flex overlap-circles">
+                                                <div className="w-8 h-5 bg-white/20 rounded-sm backdrop-blur-sm border border-white/30"></div>
+                                            </div>
+                                        </div>
+                                     </div>
                                  </div>
-                                 <div className="font-mono text-lg text-gray-700 font-semibold tracking-wider group-hover:text-blue-600">
-                                     9860 3566 2415 2985
-                                 </div>
-                                 <div className="text-xs text-gray-400 mt-1">Maxmudbek Muzaffarov</div>
                              </div>
                          </div>
                          
@@ -927,109 +953,188 @@ export default function Home() {
                 </section>
             </div>
 
-            {/* Sidebar - Online Users */}
+            {/* Sidebar - Online Users & Schedule */}
             <div className="lg:col-span-3">
-                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-28">
-                     <div className="flex items-center gap-2 mb-4">
-                        <div className="relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <div className="w-2.5 h-2.5 bg-green-500 rounded-full relative"></div>
+                 <div className="sticky top-28 space-y-6">
+                    {/* Active Users Widget */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <div className="w-2.5 h-2.5 bg-green-500 rounded-full relative"></div>
+                            </div>
+                            <h3 className="font-bold text-gray-800">Online Users</h3>
+                            <span className="text-xs font-mono text-gray-400 ml-auto bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                                {globalActiveUsers.length}
+                            </span>
                         </div>
-                        <h3 className="font-bold text-gray-800">Online Users</h3>
-                        <span className="text-xs font-mono text-gray-400 ml-auto bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
-                            {globalActiveUsers.length}
-                        </span>
-                     </div>
-                     
-                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                        {globalActiveUsers.length === 0 ? (
-                            <p className="text-sm text-gray-400 text-center py-4">No active users.</p>
-                        ) : (
-                            [...globalActiveUsers]
-                                .sort((a, b) => (a.userId === userId ? -1 : b.userId === userId ? 1 : 0))
-                                .map((user, idx) => {
-                                const isMe = user.userId === userId;
-                                return (
-                                <div key={idx} className={clsx(
-                                    "flex items-center gap-3 p-2 rounded-lg transition-colors border",
-                                    isMe 
-                                        ? "bg-blue-50 border-blue-100" 
-                                        : "hover:bg-gray-50 border-transparent hover:border-gray-100"
-                                )}>
-                                    <div className={clsx(
-                                        "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border",
+                        
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                            {globalActiveUsers.length === 0 ? (
+                                <p className="text-sm text-gray-400 text-center py-4">No active users.</p>
+                            ) : (
+                                [...globalActiveUsers]
+                                    .sort((a, b) => (a.userId === userId ? -1 : b.userId === userId ? 1 : 0))
+                                    .map((user, idx) => {
+                                    const isMe = user.userId === userId;
+                                    return (
+                                    <div key={idx} className={clsx(
+                                        "flex items-center gap-3 p-2 rounded-lg transition-colors border",
                                         isMe 
-                                            ? "bg-blue-600 text-white border-blue-600"
-                                            : "bg-gradient-to-br from-blue-100 to-indigo-100 text-indigo-600 border-indigo-200"
+                                            ? "bg-blue-50 border-blue-100" 
+                                            : "hover:bg-gray-50 border-transparent hover:border-gray-100"
                                     )}>
-                                        {isMe ? <User size={14} /> : user.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-1.5 truncate">
-                                                <span title={user.country || "Unknown Country"} className="cursor-help select-none transition-all">
-                                                    <CountryFlag countryCode={user.country} />
-                                                </span>
-                                                {user.device === 'mobile' 
-                                                    ? <Smartphone size={12} className="text-gray-400" />
-                                                    : <Monitor size={12} className="text-gray-400" />
-                                                }
-                                                <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700" : "text-gray-700")}>
-                                                    {isMe ? "Me" : user.name}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {/* Spectate Button */}
-                                                {!isMe && user.status === 'in-test' && (
-                                                    <button 
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSpectatingUser(user);
-                                                        }}
-                                                        title="Watch this user"
-                                                        className="p-1 hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 rounded transition-colors"
-                                                    >
-                                                        <Eye size={14} />
-                                                    </button>
-                                                )}
-                                                {user.status === 'browsing' && (
-                                                    <span className="w-2 h-2 rounded-full bg-green-500" title="Browsing"></span>
-                                                )}
-                                            </div>
+                                        <div className={clsx(
+                                            "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border",
+                                            isMe 
+                                                ? "bg-blue-600 text-white border-blue-600"
+                                                : "bg-gradient-to-br from-blue-100 to-indigo-100 text-indigo-600 border-indigo-200"
+                                        )}>
+                                            {isMe ? <User size={14} /> : user.name.charAt(0).toUpperCase()}
                                         </div>
-                                        
-                                        {user.status === 'in-test' ? (
-                                            <div className="flex items-center gap-1.5 mt-0.5" 
-                                                 onClick={() => !isMe && setSpectatingUser(user)}
-                                                 className="flex items-center gap-1.5 mt-0.5 cursor-pointer hover:opacity-80">
-                                                <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 rounded truncate max-w-[100px] inline-block">
-                                                    Taking Test
-                                                </span>
-                                                <div className="h-1 flex-1 bg-gray-100 rounded-full overflow-hidden max-w-[60px]">
-                                                    <div 
-                                                        className="h-full bg-blue-500" 
-                                                        style={{ width: `${((user.progress) / user.total) * 100}%` }}
-                                                    />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    <span title={user.country || "Unknown Country"} className="cursor-help select-none transition-all">
+                                                        <CountryFlag countryCode={user.country} />
+                                                    </span>
+                                                    {user.device === 'mobile' 
+                                                        ? <Smartphone size={12} className="text-gray-400" />
+                                                        : <Monitor size={12} className="text-gray-400" />
+                                                    }
+                                                    <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700" : "text-gray-700")}>
+                                                        {isMe ? "Me" : user.name}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {/* Spectate Button */}
+                                                    {!isMe && user.status === 'in-test' && (
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSpectatingUser(user);
+                                                            }}
+                                                            title="Watch this user"
+                                                            className="p-1 hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 rounded transition-colors"
+                                                        >
+                                                            <Eye size={14} />
+                                                        </button>
+                                                    )}
+                                                    {user.status === 'browsing' && (
+                                                        <span className="w-2 h-2 rounded-full bg-green-500" title="Browsing"></span>
+                                                    )}
                                                 </div>
                                             </div>
-                                        ) : (
-                                            <p className={clsx("text-[10px] mt-0.5", isMe ? "text-blue-400" : "text-gray-400")}>Browsing list...</p>
-                                        )}
+                                            
+                                            {user.status === 'in-test' ? (
+                                                <div className="flex items-center gap-1.5 mt-0.5" 
+                                                    onClick={() => !isMe && setSpectatingUser(user)}
+                                                    className="flex items-center gap-1.5 mt-0.5 cursor-pointer hover:opacity-80">
+                                                    <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 rounded truncate max-w-[100px] inline-block">
+                                                        Taking Test
+                                                    </span>
+                                                    <div className="h-1 flex-1 bg-gray-100 rounded-full overflow-hidden max-w-[60px]">
+                                                        <div 
+                                                            className="h-full bg-blue-500" 
+                                                            style={{ width: `${((user.progress) / user.total) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className={clsx("text-[10px] mt-0.5", isMe ? "text-blue-400" : "text-gray-400")}>Browsing list...</p>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                            })
-                        )}
-                     </div>
+                                );
+                                })
+                            )}
+                        </div>
 
-                     <div className="mt-6 pt-4 border-t border-gray-50">
-                         <p className="text-xs text-center text-gray-400">
-                             Shows users currently active in a test
-                         </p>
-                     </div>
-                 </div>
+                        <div className="mt-6 pt-4 border-t border-gray-50">
+                            <p className="text-xs text-center text-gray-400">
+                                Shows users currently active in a test
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Exam Schedule Widget */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 border-t-4 border-t-indigo-500">
+                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Calendar className="text-indigo-500" size={18}/> Exam Schedule
+                    </h3>
+                    <div className="space-y-4">
+                        {[
+                        { name: "Digitalization", day: "13", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
+                        { name: "Data Mining", day: "15", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
+                        { name: "Software Project Management", day: "17", month: "Jan", time: "12:00", room: "Lab-403", teacher: "Usmanov M." },
+                        { name: "Software for Sustainable Dev", day: "20", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Jamshid Y." },
+                        { name: "Mobile Apps (Native & Web)", day: "22", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Salokhiddinov M." },
+                        ].map((item, idx) => {
+                            // Calculate time remaining (Assuming Year 2026)
+                            const examDate = new Date(`${item.month} ${item.day}, 2026 ${item.time}`);
+                            const now = new Date();
+                            const diffMs = examDate - now;
+                            
+                            let timeStatus = "";
+                            let statusColor = "text-gray-400";
+                            
+                            if (diffMs < 0) {
+                                timeStatus = "Finished";
+                            } else {
+                                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                                const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                
+                                if (diffDays > 7) {
+                                    timeStatus = `${diffDays}d left`;
+                                    statusColor = "text-emerald-500 font-medium";
+                                } else if (diffDays >= 3) {
+                                    timeStatus = `${diffDays}d ${diffHours}h`;
+                                    statusColor = "text-blue-500 font-medium";
+                                } else if (diffDays >= 1) {
+                                    timeStatus = `${diffDays}d ${diffHours}h`;
+                                    statusColor = "text-amber-500 font-bold";
+                                } else {
+                                    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                                    if (diffHours < 1) {
+                                        timeStatus = `${diffMinutes}m left`;
+                                        statusColor = "text-rose-600 font-extrabold animate-pulse bg-rose-50 border-rose-100";
+                                    } else {
+                                        timeStatus = `${diffHours}h ${diffMinutes}m`;
+                                        statusColor = "text-rose-500 font-bold";
+                                    }
+                                }
+                            }
+
+                            return (
+                            <div key={idx} className="flex gap-3 relative group">
+                                {/* Date Box */}
+                                <div className="flex flex-col items-center justify-center bg-indigo-50 min-w-[45px] h-[45px] rounded-lg border border-indigo-100">
+                                    <span className="text-[10px] font-bold text-indigo-400 uppercase leading-none">{item.month}</span>
+                                    <span className="text-lg font-bold text-indigo-700 leading-none">{item.day}</span>
+                                </div>
+                                
+                                {/* Info */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start">
+                                        <h4 className="text-xs font-bold text-gray-800 leading-tight truncate pr-2" title={item.name}>{item.name}</h4>
+                                        <span className={clsx("text-[9px] whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100", statusColor)}>
+                                            {timeStatus}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-2">
+                                        <span>{item.time}</span>
+                                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                        <span>{item.room}</span>
+                                    </p>
+                                    <p className="text-[9px] text-gray-400 truncate mt-0.5">{item.teacher}</p>
+                                </div>
+                            </div>
+                        )})}
+                    </div>
+                </div>
             </div>
           </div>
+        </div>
         )}
 
         {view === 'history' && (
