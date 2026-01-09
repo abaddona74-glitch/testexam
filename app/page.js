@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
 
 const DIFFICULTIES = [
@@ -205,6 +205,7 @@ export default function Home() {
   const [view, setView] = useState('list'); // 'list', 'test', 'upload', 'history', 'review'
   const [activeTest, setActiveTest] = useState(null);
   const [activeReview, setActiveReview] = useState(null); // For history review
+  const [headerExpanded, setHeaderExpanded] = useState(true); // Navbar toggle state
   const [showDifficultyModal, setShowDifficultyModal] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [pendingTest, setPendingTest] = useState(null);
@@ -836,7 +837,14 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 font-sans p-4 md:p-8 pb-32">
       <div className="max-w-7xl mx-auto">
-        <header className="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-4 z-40 transition-shadow hover:shadow-md">
+        <header className={clsx(
+            "relative mb-8 bg-white rounded-2xl shadow-sm border border-gray-100 sticky top-4 z-40 transition-all duration-300 ease-in-out",
+            headerExpanded ? "p-6" : "p-0 py-2 border-transparent shadow-none bg-transparent"
+        )}>
+            <div className={clsx(
+                "flex justify-between items-center transition-all duration-300 overflow-hidden",
+                headerExpanded ? "opacity-100 max-h-[100px]" : "opacity-0 max-h-0 pointer-events-none"
+            )}>
             <div className="flex items-center gap-4">
               <div>
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -892,6 +900,19 @@ export default function Home() {
                     </button>
                 )}
             </div>
+            </div>
+
+            {/* Navbar Toggle Handle */}
+            <button 
+                onClick={() => setHeaderExpanded(!headerExpanded)}
+                className={clsx(
+                    "absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-100 shadow-md text-gray-400 hover:text-blue-600 transition-all hover:scale-110 z-50",
+                    headerExpanded ? "-bottom-4" : "top-0"
+                )}
+                title={headerExpanded ? "Collapse Header" : "Expand Header"}
+            >
+                {headerExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
         </header>
 
         {showSettings && (
