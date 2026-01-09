@@ -334,6 +334,120 @@ export default function Home() {
       }
   }, [view, isNameSet, userName, userId, userCountry]); // Re-run when country is fetched
 
+  // Disable copy/paste/context menu and some keys when taking a test
+  useEffect(() => {
+      if (view === 'test') {
+          const handleContextMenu = (e) => {
+              e.preventDefault();
+              return false;
+          };
+
+          const handleCopyPaste = (e) => {
+              e.preventDefault();
+              return false;
+          };
+
+          const handleKeyDown = (e) => {
+              // Disable PrintScreen
+              if (e.key === 'PrintScreen') {
+                  navigator.clipboard.writeText(''); // Clear clipboard (best effort)
+                  alert('Screenshots are disabled during the test!');
+                  e.preventDefault();
+              }
+
+              // Disable Ctrl+Shift+I, J, C (DevTools)
+              if ((e.ctrlKey && e.shiftKey) && ['i', 'j', 'c'].includes(e.key.toLowerCase())) {
+                  e.preventDefault();
+                  alert('Developer tools are disabled!');
+                  return false;
+              }
+
+              // Disable Ctrl+Shift+S (Some screenshot tools) or Win+Shift+S attempt (OS level, hard to block but we try)
+              if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 's') {
+                  e.preventDefault();
+                  alert('Screenshots are disabled!');
+                  return false;
+              }
+
+              // Disable Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+S, Ctrl+P, Ctrl+U (view source), Ctrl+A
+              if (
+                  (e.ctrlKey || e.metaKey) && 
+                  ['c', 'v', 'x', 's', 'p', 'u', 'a'].includes(e.key.toLowerCase())
+              ) {
+                  e.preventDefault();
+              }
+              
+              // Prevent F12
+              if (e.key === 'F12') {
+                  e.preventDefault();
+              }
+          };
+
+          // Anti-screenshot for mobile/blur approach
+          const handleVisibilityChange = () => {
+            if (document.hidden) {
+                // Determine if we should secure content (blur it)
+                const appRoot = document.getElementById('app-root') || document.body;
+                appRoot.style.filter = 'blur(20px)';
+                document.title = "⚠️ Return to test!";
+            } else {
+                const appRoot = document.getElementById('app-root') || document.body;
+                appRoot.style.filter = 'none';
+                document.title = "Exam App";
+            }
+          };
+
+          // Aggressive CSS injection to stop selection on mobile
+          const style = document.createElement('style');
+          style.innerHTML = `
+            body, #root, * {
+                -webkit-touch-callout: none !important;
+                -webkit-user-select: none !important;
+                -khtml-user-select: none !important;
+                -moz-user-select: none !important;
+                -ms-user-select: none !important;
+                user-select: none !important;
+                -webkit-tap-highlight-color: transparent !important;
+            }
+            /* Hide content when printing */
+            @media print {
+                html, body {
+                    display: none !important;
+                }
+            }
+          `;
+          document.head.appendChild(style);
+
+          document.addEventListener('contextmenu', handleContextMenu);
+          document.addEventListener('copy', handleCopyPaste);
+          document.addEventListener('cut', handleCopyPaste);
+          document.addEventListener('paste', handleCopyPaste);
+          document.addEventListener('keydown', handleKeyDown);
+          document.addEventListener('selectstart', handleContextMenu); // Disable text selection
+          document.addEventListener('visibilitychange', handleVisibilityChange);
+          window.addEventListener('blur', handleVisibilityChange); // Also blur on window focus loss (snipping tool activation)
+          window.addEventListener('focus', handleVisibilityChange);
+
+          return () => {
+              document.removeEventListener('contextmenu', handleContextMenu);
+              document.removeEventListener('copy', handleCopyPaste);
+              document.removeEventListener('cut', handleCopyPaste);
+              document.removeEventListener('paste', handleCopyPaste);
+              document.removeEventListener('keydown', handleKeyDown);
+              document.removeEventListener('selectstart', handleContextMenu);
+              document.removeEventListener('visibilitychange', handleVisibilityChange);
+              window.removeEventListener('blur', handleVisibilityChange);
+              window.removeEventListener('focus', handleVisibilityChange);
+              
+              if(document.head.contains(style)) {
+                document.head.removeChild(style);
+              }
+              document.body.style.filter = 'none'; // Cleanup blur
+              document.title = "Exam App"; // Reset title
+          };
+      }
+  }, [view]);
+
   const fetchGlobalActiveUsers = async () => {
       try {
           const res = await fetch('/api/active');
@@ -497,6 +611,25 @@ export default function Home() {
     };
     reader.readAsText(file);
   };
+
+  useEffect(() => {
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // Disable copy and paste keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === 'c' || e.key === 'v')) {
+            e.preventDefault();
+        }
+    });
+
+    return () => {
+        document.removeEventListener('contextmenu', () => {});
+        document.removeEventListener('keydown', () => {});
+    };
+}, []);
 
   if (!isNameSet) {
       return (
@@ -1065,6 +1198,7 @@ export default function Home() {
                                                 </div>
                                             </div>
                                             
+
                                             {user.status === 'in-test' ? (
                                                 <div className="flex items-center gap-1.5 mt-0.5" 
                                                     onClick={() => !isMe && setSpectatingUser(user)}
@@ -1145,30 +1279,36 @@ export default function Home() {
                             }
 
                             return (
-                            <div key={idx} className="flex gap-3 relative group">
-                                {/* Date Box */}
-                                <div className="flex flex-col items-center justify-center bg-indigo-50 min-w-[45px] h-[45px] rounded-lg border border-indigo-100">
-                                    <span className="text-[10px] font-bold text-indigo-400 uppercase leading-none">{item.month}</span>
-                                    <span className="text-lg font-bold text-indigo-700 leading-none">{item.day}</span>
-                                </div>
-                                
-                                {/* Info */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-start">
-                                        <h4 className="text-xs font-bold text-gray-800 leading-tight truncate pr-2" title={item.name}>{item.name}</h4>
-                                        <span className={clsx("text-[9px] whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100", statusColor)}>
-                                            {timeStatus}
-                                        </span>
+                                <div key={idx} className="flex gap-3 items-center p-3 rounded-xl bg-gray-50/50 hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100 transition-all">
+                                    <div className="flex flex-col items-center justify-center bg-white rounded-lg p-2 shadow-sm border border-gray-100 w-14 h-14 shrink-0">
+                                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">{item.month}</span>
+                                        <span className="text-xl font-black text-gray-800 leading-none">{item.day}</span>
                                     </div>
-                                    <p className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-2">
-                                        <span>{item.time}</span>
-                                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                        <span>{item.room}</span>
-                                    </p>
-                                    <p className="text-[9px] text-gray-400 truncate mt-0.5">{item.teacher}</p>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start">
+                                            <h4 className="text-sm font-bold text-gray-800 truncate pr-2">{item.name}</h4>
+                                            <span className={clsx("text-[10px] font-medium whitespace-nowrap px-1.5 py-0.5 rounded-full bg-white border border-gray-100 shadow-sm", statusColor)}>
+                                                {timeStatus}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
+                                                <Clock size={10} className="text-gray-400" />
+                                                {item.time}
+                                            </span>
+                                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                                            <span className="text-[11px] text-gray-500">
+                                                {item.room}
+                                            </span>
+                                        </div>
+                                        
+                                        <p className="text-[9px] text-gray-400 truncate mt-0.5">{item.teacher}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        )})}
+                            );
+                        })}
                     </div>
                 </div>
             </div>
