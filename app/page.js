@@ -2054,69 +2054,7 @@ export default function Home() {
                 </div>
             )}
             
-            {/* Achievements Modal */}
-            {showAchievements && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Trophy className="text-yellow-500" /> Achievements
-                            </h2>
-                            <button onClick={() => setShowAchievements(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="p-6 overflow-y-auto space-y-4">
-                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2"><Lightbulb size={18}/> Hint Bonuses</h3>
-                                <ul className="text-sm text-blue-800 space-y-1">
-                                    <li className="flex items-center gap-2">
-                                        {unlockedLeagues.includes('Legendary') ? <CheckCircle2 size={14} className="text-green-600"/> : <div className="w-3.5 h-3.5 border border-blue-300 rounded-full"/>}
-                                        <span>Legendary: <strong>10 hints</strong> in Easy Mode (x3.33)</span>
-                                    </li>
-                                    <li className="flex items-center gap-2">
-                                        {unlockedLeagues.includes('Mythic') ? <CheckCircle2 size={14} className="text-green-600"/> : <div className="w-3.5 h-3.5 border border-blue-300 rounded-full"/>}
-                                        <span>Mythic: <strong>15 hints</strong> in Easy Mode (x5) + Bonus in Harder Modes</span>
-                                    </li>
-                                </ul>
-                            </div>
 
-                            <div className="grid grid-cols-1 gap-4">
-                                {['Mythic', 'Legendary', 'Epic', 'Diamond', 'Ruby', 'Iron', 'Copper'].map(league => {
-                                    const unlocked = unlockedLeagues.includes(league);
-                                    const colors = {
-                                        Mythic: 'from-red-900 via-red-600 to-red-900',
-                                        Legendary: 'from-amber-400 via-yellow-500 to-amber-600',
-                                        Epic: 'from-purple-600 to-purple-800',
-                                        Diamond: 'from-cyan-500 to-cyan-700',
-                                        Ruby: 'from-rose-500 to-rose-700',
-                                        Iron: 'from-gray-500 to-gray-700',
-                                        Copper: 'from-orange-600 to-orange-800'
-                                    };
-                                    
-                                    return (
-                                        <div key={league} className={clsx(
-                                            "flex items-center justify-between p-4 rounded-xl border transition-all",
-                                            unlocked ? "bg-white border-gray-200 shadow-sm" : "bg-gray-50 border-gray-100 opacity-60 grayscale"
-                                        )}>
-                                            <div className="flex items-center gap-4">
-                                                <div className={clsx("w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md bg-gradient-to-br", colors[league])}>
-                                                    <Trophy size={20} />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-bold text-gray-900">{league}</h4>
-                                                    <p className="text-xs text-gray-500">{unlocked ? 'Unlocked' : 'Locked'}</p>
-                                                </div>
-                                            </div>
-                                            {unlocked && <CheckCircle2 className="text-green-500" />}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
     </main>
   );
 }
