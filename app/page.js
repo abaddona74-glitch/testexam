@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star } from 'lucide-react';
 import clsx from 'clsx';
 
 const DIFFICULTIES = [
@@ -763,7 +763,13 @@ export default function Home() {
     // New test setup
     const rawQuestions = pendingTest.content.test_questions || [];
     
-    const preparedQuestions = shuffleArray(rawQuestions).map(q => {
+    // Easy mode limit logic (User request: 20 random questions for easy mode)
+    let questionsPool = shuffleArray(rawQuestions);
+    if (difficultyId === 'easy' && questionsPool.length > 20) {
+      questionsPool = questionsPool.slice(0, 20);
+    }
+    
+    const preparedQuestions = questionsPool.map(q => {
       // Allow flexible options (object to array)
       const optionsArray = Object.entries(q.options).map(([key, value]) => ({
         id: key,
@@ -1827,6 +1833,7 @@ export default function Home() {
 
         {view === 'test' && activeTest && (
             <TestRunner 
+                key={`${activeTest.id}-${activeTest.startTime}`} // Add key to force remount on retake
                 test={activeTest} 
                 userName={userName}
                 userId={userId}
@@ -1846,14 +1853,17 @@ export default function Home() {
                 }}
                 onRetake={() => {
                     clearProgress(activeTest.id);
-                    // We need to re-initiate startTest logic, but since we are inside component, 
-                    // we can pass a signal up or just modify the way startTest works.
-                    // Easiest is to call the passed start handler from parent if available, or just hack it:
-                    // Force restart by clearing progress and calling start again logic:
                     
                     // Re-shuffle for retake
                     const rawQuestions = activeTest.content.test_questions || [];
-                    const preparedQuestions = shuffleArray(rawQuestions).map(q => {
+                    
+                    // Easy mode limit logic (User request: 20 random questions for easy mode)
+                    let questionsPool = shuffleArray(rawQuestions);
+                    if (activeTest.difficultyMode === 'easy' && questionsPool.length > 20) {
+                        questionsPool = questionsPool.slice(0, 20);
+                    }
+
+                    const preparedQuestions = questionsPool.map(q => {
                         const optionsArray = Object.entries(q.options).map(([key, value]) => ({ id: key, text: value }));
                         return { ...q, shuffledOptions: shuffleArray(optionsArray) };
                     });
@@ -1864,7 +1874,8 @@ export default function Home() {
                         currentQuestionIndex: 0,
                         answers: {},
                         isFinished: false,
-                        score: 0
+                        score: 0,
+                        startTime: Date.now() // Update startTime to trigger key change
                     });
                 }}
             />
@@ -2231,6 +2242,23 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {}); 
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
+    const [animatedScorePercent, setAnimatedScorePercent] = useState(0);
+
+    useEffect(() => {
+        if (isFinished) {
+            const score = test.questions.reduce((acc, q, idx) => acc + (answers[idx] === q.correct_answer ? 1 : 0), 0);
+            const totalQuestions = test.questions.length;
+            const percentage = Math.round((score / totalQuestions) * 100);
+            
+            // Small delay to allow render before animating
+            const timer = setTimeout(() => {
+                setAnimatedScorePercent(percentage);
+            }, 100);
+            return () => clearTimeout(timer);
+        } else {
+            setAnimatedScorePercent(0);
+        }
+    }, [isFinished, test.questions, answers]);
     
     // Determine max hints based on unlocks
     const getMaxHints = (mode) => {
@@ -2576,9 +2604,15 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             
             // --- NEW REWARD LOGIC ---
             // 1. Stars: "har bir togri savolga yulduz berilsin"
+            let starMultiplier = 1;
+            if (unlockedLeagues && unlockedLeagues.includes('Mythic')) starMultiplier = 2;
+            else if (unlockedLeagues && unlockedLeagues.includes('Legendary')) starMultiplier = 1.5;
+
+            const starsEarned = Math.floor(score * starMultiplier);
+
             if (updateUserStars) {
                 // Add score to current stars
-                updateUserStars(score); 
+                updateUserStars(starsEarned); 
             }
 
             // 2. Achievements (Unlocks)
@@ -2600,6 +2634,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     if (isFinished) {
         const score = test.questions.reduce((acc, q, idx) => acc + (answers[idx] === q.correct_answer ? 1 : 0), 0);
         const percentage = Math.round((score / totalQuestions) * 100);
+        
+        let starMultiplier = 1;
+        if (unlockedLeagues && unlockedLeagues.includes('Mythic')) starMultiplier = 2;
+        else if (unlockedLeagues && unlockedLeagues.includes('Legendary')) starMultiplier = 1.5;
+
+        const starsEarned = Math.floor(score * starMultiplier);
 
         return (
             <>
@@ -2612,19 +2652,78 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             </button>
 
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <div className="p-8 text-center bg-gray-900 text-white">
+                <div className="p-8 text-center bg-gray-900 text-white flex flex-col items-center">
                     <h2 className="text-3xl font-bold mb-2">Test Completed!</h2>
-                    <p className="opacity-80">Here is how you performed</p>
-                    <div className="mt-8 flex justify-center">
-                        <div className="relative h-40 w-40 flex items-center justify-center rounded-full border-8 border-gray-700 bg-gray-800">
-                             <div className="text-center">
-                                 <div className="text-4xl font-extrabold text-blue-400">{score}</div>
-                                 <div className="text-xs text-gray-400 uppercase tracking-widest mt-1">of {totalQuestions}</div>
-                             </div>
+                    <p className="opacity-80 mb-8">Here is how you performed</p>
+                    
+                    {/* Speedometer Gauge */}
+                    <div className="relative w-72 h-36 overflow-hidden mb-4 p-4">
+                        {/* Scale Ticks (Lines) */}
+                        {Array.from({ length: 11 }).map((_, i) => {
+                            const deg = (i * 10 / 100) * 180 - 90; // 0 to 180 mapped to -90 to 90
+                            return (
+                                <div 
+                                    key={i}
+                                    className="absolute bottom-4 left-1/2 w-0.5 h-36 origin-bottom z-20 pointer-events-none"
+                                    style={{ transform: `translateX(-50%) rotate(${deg}deg)` }}
+                                >
+                                    <div className="w-full h-3 bg-white/50 absolute top-0"></div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Gauge Background (Colored Segments) */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-64 h-32 overflow-hidden">
+                             <div className="w-64 h-64 rounded-full"
+                                style={{
+                                    background: `conic-gradient(from 270deg, 
+                                        #ef4444 0deg, #ef4444 36deg, 
+                                        #f97316 36deg, #f97316 72deg, 
+                                        #eab308 72deg, #eab308 108deg,
+                                        #3b82f6 108deg, #3b82f6 144deg, 
+                                        #22c55e 144deg, #22c55e 180deg)`,
+                                    maskImage: 'radial-gradient(transparent 60%, black 61%)',
+                                    WebkitMaskImage: 'radial-gradient(transparent 60%, black 61%)',
+                                    transform: 'rotate(-90deg)'
+                                 }}
+                             ></div>
+                        </div>
+
+                        {/* Needle */}
+                        <div 
+                            className="absolute bottom-4 left-1/2 w-1 h-32 origin-bottom transition-transform duration-[2000ms] cubic-bezier(0.34, 1.56, 0.64, 1) z-30"
+                            style={{ 
+                                transform: `translateX(-50%) rotate(${(animatedScorePercent / 100) * 180 - 90}deg)` 
+                            }}
+                        >
+                             <div className="w-1.5 h-[90%] bg-white rounded-t-full mx-auto mt-[10%] shadow-lg border border-gray-300"></div>
+                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rounded-full shadow-xl border-4 border-gray-200 z-40"></div>
+                        </div>
+                        
+                        {/* Internal Text */}
+                        <div className="absolute bottom-0 left-0 w-full text-center pb-2 z-30">
+                             <div className="text-4xl font-extrabold text-white drop-shadow-md">{score}</div>
+                             <div className="text-[10px] text-gray-300 uppercase tracking-widest">of {totalQuestions}</div>
                         </div>
                     </div>
-                    <div className="mt-6 text-2xl font-semibold text-blue-300">
+
+                    <div className="mt-2 text-3xl font-bold bg-gradient-to-r from-blue-200 to-white bg-clip-text text-transparent">
                         {percentage}% Score
+                    </div>
+                    
+                    {/* Stars and Multiplier Display */}
+                    <div className="mt-4 flex items-center justify-center gap-4 bg-gray-800/50 py-2 px-6 rounded-full border border-gray-700/50 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 text-yellow-400 font-bold text-xl">
+                            <Star className="fill-yellow-400" size={24} />
+                            <span>+{starsEarned}</span>
+                        </div>
+                        
+                        <div className={clsx(
+                            "text-xs font-bold px-2 py-1 rounded uppercase tracking-wider",
+                            starMultiplier > 1 ? "bg-purple-900 text-purple-200 border border-purple-700" : "bg-gray-700 text-gray-400 border border-gray-600"
+                        )}>
+                            Multiplier x{starMultiplier}
+                        </div>
                     </div>
                 </div>
                 
