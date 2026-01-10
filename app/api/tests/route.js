@@ -128,8 +128,9 @@ export async function GET() {
             id: test._id.toString(),
             name: test.name,
             category: test.folder || 'General',
-            type: 'uploaded', // Treated as regular tests now
-            content: test.content
+            type: 'uploaded', 
+            content: test.content,
+            updatedAt: test.updatedAt || test.createdAt
         });
         if (test.folder) folders.add(test.folder);
     });
@@ -174,12 +175,24 @@ export async function POST(request) {
          return NextResponse.json({ error: "'test_questions' array cannot be empty." }, { status: 400 });
     }
 
-    // Save to MongoDB
-    const newTest = await Test.create({
-        name,
-        content,
-        folder: folder || 'General'
-    });
+    // Check if test exists (Update vs Create)
+    const existingTest = await Test.findOne({ name, folder: folder || 'General' });
+
+    if (existingTest) {
+        existingTest.content = content;
+        existingTest.updatedAt = Date.now();
+        await existingTest.save();
+        return NextResponse.json({ success: true, test: existingTest, type: 'updated' });
+    } else {
+        // Save to MongoDB
+        const newTest = await Test.create({
+            name,
+            content,
+            folder: folder || 'General',
+            updatedAt: Date.now()
+        });
+        return NextResponse.json({ success: true, test: newTest, type: 'created' });
+    }
 
     return NextResponse.json({ success: true, test: newTest });
   } catch (error) {

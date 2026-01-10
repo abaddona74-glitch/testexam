@@ -1385,15 +1385,26 @@ export default function Home() {
                                 {category}
                             </h3>
                             <div className="grid md:grid-cols-2 gap-4">
-                                {categoryTests.length > 0 ? categoryTests.map(test => (
-                                    <TestCard 
-                                        key={test.id} 
-                                        test={test} 
-                                        onStart={(t) => startTest(t || test)} 
-                                        badge="Official"
-                                        hasProgress={!!savedProgress[test.id]}
-                                    />
-                                )) : (
+                                {categoryTests.length > 0 ? categoryTests.map(test => {
+                                    const isCommunity = test.type === 'uploaded';
+                                    const badgeLabel = isCommunity ? "Community" : "Official";
+                                    const badgeColor = isCommunity ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700";
+
+                                    // Check if Updated recently (e.g. within 3 days)
+                                    const isUpdated = test.updatedAt && (new Date() - new Date(test.updatedAt) < 3 * 24 * 60 * 60 * 1000);
+                                    
+                                    return (
+                                        <TestCard 
+                                            key={test.id} 
+                                            test={test} 
+                                            onStart={(t) => startTest(t || test)} 
+                                            badge={badgeLabel}
+                                            badgeColor={badgeColor}
+                                            isUpdated={isUpdated}
+                                            hasProgress={!!savedProgress[test.id]}
+                                        />
+                                    );
+                                }) : (
                                      <div className="col-span-2 text-center py-8 text-gray-400 text-sm italic border-2 border-dashed border-gray-100 rounded-lg">
                                         No tests available in this subject. <button onClick={() => { setUploadFolder(category); setShowUploadModal(true); }} className="text-blue-500 hover:underline">Upload one?</button>
                                     </div>
@@ -2159,7 +2170,7 @@ export default function Home() {
   );
 }
 
-function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress }) {
+function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated }) {
     const [selectedLang, setSelectedLang] = useState(() => {
         if (!test.translations) return null;
         return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
@@ -2192,13 +2203,20 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col justify-between group relative overflow-hidden">
-            {hasProgress && (
-                <div className="absolute top-0 right-0 bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-bl-lg font-medium flex items-center gap-1">
-                    <Save size={12} /> Resumable
-                </div>
-            )}
+            <div className="flex absolute top-0 right-0">
+                {isUpdated && (
+                    <div className="bg-emerald-500 text-white text-xs px-2 py-1 font-bold tracking-wide shadow-sm flex items-center gap-1 z-10">
+                        <RefreshCcw size={12} strokeWidth={3} /> UPDATED
+                    </div>
+                )}
+                {hasProgress && (
+                    <div className={clsx("bg-orange-100 text-orange-700 text-xs px-2 py-1 font-medium flex items-center gap-1", isUpdated ? "" : "rounded-bl-lg")}>
+                        <Save size={12} /> Resumable
+                    </div>
+                )}
+            </div>
             <div>
-                <div className="flex justify-between items-start mb-3">
+                <div className="flex justify-between items-start mb-3 mt-1">
                     <span className={clsx("px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide", badgeColor)}>
                         {badge}
                     </span>
