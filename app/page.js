@@ -211,6 +211,38 @@ function CountryFlag({ countryCode }) {
     );
 }
 
+function validateJson(json) {
+    if (!json || typeof json !== 'object') {
+        return { valid: false, error: "Invalid JSON format. Root must be an object." };
+    }
+    // Check for common mistake: user uploaded array directly
+    if (Array.isArray(json)) {
+        return { valid: false, error: "Root must be an object { test_questions: [...] }, not an array." };
+    }
+
+    if (!json.test_questions || !Array.isArray(json.test_questions)) {
+        return { valid: false, error: "Root object must contain 'test_questions' array." };
+    }
+    if (json.test_questions.length === 0) {
+       return { valid: false, error: "'test_questions' array is empty." }; 
+    }
+    
+    // Check structure of first 3 items or all
+    for (let i = 0; i < Math.min(json.test_questions.length, 5); i++) {
+        const q = json.test_questions[i];
+        if (!q.question) return { valid: false, error: `Question #${i+1} is missing 'question' field.` };
+        if (!q.options) return { valid: false, error: `Question #${i+1} is missing 'options' object.` };
+        if (!q.correct_answer) return { valid: false, error: `Question #${i+1} is missing 'correct_answer' field.` };
+        
+        // Check options is object
+        if (typeof q.options !== 'object' || Array.isArray(q.options)) {
+             return { valid: false, error: `Question #${i+1}: 'options' must be an object { key: "value" }.` };
+        }
+    }
+    
+    return { valid: true };
+}
+
 export default function Home() {
   const [tests, setTests] = useState({ defaultTests: [], uploadedTests: [] });
   const [folders, setFolders] = useState([]);
@@ -254,6 +286,7 @@ export default function Home() {
   // Upload State
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadFolder, setUploadFolder] = useState('');
+  const [jsonError, setJsonError] = useState(null);
   
   // Persistent state for resuming tests
   const [savedProgress, setSavedProgress] = useState({});
@@ -760,8 +793,15 @@ export default function Home() {
     // Find Difficulty Settings
     const difficulty = DIFFICULTIES.find(d => d.id === difficultyId);
     
+    // Normalize content (Handle Array/Object mismatch from legacy/Mongo)
+    let contentObj = pendingTest.content;
+    if (Array.isArray(contentObj)) {
+        if (contentObj[0]?.test_questions) contentObj = contentObj[0];
+        else if (contentObj[0]?.question) contentObj = { test_questions: contentObj };
+    }
+
     // New test setup
-    const rawQuestions = pendingTest.content.test_questions || [];
+    const rawQuestions = contentObj?.test_questions || [];
     
     // Easy mode limit logic (User request: 20 random questions for easy mode)
     let questionsPool = shuffleArray(rawQuestions);
@@ -835,6 +875,14 @@ export default function Home() {
     reader.onload = async (event) => {
       try {
         const json = JSON.parse(event.target.result);
+        
+        // Validation
+        const validation = validateJson(json);
+        if (!validation.valid) {
+             setJsonError(validation.error);
+             return;
+        }
+
         const name = file.name.replace('.json', '');
         
         const res = await fetch('/api/tests', {
@@ -852,10 +900,11 @@ export default function Home() {
             setShowUploadModal(false);
             setUploadFolder('');
         } else {
-            alert("Failed to upload test");
+            const errData = await res.json();
+            setJsonError(errData.error || "Failed to upload test");
         }
       } catch (err) {
-        alert("Invalid JSON file");
+        setJsonError("Invalid JSON syntax. Please check your file format.");
       }
     };
     reader.readAsText(file);
@@ -2053,6 +2102,57 @@ export default function Home() {
                     </div>
                 </div>
             )}
+            {/* JSON Error Modal */}
+            {jsonError && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border-2 border-red-100">
+                        <div className="p-6 bg-red-50 border-b border-red-100 flex items-center gap-4">
+                             <div className="p-3 bg-red-100 rounded-full text-red-600">
+                                <AlertTriangle size={32} />
+                             </div>
+                             <div>
+                                 <h3 className="text-xl font-bold text-red-900">Format Error</h3>
+                                 <p className="text-red-600/90 text-sm">The uploaded JSON file is invalid</p>
+                             </div>
+                        </div>
+                        <div className="p-6">
+                            <div className="p-4 bg-red-50 rounded-xl border border-red-100 mb-6">
+                                <p className="text-red-700 font-medium mb-2">Error Details:</p>
+                                <p className="text-red-900 font-mono text-sm break-words">{jsonError}</p>
+                            </div>
+                            
+                            <div className="space-y-3">
+                                <p className="text-gray-900 font-semibold mb-2">Expected JSON Structure:</p>
+                                <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto">
+                                    <pre className="text-xs text-blue-300 font-mono">
+{`{
+  "test_questions": [
+    {
+      "question": "What is 2+2?",
+      "options": {
+        "a": "3",
+        "b": "4",
+        "c": "5"
+      },
+      "correct_answer": "b"
+    }
+  ]
+}`}
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                            <button 
+                                onClick={() => setJsonError(null)}
+                                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all shadow-sm active:scale-95"
+                            >
+                                Understood
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             
 
     </main>
@@ -2065,8 +2165,15 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
         return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
     });
 
-    const activeContent = selectedLang && test.translations ? test.translations[selectedLang] : test.content;
-    const questionCount = activeContent.test_questions?.length || 0;
+    let activeContent = selectedLang && test.translations ? test.translations[selectedLang] : test.content;
+    
+    // Normalize content for display
+    if (Array.isArray(activeContent)) {
+        if (activeContent[0]?.test_questions) activeContent = activeContent[0];
+        else if (activeContent[0]?.question) activeContent = { test_questions: activeContent };
+    }
+
+    const questionCount = activeContent?.test_questions?.length || 0;
 
     const languages = test.translations ? Object.keys(test.translations) : [];
 
@@ -2789,6 +2896,22 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 </div>
             )}
             </>
+        );
+    }
+
+    if (!question) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-2xl shadow-sm p-8 text-center mt-12">
+                <div className="text-4xl mb-4">⚠️</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Question</h3>
+                <p className="text-gray-500 mb-6">Unable to load question #{currentIndex + 1}.</p>
+                <button 
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                    Refresh Application
+                </button>
+            </div>
         );
     }
 

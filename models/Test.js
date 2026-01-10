@@ -11,7 +11,7 @@ const TestSchema = new mongoose.Schema({
     default: 'General'
   },
   content: {
-    type: Array, // Array of Question objects
+    type: Object, // Changed from Array to Object to support { test_questions: [...] } structure
     required: true,
   },
   createdAt: {

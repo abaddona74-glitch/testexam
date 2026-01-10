@@ -158,6 +158,22 @@ export async function POST(request) {
         return NextResponse.json({ error: "Name and content are required" }, { status: 400 });
     }
 
+    // SERVER-SIDE VALIDATION
+    // 1. Check if content is an object (not array)
+    if (typeof content !== 'object' || Array.isArray(content)) {
+         return NextResponse.json({ error: "Content must be a JSON object, not an array." }, { status: 400 });
+    }
+    
+    // 2. Check for test_questions array
+    if (!content.test_questions || !Array.isArray(content.test_questions)) {
+         return NextResponse.json({ error: "Content must contain 'test_questions' array." }, { status: 400 });
+    }
+
+    // 3. Check for empty questions
+    if (content.test_questions.length === 0) {
+         return NextResponse.json({ error: "'test_questions' array cannot be empty." }, { status: 400 });
+    }
+
     // Save to MongoDB
     const newTest = await Test.create({
         name,
