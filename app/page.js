@@ -11,12 +11,25 @@ const DIFFICULTIES = [
     { id: 'impossible', name: 'Impossible', hints: 0, icon: Ghost, color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', timeLimit: 8 }
 ];
 
-function getLeague(score, total, difficulty, duration = 0) {
+function getLeague(score, total, difficulty, duration = 0, questions = [], answers = {}) {
     const percentage = (score / total) * 100;
     
-    // Mythic: Impossible Mode + 240s Survival (Duration > 240,000ms)
-    // Note: Duration here refers to total test duration. 240s = 4 minutes.
-    if (difficulty === 'impossible' && duration >= 240000) {
+    // Mythic: Impossible Mode + 30 Consecutive Correct Answers
+    // User requirement: "30 questions consecutive stack"
+    let maxStreak = 0;
+    if (difficulty === 'impossible' && questions && questions.length > 0 && answers) {
+         let currentStreak = 0;
+         questions.forEach((q, idx) => {
+             if (answers[idx] === q.correct_answer) {
+                 currentStreak++;
+                 if (currentStreak > maxStreak) maxStreak = currentStreak;
+             } else {
+                 currentStreak = 0;
+             }
+         });
+    }
+
+    if (difficulty === 'impossible' && maxStreak >= 30) {
         return { 
             name: 'Mythic', 
             badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-red-800 via-red-600 to-red-800 border-red-600 shadow-[0_0_15px_rgba(255,0,0,0.6)] font-extrabold',
@@ -224,6 +237,10 @@ export default function Home() {
   const [userCountry, setUserCountry] = useState(null);
   const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
   
+  // New States for Stars and Achievements
+  const [userStars, setUserStars] = useState(0);
+  const [unlockedLeagues, setUnlockedLeagues] = useState([]); // Array of strings: ['Legendary', 'Mythic', etc.]
+
   // Sync spectating user with realtime data
   useEffect(() => {
       if (spectatingUser) {
@@ -265,11 +282,33 @@ export default function Home() {
             setSavedProgress(JSON.parse(storedProgress));
         } catch(e) { console.error("Failed to parse progress", e); }
     }
+    
+    // Load Stars and Unlocks
+    const storedStars = localStorage.getItem('examApp_stars');
+    if (storedStars) setUserStars(parseInt(storedStars, 10));
+
+    const storedLeagues = localStorage.getItem('examApp_unlockedLeagues');
+    if (storedLeagues) {
+        try {
+            const parsed = JSON.parse(storedLeagues);
+            if(Array.isArray(parsed)) setUnlockedLeagues(parsed);
+        } catch(e) {}
+    }
 
     // 3. Fetch initial data
     fetchTests();
     fetchLeaderboard();
     fetchGlobalActiveUsers();
+
+    // Warn about legendary/mythic bonuses
+    if (storedLeagues) {
+        try {
+           const leagues = JSON.parse(storedLeagues);
+           if (leagues.includes('Mythic')) {
+               // Optional: Show toast "Welcome back Mythic Player!"
+           }
+        } catch(e) {}
+    }
 
     // Fetch Country (with local storage caching to avoid 429 errors)
     const storedCountry = localStorage.getItem('examApp_userCountry');
@@ -311,6 +350,44 @@ export default function Home() {
         clearInterval(leaderboardInterval);
     };
   }, []);
+
+  const updateUserStars = (amount) => {
+      // Apply Multiplier based on Achievements
+      let multiplier = 1;
+      if (unlockedLeagues.includes('Mythic')) multiplier = 3;
+      else if (unlockedLeagues.includes('Legendary')) multiplier = 2;
+
+      const earned = amount * multiplier;
+      const newTotal = userStars + earned;
+      
+      setUserStars(newTotal);
+      localStorage.setItem('examApp_stars', newTotal.toString());
+      
+      // Optional: Visual feedback could be added here
+  };
+
+  const spendStars = (amount) => {
+      if (userStars >= amount) {
+          const newTotal = userStars - amount;
+          setUserStars(newTotal);
+          localStorage.setItem('examApp_stars', newTotal.toString());
+          return true;
+      }
+      return false;
+  };
+
+  const updateUserUnlocks = (newLeagueName) => {
+      // Only track Legendary and Mythic
+      if (!['Legendary', 'Mythic'].includes(newLeagueName)) return;
+      
+      if (!unlockedLeagues.includes(newLeagueName)) {
+          const newLeagues = [...unlockedLeagues, newLeagueName];
+          setUnlockedLeagues(newLeagues);
+          localStorage.setItem('examApp_unlockedLeagues', JSON.stringify(newLeagues));
+          // Maybe show a toast/confetti here?
+          alert(`Congratulations! You unlocked the ${newLeagueName} Achievement!`);
+      }
+  };
 
   // Block screenshots during test
   useEffect(() => {
@@ -362,7 +439,7 @@ export default function Home() {
           if (isPrintScreen || isSnippingTool) e.preventDefault();
           
           showWarning();
-          navigator.clipboard.writeText('');
+          navigator.clipboard.writeText('').catch(() => {});
 
           // For PrintScreen/Snipping, keep the warning visible for 3 seconds
           if (isPrintScreen || isSnippingTool) {
@@ -382,7 +459,7 @@ export default function Home() {
             setTimeout(hideWarning, 300);
         }
         if (e.key === 'PrintScreen' || e.keyCode === 44) {
-             navigator.clipboard.writeText('');
+             navigator.clipboard.writeText('').catch(() => {});
              // Re-enforce warning on keyup just in case
              showWarning();
              if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
@@ -403,7 +480,7 @@ export default function Home() {
         // Unless it was a blur caused by Snipping Tool... 
         
         // Let's just clear clipboard and hide warning, assuming user returned to app
-        navigator.clipboard.writeText(''); 
+        navigator.clipboard.writeText('').catch(() => {}); 
         
         // Wait a tiny bit before hiding to ensure no screenshot is being finished
         setTimeout(hideWarning, 200);
@@ -415,7 +492,7 @@ export default function Home() {
             showWarning();
         } else {
             hideWarning();
-            navigator.clipboard.writeText('');
+            navigator.clipboard.writeText('').catch(() => {});
         }
     };
 
@@ -450,7 +527,8 @@ export default function Home() {
                       name: userName,
                       status: 'browsing',
                       device: getDeviceType(),
-                      country: userCountry
+                      country: userCountry,
+                      stars: userStars // Send star count
                   })
               }).catch(e => console.error(e));
           };
@@ -479,7 +557,7 @@ export default function Home() {
               // But for closing tab, we need DELETE.
           };
       }
-  }, [view, isNameSet, userName, userId, userCountry]); // Re-run when country is fetched
+  }, [view, isNameSet, userName, userId, userCountry, userStars]); // Re-run when stars change too
 
   // Disable copy/paste/context menu and some keys when taking a test
   useEffect(() => {
@@ -497,7 +575,7 @@ export default function Home() {
           const handleKeyDown = (e) => {
               // Disable PrintScreen
               if (e.key === 'PrintScreen') {
-                  navigator.clipboard.writeText(''); // Clear clipboard (best effort)
+                  navigator.clipboard.writeText('').catch(() => {}); // Clear clipboard (best effort)
                   alert('Screenshots are disabled during the test!');
                   e.preventDefault();
               }
@@ -882,6 +960,24 @@ export default function Home() {
                 >
                     <Settings size={20} />
                 </button>
+                {/* Achievements Icon */}
+                 <button
+                    onClick={() => setShowAchievements(!showAchievements)}
+                    className={clsx(
+                        "p-2 rounded-lg transition-colors relative",
+                        unlockedLeagues.length > 0 ? "text-yellow-500 hover:bg-yellow-50" : "text-gray-500 hover:bg-gray-100"
+                    )}
+                    title="Achievements"
+                 >
+                     <Trophy size={20} />
+                     {unlockedLeagues.includes('Mythic') && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />}
+                 </button>
+
+                 {/* Stars Icon */}
+                 <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1.5 rounded-lg border border-yellow-200">
+                     <span className="text-xs">⭐</span>
+                     <span className="text-sm font-bold text-yellow-700">{userStars}</span>
+                 </div>
                 {view !== 'list' && (
                     <button 
                         onClick={() => { 
@@ -972,7 +1068,7 @@ export default function Home() {
                                      <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">Ultimate</span>
                                  </h3>
                                  <p className="text-sm text-gray-600 mt-1">
-                                     Survive <span className="font-bold text-gray-900">240 seconds</span> in <span className="font-bold text-purple-600">Impossible Mode</span>.
+                                     Answer <span className="font-bold text-gray-900">30 questions consecutively</span> in <span className="font-bold text-purple-600">Impossible Mode</span>.
                                  </p>
                              </div>
                              <div className="absolute -right-6 -bottom-6 text-red-500/10 z-0">
@@ -1336,7 +1432,7 @@ export default function Home() {
                             <tbody className="divide-y divide-gray-50">
                                 {leaderboard.map((entry, idx) => {
                                     const percentage = (entry.score / entry.total) * 100;
-                                    const league = getLeague(entry.score, entry.total, entry.difficulty, entry.duration);
+                                    const league = getLeague(entry.score, entry.total, entry.difficulty, entry.duration, entry.questions, entry.answers);
                                     
                                     const diffConfig = DIFFICULTIES.find(d => d.id === (entry.difficulty || 'easy')) || DIFFICULTIES[0];
                                     const DiffIcon = diffConfig.icon;
@@ -1460,6 +1556,11 @@ export default function Home() {
                                                     <span title={user.country || "Unknown Country"} className="cursor-help select-none transition-all">
                                                         <CountryFlag countryCode={user.country} />
                                                     </span>
+                                                    {user.stars !== undefined && (
+                                                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-1 py-0.5 rounded border border-yellow-100" title="Total Stars">
+                                                            <span>⭐</span>{user.stars}
+                                                        </span>
+                                                    )}
                                                     {user.device === 'mobile' 
                                                         ? <Smartphone size={12} className="text-gray-400" />
                                                         : <Monitor size={12} className="text-gray-400" />
@@ -1645,7 +1746,7 @@ export default function Home() {
                                         .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by newest
                                         .map((entry, idx) => {
                                         // Pass difficulty/duration to get new Badge logic
-                                        const league = getLeague(entry.score, entry.total, entry.difficulty, entry.duration);
+                                        const league = getLeague(entry.score, entry.total, entry.difficulty, entry.duration, entry.questions, entry.answers);
                                         const LeagueIcon = league.icon;
                                         return (
                                             <tr 
@@ -1732,6 +1833,11 @@ export default function Home() {
                 userCountry={userCountry}
                 onBack={() => setView('list')}
                 onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
+                userStars={userStars}
+                unlockedLeagues={unlockedLeagues}
+                updateUserStars={updateUserStars}
+                updateUserUnlocks={updateUserUnlocks}
+                spendStars={spendStars}
                 onFinish={(results) => {
                     setActiveTest(prev => ({ ...prev, isFinished: true, ...results }));
                     clearProgress(activeTest.id); // Clear progress on finish
@@ -1936,6 +2042,70 @@ export default function Home() {
                     </div>
                 </div>
             )}
+            
+            {/* Achievements Modal */}
+            {showAchievements && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <Trophy className="text-yellow-500" /> Achievements
+                            </h2>
+                            <button onClick={() => setShowAchievements(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto space-y-4">
+                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2"><Lightbulb size={18}/> Hint Bonuses</h3>
+                                <ul className="text-sm text-blue-800 space-y-1">
+                                    <li className="flex items-center gap-2">
+                                        {unlockedLeagues.includes('Legendary') ? <CheckCircle2 size={14} className="text-green-600"/> : <div className="w-3.5 h-3.5 border border-blue-300 rounded-full"/>}
+                                        <span>Legendary: <strong>10 hints</strong> in Easy Mode (x3.33)</span>
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        {unlockedLeagues.includes('Mythic') ? <CheckCircle2 size={14} className="text-green-600"/> : <div className="w-3.5 h-3.5 border border-blue-300 rounded-full"/>}
+                                        <span>Mythic: <strong>15 hints</strong> in Easy Mode (x5) + Bonus in Harder Modes</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                {['Mythic', 'Legendary', 'Epic', 'Diamond', 'Ruby', 'Iron', 'Copper'].map(league => {
+                                    const unlocked = unlockedLeagues.includes(league);
+                                    const colors = {
+                                        Mythic: 'from-red-900 via-red-600 to-red-900',
+                                        Legendary: 'from-amber-400 via-yellow-500 to-amber-600',
+                                        Epic: 'from-purple-600 to-purple-800',
+                                        Diamond: 'from-cyan-500 to-cyan-700',
+                                        Ruby: 'from-rose-500 to-rose-700',
+                                        Iron: 'from-gray-500 to-gray-700',
+                                        Copper: 'from-orange-600 to-orange-800'
+                                    };
+                                    
+                                    return (
+                                        <div key={league} className={clsx(
+                                            "flex items-center justify-between p-4 rounded-xl border transition-all",
+                                            unlocked ? "bg-white border-gray-200 shadow-sm" : "bg-gray-50 border-gray-100 opacity-60 grayscale"
+                                        )}>
+                                            <div className="flex items-center gap-4">
+                                                <div className={clsx("w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md bg-gradient-to-br", colors[league])}>
+                                                    <Trophy size={20} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-gray-900">{league}</h4>
+                                                    <p className="text-xs text-gray-500">{unlocked ? 'Unlocked' : 'Locked'}</p>
+                                                </div>
+                                            </div>
+                                            {unlocked && <CheckCircle2 className="text-green-500" />}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
     </main>
   );
 }
@@ -1948,6 +2118,8 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
 
     const activeContent = selectedLang && test.translations ? test.translations[selectedLang] : test.content;
     const questionCount = activeContent.test_questions?.length || 0;
+
+    const languages = test.translations ? Object.keys(test.translations) : [];
 
     const handleStart = () => {
         if (selectedLang && test.translations) {
@@ -1975,21 +2147,36 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                         {badge}
                     </span>
                     <div className="flex gap-2">
-                        {test.translations && Object.keys(test.translations).length > 1 && (
-                            <div className="flex bg-gray-100 p-0.5 rounded-lg z-10 relative">
-                                {Object.keys(test.translations).map(lang => (
-                                    <button
+                        {languages.length > 1 && (
+                            <div 
+                                className="relative bg-gray-100 p-1 rounded-full flex cursor-pointer select-none h-8 w-24 shadow-inner"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Toggle between first 2 languages for simplicity if clickable
+                                    const currentIndex = languages.indexOf(selectedLang);
+                                    const nextIndex = (currentIndex + 1) % languages.length;
+                                    setSelectedLang(languages[nextIndex]);
+                                }}
+                            >
+                                {/* Calculated Active Background */}
+                                <div 
+                                    className="absolute top-1 bottom-1 bg-white rounded-full shadow-sm transition-all duration-300 ease-out z-0"
+                                    style={{
+                                        width: `calc(${100/languages.length}% - 8px)`,
+                                        left: `calc(${(languages.indexOf(selectedLang) * (100/languages.length))}% + 4px)`
+                                    }}
+                                />
+                                {languages.map(lang => (
+                                    <div
                                         key={lang}
                                         onClick={(e) => { e.stopPropagation(); setSelectedLang(lang); }}
                                         className={clsx(
-                                            "px-2 py-0.5 text-[10px] font-bold uppercase rounded-md transition-all",
-                                            selectedLang === lang 
-                                                ? "bg-white text-blue-600 shadow-sm" 
-                                                : "text-gray-400 hover:text-gray-600"
+                                            "flex-1 z-10 flex items-center justify-center text-[10px] font-extrabold uppercase transition-colors rounded-full",
+                                            selectedLang === lang ? "text-blue-600 scale-110" : "text-gray-400 hover:text-gray-600"
                                         )}
                                     >
                                         {lang}
-                                    </button>
+                                    </div>
                                 ))}
                             </div>
                         )}
@@ -2040,49 +2227,116 @@ function TranslatableText({ text, translation, type = 'text' }) {
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars }) {
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {}); 
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
-    const [hintsLeft, setHintsLeft] = useState(test.hintsLeft !== undefined ? test.hintsLeft : 0);
+    
+    // Determine max hints based on unlocks
+    const getMaxHints = (mode) => {
+        let max = 0;
+        const diffConfig = DIFFICULTIES.find(d => d.id === mode);
+        if (diffConfig) max = diffConfig.hints; // Default
+
+        // Apply Multipliers
+        // Legendary: ~3.33x -> Easy(3->10)
+        // Mythic: ~5x -> Easy(3->15)
+        
+        let multiplier = 1;
+        if (unlockedLeagues && unlockedLeagues.includes('Mythic')) multiplier = 5;
+        else if (unlockedLeagues && unlockedLeagues.includes('Legendary')) multiplier = 3.33;
+
+        // Apply to base. 
+        // Easy (3): 3 * 3.33 ~ 10. 3 * 5 = 15.
+        // Middle (1): 1 * 3.33 ~ 3. 1 * 5 = 5.
+        // Hard/Insane/Impossible (0). Multiplier doesn't help if base is 0.
+        // But user said: "qolgan mode larda mos ravishda bolsin" which implies they should also get bonuses?
+        // Usually Hard/Insane have 0 hints. 10 * 0 = 0.
+        // Let's assume user wants *some* hints even in hard modes if they are Legendary?
+        // Or strictly proportional. 
+        // Let's assume strictly proportional to *Easy* base if base is 0? No, that's cheating.
+        // Let's stick to Easy/Middle multipliers first.
+        // If mode is 'hard' (0), maybe give 1 for Legendary, 2 for Mythic?
+        
+        if (max === 0) {
+             // Bonus for 0-hint modes
+             if (multiplier >= 5) max = 2;       // Mythic gets 2 in Hard/Insane/Imp?
+             else if (multiplier >= 3) max = 1;  // Legendary gets 1
+        } else {
+             max = Math.round(max * multiplier);
+        }
+        
+        return max;
+    };
+
+    const initialHintsCount = test.hintsLeft !== undefined ? test.hintsLeft : getMaxHints(test.difficultyMode);
+    const [hintsLeft, setHintsLeft] = useState(initialHintsCount);
     const [revealedHints, setRevealedHints] = useState(test.revealedHints || {}); // { qIdx: [id1, id2] }
 
     // Timed Mode State
     const difficultyConfig = DIFFICULTIES.find(d => d.id === test.difficultyMode) || DIFFICULTIES[0];
-    const initialTime = difficultyConfig.timeLimit; // seconds or null
-    const [timeLeft, setTimeLeft] = useState(initialTime);
+    const baseTimeLimit = difficultyConfig.timeLimit; // seconds or null
+    
+    // Time Banking State
+    const [bankedTime, setBankedTime] = useState(test.bankedTime || 0); 
+    
+    // Initial Time is Base + Banked (only for current question, but careful about resuming)
+    // If resuming, `test.timeLeft` might be saved? `timeLeft` isn't in onProgressUpdate schema explicitly I think?
+    // Let's assume new question or reset.
+    // If we have saved progress, we probably should have saved `timeLeft`.
+    // For now, let's treat "initialTime" as the starting pool for the *current* question.
+    
+    // If we are strictly following "Impossible" mode per-question timer:
+    // When index changes, we reset `timeLeft`.
+    
+    const getQuestionsTimeLimit = () => {
+         if (test.difficultyMode === 'impossible' && baseTimeLimit) {
+             return baseTimeLimit + bankedTime;
+         }
+         return baseTimeLimit;
+    };
 
-    // Initial load setup for timer if resuming
+    const [currentQuestionTimeLimit, setCurrentQuestionTimeLimit] = useState(getQuestionsTimeLimit());
+    const [timeLeft, setTimeLeft] = useState(test.timeLeft !== undefined ? test.timeLeft : currentQuestionTimeLimit);
+
+    // Reset logic when question changes (Standard for Impossible mode which is usually per question)
+    // But wait, `DIFFICULTIES` has `timeLimit`. 
+    // Hard: 30s. Insane: 20s. Impossible: 8s. 
+    // Is this Global Time or Per Question?
+    // The previous code had `setTimeLeft(initialTime)` inside `useEffect([currentIndex])`.
+    // This implies PER QUESTION timer. 
+    // "Mythic: Impossible Mode + 240s Survival" -> suggests global? 
+    // If it was per question 8s, 30 questions = 240s. 
+    // So if you survive 30 questions of 8s, you survive 240s. 
+    // Yes, Per Question makes sense with the "Survival" context if you sum them up, or it's a "blitz".
+
     useEffect(() => {
-        // Reset timer on question change
-        if (initialTime !== null && !isFinished) {
-            setTimeLeft(initialTime);
+        // When index changes, reset timer
+        if (baseTimeLimit !== null && !isFinished) {
+            // Recalculate based on new banked time (calculated in handleNext)
+            const newLimit = (test.difficultyMode === 'impossible' ? baseTimeLimit + bankedTime : baseTimeLimit);
+            setCurrentQuestionTimeLimit(newLimit);
+            setTimeLeft(newLimit);
         }
-    }, [currentIndex, initialTime, isFinished]);
+    }, [currentIndex, baseTimeLimit, isFinished]); // Removed bankedTime from dependency to avoid loop, it's updated before index change
 
     // Timer Countdown Effect
     useEffect(() => {
-        if (initialTime === null || isFinished) return;
+        if (baseTimeLimit === null || isFinished) return;
 
         const timer = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 1) {
-                    // Time's up!
-                    // Auto-skip logic
-                    // If no answer selected, mark as skipped (or just move next)
-                    // If we want to record emptiness:
-                    // handleAnswer(null) ??? 
-                    // Let's just move next. If nothing selected, answers[currentIndex] remains undefined.
                     clearInterval(timer);
-                    handleNext();
-                    return initialTime; // Reset visually immediately (optional, effect will reset anyway)
+                    handleNext(); // Auto-skip
+                    return 0; 
                 }
                 return prev - 1;
             });
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [initialTime, currentIndex, isFinished, answers]); // Depend on answers to avoid stale closure if we were to auto-submit? No, handleNext works on index.
+    }, [currentIndex, isFinished, answers, baseTimeLimit]); // Re-start when index changes
 
     const [showConfirmFinish, setShowConfirmFinish] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -2167,11 +2421,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     total: totalQuestions,
                     device: getDeviceType(),
                     country: userCountry,
-                    currentAnswer: answers[currentIndex] // Send the selected answer for the current question
+                    currentAnswer: answers[currentIndex], // Send the selected answer for the current question
+                    stars: userStars // Send star count
                 })
             }).catch(e => console.error("Active status update failed", e));
         }
-    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints]);
+    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints, userStars]);
 
     // Poll for other active users
     useEffect(() => {
@@ -2225,6 +2480,36 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     };
 
     const handleNext = () => {
+        // Time Banking Logic
+        if (test.difficultyMode === 'impossible' && baseTimeLimit !== null) {
+            // Check if user answered (if not answered, no banking? Or strictly banking unused time?)
+            // "misol 8sek dan 5sek test yechish uchun ketgan bolsa qolgan 3sek ni keyingi testga qoshib ber"
+            // Translation: "Ex: 8sec, if 5sec used to solve, add remaining 3sec to next"
+            // This implies banking happens ONLY if they solved it (answered).
+            // What if they skipped (timeLeft = 0)? Then nothing to bank.
+            // What if they clicked 'Next' without answering? 
+            // Usually, answering triggers 'Next' or user clicks 'Next'.
+            
+            // NOTE: simple banking: whatever is left on clock when 'Next' is triggered.
+            // If auto-skip (timeLeft=0), nothing banked.
+            
+            // BUT user said "yechish uchun ketgan bolsa" (if it took X time to solve).
+            // Implies correctness might matter? OR just submission?
+            // "comeback 12da togri qilsa yana count 1 boladi... 240 ni 8 ga bolsak 30 ta savol boladi 30 ta ketma ket kelgan savolga togri javob berishi kerak"
+            // The time banking is a "help" ("yordam sifatida").
+            // I'll assume banking happens regardless of correctness (since we don't check correctness instantly), 
+            // BUT only if an answer was provided?
+            // "yechish uchun" -> "to solve".
+            
+            if (answers[currentIndex]) {
+                const unusedTime = Math.max(0, timeLeft);
+                setBankedTime(prev => prev + unusedTime);
+            } else {
+                 // Nothing banked if skipped/unanswered? 
+                 // Or maybe we treat it as 0.
+            }
+        }
+
         if (currentIndex < totalQuestions - 1) {
             setCurrentIndex(currentIndex + 1);
         } else {
@@ -2288,6 +2573,21 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
             setIsFinished(true);
             setShowConfirmFinish(false);
+            
+            // --- NEW REWARD LOGIC ---
+            // 1. Stars: "har bir togri savolga yulduz berilsin"
+            if (updateUserStars) {
+                // Add score to current stars
+                updateUserStars(score); 
+            }
+
+            // 2. Achievements (Unlocks)
+            // Check if achieved Mythic/Legendary
+            const league = getLeague(score, totalQuestions, test.difficultyMode, durationMs, test.questions, answers);
+            if (updateUserUnlocks && league.name) {
+                 updateUserUnlocks(league.name);
+            }
+
             // Pass up results
             onFinish({ answers, isFinished: true, score });
         } catch (error) {
@@ -2505,6 +2805,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                  <div className="p-6 md:p-10 flex-1 flex flex-col">
                      <div className="flex justify-between items-center mb-6 text-sm text-gray-500">
                           <div className="flex items-center gap-3">
+                              {/* Stars Display */}
+                              <div className="flex items-center gap-1.5 px-2 py-1 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 font-bold text-xs" title="Your Stars">
+                                  <span>⭐</span>
+                                  <span>{userStars}</span>
+                              </div>
                               <button 
                                 onClick={onBack}
                                 className="text-gray-400 hover:text-gray-600 transition-colors mr-1 hover:bg-gray-100 p-1 rounded-lg"
@@ -2528,7 +2833,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                           <div className="flex items-center gap-2">
                               {/* Hint Button */}
-                              {hintsLeft > 0 && (
+                              {hintsLeft > 0 ? (
                                   <button
                                       onClick={handleUseHint}
                                       className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-lg transition-colors text-xs font-bold mr-2 animate-in fade-in"
@@ -2536,6 +2841,31 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                   >
                                       <Lightbulb size={14} className="fill-yellow-500 text-yellow-500" />
                                       <span>Use Hint ({hintsLeft})</span>
+                                  </button>
+                              ) : (
+                                  /* Buy Hint Button */
+                                  <button
+                                      onClick={() => {
+                                          if (spendStars && userStars >= 5) {
+                                              if (spendStars(5)) {
+                                                  setHintsLeft(prev => prev + 1);
+                                              }
+                                          } else {
+                                              alert("Not enough stars! You need 5 stars for a hint.");
+                                          }
+                                      }}
+                                      className={clsx(
+                                          "flex items-center gap-1.5 px-3 py-1.5 border rounded-lg transition-colors text-xs font-bold mr-2",
+                                          userStars >= 5 
+                                            ? "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 cursor-pointer"
+                                            : "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
+                                      )}
+                                      title="Buy a hint for 5 stars"
+                                  >
+                                      <div className='flex items-center gap-1'>
+                                         <span>⭐ 5</span>
+                                         <span>Buy Hint</span>
+                                      </div>
                                   </button>
                               )}
                               <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>

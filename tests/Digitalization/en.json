@@ -66,16 +66,16 @@
       },
       "correct_answer": "B"
     },
-    {
-      "id": 7,
-      "question": "Which food delivery platforms have significant market presence in Uzbekistan?",
-      "options": {
-        "A": "Yandex Eats, leveraging Yandex's ecosystem",
-        "B": "Uzum Tezkor, focusing on quick urban deliveries",
-        "C": "Express 24, offering grocery and medicine delivery",
-        "D": "All of the above operate successfully in Uzbekistan"
-      },
-      "correct_answer": "D"
+      {
+        "id": 7,
+        "question": "Which food delivery platforms have significant market presence in Uzbekistan?",
+        "options": {
+      "A": "Yandex Eats (Yandex Go ecosystem, post-Express24 merger, ~87% market control)",
+      "B": "Uzum Tezkor (national leader, recognized dominant in 2025, top Google Play ranking)",
+      "C": "Express24 (grocery/medicine focus, now integrated with Yandex Eats)",
+      "D": "All of the above maintain strong positions despite market consolidation"
+    },
+    "correct_answer": "D"
     },
     {
       "id": 8,
@@ -104,7 +104,7 @@
       "question": "Which digital payment platforms dominate the Uzbek market?",
       "options": {
         "A": "Payme, the pioneering platform launched in 2011",
-        "B": "Click, with over 10 million users as of 2023",
+        "B": "Click, with over 15 million users as of 2023",
         "C": "Apelsin, popular among younger demographics",
         "D": "All of these platforms have substantial market share"
       },
@@ -367,7 +367,7 @@
       "id": 34,
       "question": "What is the official mobile banking application of KapitalBank?",
       "options": {
-        "A": "Mbank, the bank's digital platform",
+        "A": "Kapitalbank.Online, the official app",
         "B": "BankOnline, a generic banking app",
         "C": "KapitalMobile, the branded solution",
         "D": "UzBank, a national banking app"
@@ -545,7 +545,7 @@
       "options": {
         "A": "Approximately 10 million mobile subscribers",
         "B": "Around 15 million connected devices",
-        "C": "Over 25 million mobile users nationwide",
+        "C": "Over 30 million mobile users nationwide",
         "D": "Fewer than 5 million mobile users"
       },
       "correct_answer": "C"

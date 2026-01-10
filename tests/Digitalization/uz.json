@@ -70,10 +70,10 @@
       "id": 7,
       "question": "Qaysi ovqat yetkazish platformalari O'zbekistonda sezilarli bozor mavjudligiga ega?",
       "options": {
-        "A": "Yandex ekotizimidan foydalanadigan Yandex Eats",
-        "B": "Shahar ichida tez yetkazib berishga qaratilgan Uzum Tezkor",
-        "C": "Oziq-ovqat va dori-darmon yetkazishni taklif qiladigan Express 24",
-        "D": "Yuqoridagilarning barchasi O'zbekistonda muvaffaqiyatli ishlaydi"
+        "A": "Yandex Eats (Yandex Go ekotizimi, Express24 bilan birlashuvdan keyin ~87.5% bozor nazorati, dominant/monopol)",
+        "B": "Uzum Tezkor (milliy lider, 2025 yilda dominant deb topilgan, eng yuqori reyting)",
+        "C": "Express24 (oziq-ovqat va dori yetkazish, hozir Yandex Eats bilan integratsiya qilingan)",
+        "D": "Yuqoridagilarning barchasi bozor konsolidatsiyasiga qaramay sezilarli mavqega ega"
       },
       "correct_answer": "D"
     },
@@ -104,7 +104,7 @@
       "question": "O'zbekiston bozorida qaysi raqamli to'lov platformalari ustunlik qiladi?",
       "options": {
         "A": "2011 yilda ishga tushirilgan yangilikchi platforma Payme",
-        "B": "2023 yil holatiga ko'ra 10 milliondan ortiq foydalanuvchiga ega Click",
+        "B": "2023 yil holatiga ko'ra 15 milliondan ortiq foydalanuvchiga ega Click",
         "C": "Yosh demografik guruhlar orasida mashhur Apelsin",
         "D": "Ushbu platformalarning barchasi sezilarli bozor ulushiga ega"
       },
@@ -193,7 +193,7 @@
       "options": {
         "A": "Taxminan 1 million faol foydalanuvchi",
         "B": "Taxminan 5 million ro'yxatdan o'tgan foydalanuvchi",
-        "C": "O'zbekiston bo'ylab 10 milliondan ortiq foydalanuvchi",
+        "C": "O'zbekiston bo'ylab 15 milliondan ortiq foydalanuvchi",
         "D": "500,000 dan kam foydalanuvchi"
       },
       "correct_answer": "C"
@@ -367,7 +367,7 @@
       "id": 34,
       "question": "KapitalBank'ning rasmiy mobil bank ilovasi qaysi?",
       "options": {
-        "A": "Bankning raqamli platformasi Mbank",
+        "A": "Kapitalbank.Online, bankning rasmiy raqamli ilovasi",
         "B": "Umumiy bank ilovasi BankOnline",
         "C": "Brendlangan yechim KapitalMobile",
         "D": "Milliy bank ilovasi UzBank"
@@ -545,7 +545,7 @@
       "options": {
         "A": "Taxminan 10 million mobil abonent",
         "B": "Taxminan 15 million ulanadigan qurilma",
-        "C": "Mamlakat bo'ylab 25 milliondan ortiq mobil foydalanuvchi",
+        "C": "Mamlakat bo'ylab 30 milliondan ortiq mobil foydalanuvchi",
         "D": "5 milliondan kam mobil foydalanuvchi"
       },
       "correct_answer": "C"
