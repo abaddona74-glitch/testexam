@@ -608,7 +608,8 @@ export default function Home() {
         };
     }, []);
 
-    const canSpin = lastSpinDate !== new Date().toDateString();
+    const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    const canSpin = isDevMode || lastSpinDate !== new Date().toDateString();
 
     const updateUserStars = (amount) => {
         // Apply Multiplier based on Achievements
@@ -1189,7 +1190,7 @@ export default function Home() {
 
     if (!isNameSet) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+            <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 px-4">
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg max-w-md w-full border border-gray-100 dark:border-gray-800/50">
                     <div className="text-center mb-6">
                         <div className="bg-blue-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-blue-600">
@@ -1220,13 +1221,13 @@ export default function Home() {
     }
 
     if (loading && view === 'list') {
-        return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
+        return <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
             <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
         </div>;
     }
 
     return (
-        <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
+        <main className="min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
             <div className="max-w-7xl mx-auto">
                 <header className={clsx(
                     "mb-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 sticky top-4 z-40 transition-all duration-300 ease-in-out",
@@ -2624,6 +2625,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const [answers, setAnswers] = useState(test.answers || {});
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
     const [animatedScorePercent, setAnimatedScorePercent] = useState(0);
+    const [showLegendaryEffect, setShowLegendaryEffect] = useState(false);
 
     useEffect(() => {
         if (isFinished) {
@@ -2634,6 +2636,17 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             // Small delay to allow render before animating
             const timer = setTimeout(() => {
                 setAnimatedScorePercent(percentage);
+                if (percentage === 100) {
+                    setShowLegendaryEffect(true);
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        zIndex: 9999
+                    });
+                    
+                    setTimeout(() => setShowLegendaryEffect(false), 3000);
+                }
             }, 100);
             return () => clearTimeout(timer);
         } else {
@@ -2681,6 +2694,13 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const initialHintsCount = test.hintsLeft !== undefined ? test.hintsLeft : getMaxHints(test.difficultyMode);
     const [hintsLeft, setHintsLeft] = useState(initialHintsCount);
     const [revealedHints, setRevealedHints] = useState(test.revealedHints || {}); // { qIdx: [id1, id2] }
+
+    // Logic for Spinner Bonus Hints
+    const [extraHints, setExtraHints] = useState(0);
+    useEffect(() => {
+        const storedExtra = localStorage.getItem('examApp_extraHints');
+        if (storedExtra) setExtraHints(parseInt(storedExtra, 10));
+    }, []);
 
     // Timed Mode State
     const difficultyConfig = DIFFICULTIES.find(d => d.id === test.difficultyMode) || DIFFICULTIES[0];
@@ -2770,7 +2790,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
     // Hint Logic
     const handleUseHint = () => {
-        if (hintsLeft <= 0 || isFinished) return;
+        if ((hintsLeft <= 0 && extraHints <= 0) || isFinished) return;
 
         const currentRevealed = revealedHints[currentIndex] || [];
         // Only consider options that are WRONG and NOT YET REVEALED
@@ -2788,7 +2808,14 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             ...prev,
             [currentIndex]: [...(prev[currentIndex] || []), toEliminate.id]
         }));
-        setHintsLeft(prev => prev - 1);
+        
+        if (hintsLeft > 0) {
+            setHintsLeft(prev => prev - 1);
+        } else if (extraHints > 0) {
+            const newVal = extraHints - 1;
+            setExtraHints(newVal);
+            localStorage.setItem('examApp_extraHints', newVal.toString());
+        }
     };
 
     // Find translation if available
@@ -3018,6 +3045,25 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
         return (
             <>
+                {showLegendaryEffect && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+                        <svg viewBox="0 0 500 200" className="w-[80vw] max-w-2xl animate-in zoom-in-50 duration-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.8)]">
+                            <defs>
+                                <path id="curve" d="M 50 150 Q 250 20 450 150" fill="transparent" />
+                                <linearGradient id="gold-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stopColor="#FDE68A" />
+                                    <stop offset="50%" stopColor="#F59E0B" />
+                                    <stop offset="100%" stopColor="#B45309" />
+                                </linearGradient>
+                            </defs>
+                            <text width="500">
+                                <textPath xlinkHref="#curve" startOffset="50%" textAnchor="middle" className="text-6xl font-black uppercase tracking-widest" style={{ fill: "url(#gold-grad)", fontSize: "60px", fontWeight: "900", fontFamily: "cursive, sans-serif" }}>
+                                    LEGENDARY
+                                </textPath>
+                            </text>
+                        </svg>
+                    </div>
+                )}
                 {/* Back Button for Finished View */}
                 <button
                     onClick={onBack}
@@ -3326,14 +3372,14 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                         <div className="flex items-center gap-2">
                             {/* Hint Button */}
-                            {hintsLeft > 0 ? (
+                            {(hintsLeft > 0 || extraHints > 0) ? (
                                 <button
                                     onClick={handleUseHint}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 dark:bg-[#282b33] dark:hover:bg-[#323640] dark:text-yellow-500 dark:border-transparent rounded-lg transition-colors text-xs font-bold mr-2 animate-in fade-in"
                                     title="Use a hint to remove one wrong answer"
                                 >
                                     <Lightbulb size={14} className="fill-yellow-500 text-yellow-500" />
-                                    <span>Use Hint ({hintsLeft})</span>
+                                    <span>Use Hint ({hintsLeft + extraHints})</span>
                                 </button>
                             ) : (
                                 /* Buy Hint Button */
