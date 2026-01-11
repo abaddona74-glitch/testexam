@@ -1587,16 +1587,15 @@ export default function Home() {
 
                         {/* Sidebar - Online Users & Schedule */}
                         {/* Sidebar Toggle Handle */}
-                        <div className="fixed right-0 top-1/2 -translate-y-1/2 z-40 hidden lg:block">
+                        <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[60]">
                             <button
                                 onClick={() => setSidebarExpanded(!sidebarExpanded)}
                                 className={clsx(
-                                    "flex items-center justify-center w-6 h-12 rounded-l-xl bg-white dark:bg-gray-800 border-y border-l border-gray-100 dark:border-gray-800/50 shadow-md text-gray-400 hover:text-blue-600 transition-all hover:w-8",
-                                    sidebarExpanded ? "mr-0" : "mr-0"
+                                    "flex items-center justify-center w-6 h-16 rounded-l-2xl bg-white dark:bg-gray-800 border-y border-l border-gray-200 dark:border-gray-700 shadow-[0_0_15px_rgba(0,0,0,0.1)] text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all hover:w-8 hover:bg-gray-50 dark:hover:bg-gray-700",
                                 )}
                                 title={sidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
                             >
-                                {sidebarExpanded ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                                {sidebarExpanded ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                             </button>
                         </div>
 
