@@ -252,23 +252,38 @@ function validateJson(json) {
 }
 
 const SPINNER_ITEMS = [
-    { id: 'h10', label: '+10 Hints', type: 'hint', amount: 10, color: 'bg-orange-100 text-orange-600', icon: Lightbulb, probability: 0.15 },
+    { id: 'h10', label: '+10 Hints', type: 'hint', amount: 10, color: 'bg-orange-100 text-orange-600', icon: Lightbulb, probability: 0.1 },
+    { id: 'e1', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
     { id: 'h20', label: '+20 Hints', type: 'hint', amount: 20, color: 'bg-yellow-200 text-yellow-700', icon: Lightbulb, probability: 0.05 },
-    { id: 's25', label: '+25 Stars', type: 'star', amount: 25, color: 'bg-blue-100 text-blue-600', icon: Star, probability: 0.3 },
-    { id: 's50', label: '+50 Stars', type: 'star', amount: 50, color: 'bg-blue-200 text-blue-700', icon: Star, probability: 0.2 },
-    { id: 's100', label: '+100 Stars', type: 'star', amount: 100, color: 'bg-blue-600 text-white', icon: Star, probability: 0.05 },
-    { id: 'm2x', label: '2x (1h)', type: 'multiplier', val: 2, duration: 3600000, color: 'bg-purple-100 text-purple-600', icon: Zap, probability: 0.1 },
-    { id: 'm3x', label: '3x (15m)', type: 'multiplier', val: 3, duration: 900000, color: 'bg-rose-100 text-rose-600', icon: Zap, probability: 0.05 },
+    { id: 'e2', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
+    { id: 's25', label: '+25 Stars', type: 'star', amount: 25, color: 'bg-blue-100 text-blue-600', icon: Star, probability: 0.15 },
+    { id: 'e3', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
+    { id: 's50', label: '+50 Stars', type: 'star', amount: 50, color: 'bg-blue-200 text-blue-700', icon: Star, probability: 0.1 },
+    { id: 'e4', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
+    { id: 's100', label: '+100 Stars', type: 'star', amount: 100, color: 'bg-blue-600 text-white', icon: Star, probability: 0.02 },
+    { id: 'e5', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.08 },
+    { id: 'm2x', label: '2x (1h)', type: 'multiplier', val: 2, duration: 3600000, color: 'bg-purple-100 text-purple-600', icon: Zap, probability: 0.05 },
+    { id: 'e6', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
+    { id: 'm3x', label: '3x (15m)', type: 'multiplier', val: 3, duration: 900000, color: 'bg-rose-100 text-rose-600', icon: Zap, probability: 0.02 },
+    { id: 'e7', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.08 },
     { id: 's10', label: '+10 Stars', type: 'star', amount: 10, color: 'bg-gray-100 text-gray-600', icon: Star, probability: 0.1 },
+    { id: 'e8', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
 ];
 
-function DailySpinner({ onClose, onReward, canSpin }) {
+function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, nextSpin }) {
     const [spinning, setSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [prize, setPrize] = useState(null);
+    const isDev = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
-    const handleSpin = () => {
-        if (!canSpin || spinning) return;
+    const handleSpin = (type) => {
+        if (spinning) return;
+        setPrize(null);
+        
+        // Attempt to start spin
+        const success = onSpinStart(type);
+        if (!success) return;
+
         setSpinning(true);
 
         // Determine result based on weighted probability
@@ -285,39 +300,46 @@ function DailySpinner({ onClose, onReward, canSpin }) {
         }
 
         // Calculate rotation
-        // Each slice is 360 / 8 = 45deg
-        // To land on index i, we need to rotate so that index i is at the top (or pointer location).
-        // Let's assume pointer is at Top (0deg).
-        // If 0 is at 0deg, 1 is at 45deg...
-        // To bring index i to 0deg, we rotate - (i * 45).
-        // Add minimal spins (5 * 360).
-        // Add random jitter within the slice (+/- 20deg).
-        
         const segmentAngle = 360 / SPINNER_ITEMS.length;
-        const baseRotation = 360 * 8; // 8 full spins
-        const targetAngle = -(selectedIndex * segmentAngle); 
-        // We want the Item to be at top. 
-        // Actually, usuall wheels rotate Clockwise.
-        // If we want item i to be at 0deg (top), and item 0 is initially at 0deg.
-        // Rotation should be: 360 - (i * segmentAngle) + baseRotation.
+        const randomOffset = Math.floor(Math.random() * (segmentAngle - 4)) - (segmentAngle/2 - 2); 
         
-        const randomOffset = Math.floor(Math.random() * (segmentAngle - 4)) - (segmentAngle/2 - 2); // Random landing within slice
-        const totalRotation = baseRotation + (360 - (selectedIndex * segmentAngle)) + randomOffset;
+        // Target angle for the selected item to be at the top
+        // Start from a clean modulo 360 representation of where we want to land
+        const targetBaseAngle = (360 - (selectedIndex * segmentAngle)) + randomOffset;
+        
+        // Add minimum spins to the CURRENT rotation
+        const minSpins = 360 * 8; // 8 full spins
+        const rawNextRotation = rotation + minSpins;
+        
+        // Calculate adjustment needed to land on targetBaseAngle
+        // (rawNextRotation + adjustment) % 360 = targetBaseAngle
+        const currentMod = rawNextRotation % 360;
+        let adjustment = targetBaseAngle - currentMod;
+        
+        // Ensure we always rotate forward or at least don't spin "backwards" too much relative to the visual velocity
+        // Actually, ensuring adjustment is positive is safest for consistent speed feeling
+        if (adjustment < 0) adjustment += 360;
+        
+        const totalRotation = rawNextRotation + adjustment;
 
         setRotation(totalRotation);
 
         setTimeout(() => {
             setSpinning(false);
-            setPrize(SPINNER_ITEMS[selectedIndex]);
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 },
-                zIndex: 9999
-            });
-            setTimeout(() => {
-                onReward(SPINNER_ITEMS[selectedIndex]);
-            }, 1500);
+            const wonItem = SPINNER_ITEMS[selectedIndex];
+            setPrize(wonItem);
+            
+            if (wonItem.type !== 'empty') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    zIndex: 9999
+                });
+                setTimeout(() => {
+                    onReward(wonItem);
+                }, 1500);
+            }
         }, 5000); // 5s spin duration matching CSS ease-out
     };
 
@@ -334,10 +356,27 @@ function DailySpinner({ onClose, onReward, canSpin }) {
 
                 <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
                     <div className="text-center mb-8">
+                        <div className="flex items-center justify-between mb-2">
+                             <div className="flex flex-col items-start gap-1">
+                                 <div className="text-xs font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-gray-500">
+                                    Spins: <span className={freeSpins > 0 || isDev ? "text-green-600 font-bold" : "text-gray-500"}>
+                                        {isDev ? "Infinite" : `${freeSpins}/10`}
+                                    </span>
+                                 </div>
+                                 {!isDev && freeSpins < 10 && nextSpin && (
+                                     <span className="text-[10px] text-gray-400 font-mono pl-1">
+                                         Next in: {nextSpin}
+                                     </span>
+                                 )}
+                             </div>
+                             <div className="text-xs font-mono bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded text-yellow-700 dark:text-yellow-500">
+                                Stars: {userStars}
+                             </div>
+                        </div>
                         <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                            Daily Lucky Spin
+                            Lucky Spin
                         </h2>
-                        <p className="text-gray-500 text-sm">Spin to win guaranteed prizes!</p>
+                        <p className="text-gray-500 text-sm">Hourly free spins (Stack up to 10)</p>
                     </div>
 
                     {/* Wheel Container */}
@@ -356,37 +395,27 @@ function DailySpinner({ onClose, onReward, canSpin }) {
                             className="w-full h-full rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden relative transition-transform duration-[5000ms] ease-[cubic-bezier(0.1,0.7,0.1,1)]"
                             style={{ transform: `rotate(${rotation}deg)` }}
                         >
-                            {SPINNER_ITEMS.map((item, idx) => {
-                                const angle = (360 / SPINNER_ITEMS.length) * idx;
-                                return (
-                                    <div
-                                        key={item.id}
-                                        className={clsx("absolute w-[50%] h-[50%] top-0 right-0 origin-bottom-left flex items-center justify-center pt-4 pr-4", item.id === 's100' ? "z-10" : "")}
-                                        style={{
-                                            transform: `rotate(${angle}deg) skewY(-45deg)`, // 45deg skew for 8 items (360/8 = 45) -> actually skew should be 90-sliceAngle? 
-                                            // CSS Wheel construction usually involves specific skew logic.
-                                            // Simpler approach: Place items radially without full background slices if CSS is tricky, or use a conic gradient background.
-                                            // Let's use Conical Gradient for background colors and standard rotation for icons.
-                                        }}
-                                    >
-                                        {/* Content needs to be counter-rotated or carefully placed */}
-                                    </div>
-                                );
-                            })}
-                            
                             {/* Simplified Wheel using Conic Gradient Background + Absolute Icons */}
                              <div className="absolute inset-0 rounded-full" 
                                 style={{
                                     background: `conic-gradient(
-                                        from -22.5deg,
-                                        #fee2e2 0deg 45deg,   /* Red-100 */
-                                        #fef3c7 45deg 90deg,  /* Yellow-100 */
-                                        #dbeafe 90deg 135deg, /* Blue-100 */
-                                        #d1fae5 135deg 180deg,/* Green-100 */
-                                        #e0e7ff 180deg 225deg,/* Indigo-100 */
-                                        #fae8ff 225deg 270deg,/* Fuchsia-100 */
-                                        #ffe4e6 270deg 315deg,/* Rose-100 */
-                                        #f3f4f6 315deg 360deg /* Gray-100 */
+                                        from -11.25deg,
+                                        #fee2e2 0deg 22.5deg,   
+                                        #f3f4f6 22.5deg 45deg,  
+                                        #fef3c7 45deg 67.5deg,  
+                                        #f3f4f6 67.5deg 90deg, 
+                                        #dbeafe 90deg 112.5deg, 
+                                        #f3f4f6 112.5deg 135deg,
+                                        #d1fae5 135deg 157.5deg,
+                                        #f3f4f6 157.5deg 180deg,
+                                        #e0e7ff 180deg 202.5deg,
+                                        #f3f4f6 202.5deg 225deg,
+                                        #fae8ff 225deg 247.5deg,
+                                        #f3f4f6 247.5deg 270deg,
+                                        #ffe4e6 270deg 292.5deg,
+                                        #f3f4f6 292.5deg 315deg,
+                                        #fff1f2 315deg 337.5deg, 
+                                        #f3f4f6 337.5deg 360deg
                                     )`
                                 }}>
                             </div>
@@ -417,38 +446,61 @@ function DailySpinner({ onClose, onReward, canSpin }) {
                         </div>
                     </div>
 
-                    <div className="text-center">
-                        {!prize ? (
-                            <button
-                                onClick={handleSpin}
-                                disabled={!canSpin || spinning}
-                                className={clsx(
-                                    "px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 w-full",
-                                    !canSpin 
-                                        ? "bg-gray-400 cursor-not-allowed" 
-                                        : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-blue-500/25"
+                    <div className="text-center space-y-3">
+                        {prize && (
+                            <div className="animate-in zoom-in duration-300 mb-6">
+                                {prize.type !== 'empty' ? (
+                                    <>
+                                        <p className="text-gray-500 mb-2">You won:</p>
+                                        <div className={clsx("p-4 rounded-xl border-2 mb-4 flex items-center gap-3 justify-center", prize.color)}>
+                                            <prize.icon size={24} />
+                                            <span className="font-bold text-lg">{prize.label}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center mb-6">
+                                        <div className="text-4xl mb-2">😢</div>
+                                        <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200">Better luck next time!</h3>
+                                        <p className="text-gray-400 text-sm mt-1">Don't give up!</p>
+                                    </div>
                                 )}
-                            >
-                                {spinning ? 'Spinning...' : !canSpin ? 'Come back tomorrow' : 'SPIN NOW'}
-                            </button>
-                        ) : (
-                            <div className="animate-in zoom-in duration-300">
-                                <p className="text-gray-500 mb-2">You won:</p>
-                                <div className={clsx("p-4 rounded-xl border-2 mb-4 flex items-center gap-3 justify-center", prize.color)}>
-                                    <prize.icon size={24} />
-                                    <span className="font-bold text-lg">{prize.label}</span>
-                                </div>
-                                <button
-                                    onClick={onClose}
-                                    className="bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
-                                >
-                                    Claim & Close
-                                </button>
                             </div>
                         )}
-                        {!canSpin && !prize && (
-                             <p className="text-xs text-gray-400 mt-3">Next spin available at 00:00</p>
-                        )}
+
+                        <button
+                            onClick={() => handleSpin('free')}
+                            disabled={freeSpins <= 0 || spinning}
+                            className={clsx(
+                                "px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 w-full flex items-center justify-center gap-2",
+                                freeSpins <= 0
+                                    ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-green-500/25"
+                            )}
+                        >
+                            {spinning ? 'Spinning...' : 'SPIN FREE'}
+                            {freeSpins > 0 && <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full">{freeSpins}</span>}
+                        </button>
+
+                        <button
+                            onClick={() => handleSpin('paid')}
+                            disabled={userStars < 10 || spinning}
+                            className={clsx(
+                                "px-8 py-2 rounded-xl font-bold text-sm transition-all transform hover:scale-105 active:scale-95 w-full border-2 flex items-center justify-center gap-2",
+                                spinning ? "opacity-50 cursor-not-allowed" : "",
+                                userStars < 10
+                                    ? "border-gray-200 text-gray-400 cursor-not-allowed"
+                                    : "border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:text-yellow-500 dark:hover:bg-yellow-900/20"
+                            )}
+                        >
+                            Spin for 10 Stars <Star size={14} />
+                        </button>
+                        
+                        <button
+                            onClick={onClose}
+                            className="mt-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm underline decoration-gray-300 underline-offset-4"
+                        >
+                            Close
+                        </button>
                     </div>
                 </div>
             </div>
@@ -487,11 +539,13 @@ export default function Home() {
 
     // Spinner State
     const [showSpinner, setShowSpinner] = useState(false);
-    const [lastSpinDate, setLastSpinDate] = useState(null);
+    const [freeSpins, setFreeSpins] = useState(0); 
+    const [lastAccrualTime, setLastAccrualTime] = useState(0);
 
     // New States for Stars and Achievements
     const [userStars, setUserStars] = useState(0);
     const [unlockedLeagues, setUnlockedLeagues] = useState([]); // Array of strings: ['Legendary', 'Mythic', etc.]
+    const [boostInfo, setBoostInfo] = useState({ active: false, total: 1, details: [] });
 
     // Sync spectating user with realtime data
     useEffect(() => {
@@ -548,9 +602,122 @@ export default function Home() {
             } catch (e) { }
         }
 
-        // Load Last Spin
-        const storedSpin = localStorage.getItem('examApp_lastSpinDate');
-        if (storedSpin) setLastSpinDate(storedSpin);
+        // Load Last Spin and Calculate Accrual
+        const loadSpins = () => {
+            const storedLastAccrual = parseInt(localStorage.getItem('examApp_lastAccrual') || '0');
+            const storedFreeSpins = parseInt(localStorage.getItem('examApp_freeSpins') || '0');
+            
+            const now = Date.now();
+            let newFreeSpins = storedFreeSpins;
+            let newLastAccrual = storedLastAccrual;
+            
+            // First time setup
+            if (storedLastAccrual === 0) {
+                newLastAccrual = now;
+                newFreeSpins = 1; // Start with 1 free spin
+                localStorage.setItem('examApp_lastAccrual', newLastAccrual);
+                localStorage.setItem('examApp_freeSpins', newFreeSpins);
+                setFreeSpins(newFreeSpins);
+                setLastAccrualTime(newLastAccrual);
+                return;
+            }
+
+            // Calculate Accrual
+            const msPassed = now - storedLastAccrual;
+            const hoursPassed = Math.floor(msPassed / (3600 * 1000));
+
+            if (hoursPassed > 0) {
+                if (newFreeSpins < 10) {
+                    const toAdd = Math.min(10 - newFreeSpins, hoursPassed);
+                     newFreeSpins += toAdd;
+                     newLastAccrual = storedLastAccrual + (hoursPassed * 3600 * 1000);
+                     
+                     localStorage.setItem('examApp_freeSpins', newFreeSpins);
+                     localStorage.setItem('examApp_lastAccrual', newLastAccrual);
+                } else {
+                    // If already full, reset timer to now so it starts counting when they spend one
+                    newLastAccrual = now;
+                    localStorage.setItem('examApp_lastAccrual', newLastAccrual);
+                }
+            }
+            
+            setFreeSpins(newFreeSpins);
+            setLastAccrualTime(newLastAccrual);
+        };
+
+        const updateBoosts = () => {
+            const multEnd = parseInt(localStorage.getItem('examApp_multiplierEnd') || '0');
+            const multVal = parseInt(localStorage.getItem('examApp_multiplierVal') || '1');
+            
+            // Spin Timer Logic
+            const storedLastAccrual = parseInt(localStorage.getItem('examApp_lastAccrual') || '0');
+            const storedFreeSpins = parseInt(localStorage.getItem('examApp_freeSpins') || '0');
+            let nextSpinStr = '';
+            
+            const now = Date.now();
+
+            if (storedFreeSpins < 10 && storedLastAccrual > 0) {
+                 const nextAccrual = storedLastAccrual + 3600000; // 1 hour
+                 if (nextAccrual > now) {
+                     const left = nextAccrual - now;
+                     const m = Math.floor(left / 60000);
+                     const s = Math.floor((left % 60000) / 1000);
+                     nextSpinStr = `${m}:${s < 10 ? '0' + s : s}`;
+                 }
+            }
+
+            const details = [];
+            let total = 1;
+
+            // Time Boost
+            if (now < multEnd) {
+                const leftMs = multEnd - now;
+                const hours = Math.floor(leftMs / 3600000);
+                const mins = Math.ceil((leftMs % 3600000) / 60000);
+                const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+                
+                total = Math.max(total, multVal);
+                details.push({
+                    type: 'time',
+                    source: `Time Boost (x${multVal})`,
+                    remaining: `${timeStr} remaining`,
+                    val: multVal,
+                    color: 'text-purple-500' 
+                });
+            }
+
+            // Rank Boost
+            if (unlockedLeagues.includes('Mythic')) {
+                total = Math.max(total, 3);
+                details.push({
+                    type: 'rank',
+                    source: 'Mythic Status',
+                    remaining: 'Permanent x3',
+                    val: 3,
+                    color: 'text-red-600'
+                });
+            } else if (unlockedLeagues.includes('Legendary')) {
+                total = Math.max(total, 2);
+                details.push({
+                    type: 'rank',
+                    source: 'Legendary Status',
+                    remaining: 'Permanent x2',
+                    val: 2,
+                    color: 'text-amber-500'
+                });
+            }
+
+            setBoostInfo({
+                multiplier: total,
+                activeBoosts: details,
+                nextSpin: nextSpinStr,      
+                active: details.length > 0
+            });
+
+        };
+
+        loadSpins();
+        updateBoosts(); // Initial check
 
         // 3. Fetch initial data
         fetchTests();
@@ -586,6 +753,8 @@ export default function Home() {
         // 4. Set up intervals
         const interval = setInterval(fetchGlobalActiveUsers, 5000);
         const leaderboardInterval = setInterval(fetchLeaderboard, 5000); // Auto-refresh leaderboard
+        const spinInterval = setInterval(loadSpins, 60000);
+        const boostInterval = setInterval(updateBoosts, 1000); // Update boost timer every second
 
         // 5. Send heartbeat for "Browsing" status if we have a username
         // Note: accessing userCountry here directly inside [] dependency effect won't work well 
@@ -605,11 +774,33 @@ export default function Home() {
         return () => {
             clearInterval(interval);
             clearInterval(leaderboardInterval);
+            clearInterval(spinInterval);
+            clearInterval(boostInterval);
         };
     }, []);
 
     const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
-    const canSpin = isDevMode || lastSpinDate !== new Date().toDateString();
+    const canSpin = isDevMode || freeSpins > 0;
+
+    const handleSpinStart = (type) => {
+        if (type === 'free') {
+            if (isDevMode) return true;
+            if (freeSpins > 0) {
+                const newCount = freeSpins - 1;
+                setFreeSpins(newCount);
+                localStorage.setItem('examApp_freeSpins', newCount.toString());
+                return true;
+            }
+        } else if (type === 'paid') {
+            if (userStars >= 10) {
+                const newTotal = userStars - 10;
+                setUserStars(newTotal);
+                localStorage.setItem('examApp_stars', newTotal.toString());
+                return true;
+            }
+        }
+        return false;
+    };
 
     const updateUserStars = (amount) => {
         // Apply Multiplier based on Achievements
@@ -650,10 +841,6 @@ export default function Home() {
             localStorage.setItem('examApp_multiplierEnd', endTime.toString());
             localStorage.setItem('examApp_multiplierVal', prize.val.toString());
         }
-
-        const today = new Date().toDateString();
-        localStorage.setItem('examApp_lastSpinDate', today);
-        setLastSpinDate(today);
     };
 
     const spendStars = (amount) => {
@@ -1251,12 +1438,15 @@ export default function Home() {
                              {/* Daily Spinner */}
                             <button
                                 onClick={() => setShowSpinner(true)}
-                                className="p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative"
-                                title="Daily Spin"
+                                className="p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative flex items-center gap-1"
+                                title="Hourly Spin"
                             >
                                 <Gift size={20} className={canSpin ? "animate-bounce" : ""} />
                                 {canSpin && (
                                     <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                                )}
+                                {!canSpin && boostInfo?.nextSpin && (
+                                     <span className="text-[10px] font-mono font-medium">{boostInfo.nextSpin}</span>
                                 )}
                             </button>
 
@@ -1300,9 +1490,37 @@ export default function Home() {
                             </button>
 
                             {/* Stars Icon */}
-                            <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10 px-2 py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700/30">
-                                <span className="text-xs">⭐</span>
-                                <span className="text-sm font-bold text-yellow-700 dark:text-yellow-500">{userStars}</span>
+                            <div className="relative group">
+                                <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10 px-2 py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700/30 cursor-help">
+                                    <span className="text-xs">⭐</span>
+                                    <span className="text-sm font-bold text-yellow-700 dark:text-yellow-500">{userStars}</span>
+                                </div>
+                                
+                                {/* Boost Status Tooltip */}
+                                <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700/50 p-3 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
+                                    <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+                                        <span className="text-xs font-semibold text-gray-500">Active Multiplier</span>
+                                        <span className="text-sm font-bold text-blue-600">x{boostInfo?.multiplier || 1}</span>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        {boostInfo?.activeBoosts?.length > 0 ? (
+                                            boostInfo.activeBoosts.map((boost, idx) => (
+                                                <div key={idx} className="flex items-center justify-between text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        <Zap size={12} className={boost.type === 'rank' ? "text-purple-500" : "text-yellow-500"} />
+                                                        <span className="text-gray-700 dark:text-gray-300">{boost.source}</span>
+                                                    </div>
+                                                    {boost.remaining && (
+                                                        <span className="font-mono text-gray-500 text-[10px]">{boost.remaining}</span>
+                                                    )}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-xs text-gray-400 text-center py-1">No active boosts</div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             {view !== 'list' && (
                                 <button
@@ -1449,7 +1667,10 @@ export default function Home() {
                     <DailySpinner 
                         onClose={() => setShowSpinner(false)} 
                         onReward={handleSpinReward}
-                        canSpin={canSpin}
+                        freeSpins={freeSpins}
+                        userStars={userStars}
+                        onSpinStart={handleSpinStart}
+                        nextSpin={boostInfo?.nextSpin}
                     />
                 )}
 
