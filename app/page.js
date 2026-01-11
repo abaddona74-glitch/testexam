@@ -1916,7 +1916,7 @@ export default function Home() {
                                                                 <div className="flex justify-between items-center">
                                                                     <div className="flex items-center gap-1.5 truncate">
                                                                         {user.stars !== undefined && (
-                                                                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-1 py-0.5 rounded border border-yellow-100" title="Total Stars">
+                                                                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-[#1a1b26] px-1 py-0.5 rounded border border-yellow-100 dark:border-yellow-600/30" title="Total Stars">
                                                                                 <span>⭐</span>{user.stars}
                                                                             </span>
                                                                         )}
