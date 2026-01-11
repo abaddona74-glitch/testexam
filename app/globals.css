@@ -8,31 +8,36 @@
   --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+[data-theme='dark'] {
+  --foreground-rgb: 236, 237, 240;
+  /* Not pure white, softer text */
+  --background-start-rgb: 23, 23, 23;
+  /* Neutral-900 like */
+  --background-end-rgb: 10, 10, 10;
+  /* Neutral-950 like */
+}
+
+.dark {
+  --foreground-rgb: 236, 237, 240;
+  --background-start-rgb: 23, 23, 23;
+  --background-end-rgb: 10, 10, 10;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
+  background: linear-gradient(to bottom,
       transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 
 /* Bloody Text Effect */
 .mythic-blood {
   color: #ff0000;
-  text-shadow: 
-      2px 2px 0px #570000, 
-      1px 1px 0px #ff7777;
+  text-shadow:
+    2px 2px 0px #570000,
+    1px 1px 0px #ff7777;
   position: relative;
   z-index: 1;
   display: inline-block;
@@ -89,33 +94,79 @@ body {
 }
 
 @keyframes drip {
-  0% { height: 0; opacity: 1; }
-  60% { height: 10px; opacity: 1; transform: translateY(0); }
-  80% { height: 15px; opacity: 0.8; transform: translateY(5px); }
-  100% { height: 15px; opacity: 0; transform: translateY(15px); }
+  0% {
+    height: 0;
+    opacity: 1;
+  }
+
+  60% {
+    height: 10px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  80% {
+    height: 15px;
+    opacity: 0.8;
+    transform: translateY(5px);
+  }
+
+  100% {
+    height: 15px;
+    opacity: 0;
+    transform: translateY(15px);
+  }
 }
 
 /* RGB Text Animation */
 @keyframes rgb-text {
-  0% { color: #ff0000; }
-  14% { color: #ff7f00; }
-  28% { color: #ffff00; }
-  42% { color: #00ff00; }
-  57% { color: #0000ff; }
-  71% { color: #4b0082; }
-  85% { color: #8b00ff; }
-  100% { color: #ff0000; }
+  0% {
+    color: #ff0000;
+  }
+
+  14% {
+    color: #ff7f00;
+  }
+
+  28% {
+    color: #ffff00;
+  }
+
+  42% {
+    color: #00ff00;
+  }
+
+  57% {
+    color: #0000ff;
+  }
+
+  71% {
+    color: #4b0082;
+  }
+
+  85% {
+    color: #8b00ff;
+  }
+
+  100% {
+    color: #ff0000;
+  }
 }
 
 .legendary-rgb-text {
   animation: rgb-text 2s linear infinite;
-  text-shadow: 0 0 5px rgba(255,255,255,0.5);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
 /* RGB Border Loop Animation (Moving Tail) */
 @keyframes border-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .legendary-border-tail {
@@ -129,68 +180,87 @@ body {
   content: '';
   position: absolute;
   width: 150%;
-  height: 500%; /* Over-size to ensure rotation covers corners */
+  height: 500%;
+  /* Over-size to ensure rotation covers corners */
   top: -200%;
   left: -25%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 280deg, 
-    #ff0000 300deg, 
-    #00ff00 320deg, 
-    #0000ff 340deg,
-    transparent 360deg
-  );
-  animation: border-rotate 3s linear infinite; 
+  background: conic-gradient(from 0deg,
+      transparent 0deg,
+      transparent 280deg,
+      #ff0000 300deg,
+      #00ff00 320deg,
+      #0000ff 340deg,
+      transparent 360deg);
+  animation: border-rotate 3s linear infinite;
   z-index: -2;
 }
 
 .legendary-border-tail::after {
   content: '';
   position: absolute;
-  inset: 2px; /* Border width */
-  background: #111111; /* Dark background to make RGB pop */
-  border-radius: inherit; /* Follows parent */
+  inset: 2px;
+  /* Border width */
+  background: #111111;
+  /* Dark background to make RGB pop */
+  border-radius: inherit;
+  /* Follows parent */
   z-index: -1;
 }
 
 /* Liquid/Wave Progress Bar */
 .progress-wave {
-  background: repeating-linear-gradient(
-    45deg,
-    #2563eb,
-    #2563eb 10px,
-    #3b82f6 10px,
-    #3b82f6 20px
-  );
+  background: repeating-linear-gradient(45deg,
+      #2563eb,
+      #2563eb 10px,
+      #3b82f6 10px,
+      #3b82f6 20px);
   background-size: 200% 200%;
   animation: wave-move 1s linear infinite;
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
 }
 
 @keyframes wave-move {
-  0% { background-position: 0 0; }
-  100% { background-position: 28px 0; }
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 28px 0;
+  }
 }
 
 .liquid-bar {
-    background: linear-gradient(270deg, #2563eb, #60a5fa, #2563eb);
-    background-size: 200% 100%;
-    animation: rainbow 3s linear infinite;
-    position: relative;
-    overflow: hidden;
+  background: linear-gradient(270deg, #2563eb, #60a5fa, #2563eb);
+  background-size: 200% 100%;
+  animation: rainbow 3s linear infinite;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Top "Foam" or Wave Edge */
 .liquid-bar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 10px;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
-    animation: shimmer 1s infinite;
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 1s infinite;
 }
 
+@keyframes float {
 
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
