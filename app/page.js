@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -272,6 +272,7 @@ export default function Home() {
     const [isUsersLoaded, setIsUsersLoaded] = useState(false); // New loading state
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
+    const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
     // New States for Stars and Achievements
     const [userStars, setUserStars] = useState(0);
@@ -1059,16 +1060,16 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {/* Navbar Toggle Handle */}
+                    {/* Navbar Toggle Handle - Up/Down Logic for Header */}
                     <button
                         onClick={() => setHeaderExpanded(!headerExpanded)}
                         className={clsx(
-                            "absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800/50 shadow-md text-gray-400 hover:text-blue-600 transition-all hover:scale-110 z-50",
-                            headerExpanded ? "-bottom-4" : "top-0"
+                            "absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-12 h-6 rounded-b-xl bg-white dark:bg-gray-900 border-x border-b border-gray-100 dark:border-gray-800 shadow-sm text-gray-400 hover:text-blue-600 transition-all z-20",
+                            headerExpanded ? "bottom-0 translate-y-full" : "bottom-0 translate-y-full"
                         )}
                         title={headerExpanded ? "Collapse Header" : "Expand Header"}
                     >
-                        {headerExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                         {headerExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
                 </header>
 
@@ -1355,7 +1356,8 @@ export default function Home() {
 
                 {view === 'list' && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-9 space-y-8">
+                        {/* Main Grid Content */}
+                        <div className={clsx("transition-all duration-300 space-y-8", sidebarExpanded ? "lg:col-span-9" : "lg:col-span-12")}>
                             <section>
                                 <div className="flex justify-between items-end mb-6">
                                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
@@ -1584,7 +1586,21 @@ export default function Home() {
                         </div>
 
                         {/* Sidebar - Online Users & Schedule */}
-                        <div className="lg:col-span-3">
+                        {/* Sidebar Toggle Handle */}
+                        <div className="fixed right-0 top-1/2 -translate-y-1/2 z-40 hidden lg:block">
+                            <button
+                                onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                                className={clsx(
+                                    "flex items-center justify-center w-6 h-12 rounded-l-xl bg-white dark:bg-gray-800 border-y border-l border-gray-100 dark:border-gray-800/50 shadow-md text-gray-400 hover:text-blue-600 transition-all hover:w-8",
+                                    sidebarExpanded ? "mr-0" : "mr-0"
+                                )}
+                                title={sidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
+                            >
+                                {sidebarExpanded ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                            </button>
+                        </div>
+
+                        <div className={clsx("lg:col-span-3 transition-all duration-300 relative", sidebarExpanded ? "w-full opacity-100" : "w-0 opacity-0 overflow-hidden lg:col-span-0 hidden")}>
                             <div className="sticky top-28 space-y-6">
                                 {/* Active Users Widget */}
                                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 p-6">
@@ -2400,9 +2416,6 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const difficultyConfig = DIFFICULTIES.find(d => d.id === test.difficultyMode) || DIFFICULTIES[0];
     const baseTimeLimit = difficultyConfig.timeLimit; // seconds or null
 
-    // Time Banking State
-    const [bankedTime, setBankedTime] = useState(test.bankedTime || 0);
-
     // Initial Time is Base + Banked (only for current question, but careful about resuming)
     // If resuming, `test.timeLeft` might be saved? `timeLeft` isn't in onProgressUpdate schema explicitly I think?
     // Let's assume new question or reset.
@@ -2411,6 +2424,9 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
     // If we are strictly following "Impossible" mode per-question timer:
     // When index changes, we reset `timeLeft`.
+
+    // Restore BankedTime State
+    const [bankedTime, setBankedTime] = useState(test.bankedTime || 0);
 
     const getQuestionsTimeLimit = () => {
         if (test.difficultyMode === 'impossible' && baseTimeLimit) {
@@ -2422,26 +2438,25 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const [currentQuestionTimeLimit, setCurrentQuestionTimeLimit] = useState(getQuestionsTimeLimit());
     const [timeLeft, setTimeLeft] = useState(test.timeLeft !== undefined ? test.timeLeft : currentQuestionTimeLimit);
 
-    // Reset logic when question changes (Standard for Impossible mode which is usually per question)
-    // But wait, `DIFFICULTIES` has `timeLimit`. 
-    // Hard: 30s. Insane: 20s. Impossible: 8s. 
-    // Is this Global Time or Per Question?
-    // The previous code had `setTimeLeft(initialTime)` inside `useEffect([currentIndex])`.
-    // This implies PER QUESTION timer. 
-    // "Mythic: Impossible Mode + 240s Survival" -> suggests global? 
-    // If it was per question 8s, 30 questions = 240s. 
-    // So if you survive 30 questions of 8s, you survive 240s. 
-    // Yes, Per Question makes sense with the "Survival" context if you sum them up, or it's a "blitz".
+    // Track first render to handle resume gracefully
+    const isFirstRender = useRef(true);
 
+    // Reset logic when question changes (Standard for Impossible mode which is usually per question)
     useEffect(() => {
+        // Skip reset on first render if we have a resumed time to preserve it
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            if (test.timeLeft !== undefined) return; 
+        }
+
         // When index changes, reset timer
         if (baseTimeLimit !== null && !isFinished) {
-            // Recalculate based on new banked time (calculated in handleNext)
+            // Reset to base time limit + bonus
             const newLimit = (test.difficultyMode === 'impossible' ? baseTimeLimit + bankedTime : baseTimeLimit);
             setCurrentQuestionTimeLimit(newLimit);
             setTimeLeft(newLimit);
         }
-    }, [currentIndex, baseTimeLimit, isFinished]); // Removed bankedTime from dependency to avoid loop, it's updated before index change
+    }, [currentIndex, baseTimeLimit, isFinished]); // Removed bankedTime from deps because we act on index change
 
     // Timer Countdown Effect
     useEffect(() => {
@@ -2529,7 +2544,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     currentQuestionIndex: currentIndex,
                     answers: answers,
                     hintsLeft,
-                    revealedHints
+                    revealedHints,
+                    difficultyMode: test.difficultyMode, // SAVE DIFFICULTY MODE
+                    bankedTime, // Save banked time too for correct resume
+                    timeLeft: timeLeft // Save remaining time for exact resume
                 });
             }
 
@@ -2616,10 +2634,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const proceedToNext = () => {
         // Time Banking Logic
         if (test.difficultyMode === 'impossible' && baseTimeLimit !== null) {
-            if (answers[currentIndex]) {
-                const unusedTime = Math.max(0, timeLeft);
-                setBankedTime(prev => prev + unusedTime);
-            }
+            // FIX: If we answer, we save the remaining time. 
+            // BUT we do NOT add it to previous banked time, because previous banked time is already INSIDE timeLeft.
+            // Example: Limit 14s (8+6). Answer at 12s left. Bank becomes 12s. Next Limit = 8+12 = 20s.
+            // Correct Rollover.
+            const unusedTime = Math.max(0, timeLeft);
+            setBankedTime(unusedTime);
         }
 
         if (currentIndex < totalQuestions - 1) {
