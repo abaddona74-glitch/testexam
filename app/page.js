@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun } from 'lucide-react';
 import clsx from 'clsx';
+import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const DIFFICULTIES = [
@@ -245,6 +246,7 @@ function validateJson(json) {
 }
 
 export default function Home() {
+    const { resolvedTheme } = useTheme();
     const [tests, setTests] = useState({ defaultTests: [], uploadedTests: [] });
     const [folders, setFolders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -267,6 +269,7 @@ export default function Home() {
     const [paymentMethod, setPaymentMethod] = useState('uzum');
     const [cardCopied, setCardCopied] = useState(false);
     const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
+    const [isUsersLoaded, setIsUsersLoaded] = useState(false); // New loading state
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
 
@@ -562,7 +565,8 @@ export default function Home() {
                         status: 'browsing',
                         device: getDeviceType(),
                         country: userCountry,
-                        stars: userStars // Send star count
+                        stars: userStars, // Send star count
+                        theme: resolvedTheme
                     })
                 }).catch(e => console.error(e));
             };
@@ -591,7 +595,7 @@ export default function Home() {
                 // But for closing tab, we need DELETE.
             };
         }
-    }, [view, isNameSet, userName, userId, userCountry, userStars]); // Re-run when stars change too
+    }, [view, isNameSet, userName, userId, userCountry, userStars, resolvedTheme]); // Re-run when stars change too
 
     // Disable copy/paste/context menu and some keys when taking a test
     useEffect(() => {
@@ -713,6 +717,7 @@ export default function Home() {
             if (res.ok) {
                 const data = await res.json();
                 setGlobalActiveUsers(data);
+                setIsUsersLoaded(true);
             }
         } catch (e) { console.error(e); }
     };
@@ -1595,7 +1600,11 @@ export default function Home() {
                                     </div>
 
                                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                                        {globalActiveUsers.length === 0 ? (
+                                        {!isUsersLoaded && globalActiveUsers.length === 0 ? (
+                                            <div className="flex justify-center p-4">
+                                                <Loader2 className="animate-spin text-blue-500" size={20} />
+                                            </div>
+                                        ) : globalActiveUsers.length === 0 ? (
                                             <p className="text-sm text-gray-400 text-center py-4">No active users.</p>
                                         ) : (
                                             [...globalActiveUsers]
@@ -1606,7 +1615,7 @@ export default function Home() {
                                                         <div key={idx} className={clsx(
                                                             "flex items-center gap-3 p-2 rounded-lg transition-colors border",
                                                             isMe
-                                                                ? "bg-blue-50 border-blue-100"
+                                                                ? "bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30"
                                                                 : "hover:bg-gray-50 dark:bg-gray-950 border-transparent hover:border-gray-100 dark:border-gray-800/50"
                                                         )}>
                                                             <div className={clsx(
@@ -1632,11 +1641,18 @@ export default function Home() {
                                                                             ? <Smartphone size={12} className="text-gray-400" />
                                                                             : <Monitor size={12} className="text-gray-400" />
                                                                         }
-                                                                        <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700" : "text-gray-700")}>
+                                                                        <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-100")}>
                                                                             {isMe ? "Me" : user.name}
                                                                         </p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
+                                                                        {/* Theme Indicator */}
+                                                                        {user.theme === 'dark' ? (
+                                                                            <Moon size={12} className="text-gray-400" title="Dark Mode" />
+                                                                        ) : (
+                                                                            <Sun size={12} className="text-amber-500" title="Light Mode" />
+                                                                        )}
+
                                                                         {/* Spectate Button */}
                                                                         {!isMe && user.status === 'in-test' && (
                                                                             <button
@@ -2317,6 +2333,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
 }
 
 function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars }) {
+    const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
@@ -2529,11 +2546,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     device: getDeviceType(),
                     country: userCountry,
                     currentAnswer: answers[currentIndex], // Send the selected answer for the current question
-                    stars: userStars // Send star count
+                    stars: userStars, // Send star count
+                    theme: resolvedTheme
                 })
             }).catch(e => console.error("Active status update failed", e));
         }
-    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints, userStars]);
+    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints, userStars, resolvedTheme]);
 
     // Poll for other active users
     useEffect(() => {

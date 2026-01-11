@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 
 // Store active sessions in memory
 // Key: testId + userId, Value: { name, progress, lastUpdated }
-let activeSessions = {};
+// Use global to persist across hot reloads in dev
+if (!global.activeSessions) {
+    global.activeSessions = {};
+}
+let activeSessions = global.activeSessions;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -29,7 +33,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { testId, userId, name, progress, total, status, device, country, currentAnswer } = body; 
+    const { testId, userId, name, progress, total, status, device, country, currentAnswer, stars, theme } = body; 
     
     // Key by userId to ensure user appears only once
     const key = userId; 
@@ -44,6 +48,8 @@ export async function POST(request) {
         device: device || 'desktop', 
         country: country || null,
         currentAnswer: currentAnswer || null,
+        stars: stars || 0,
+        theme: theme || 'light',
         lastUpdated: Date.now()
     };
 
