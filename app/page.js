@@ -1915,23 +1915,23 @@ export default function Home() {
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-center">
                                                                     <div className="flex items-center gap-1.5 truncate">
-                                                                        <span title={user.country || "Unknown Country"} className="cursor-help select-none transition-all">
-                                                                            <CountryFlag countryCode={user.country} />
-                                                                        </span>
                                                                         {user.stars !== undefined && (
                                                                             <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-1 py-0.5 rounded border border-yellow-100" title="Total Stars">
                                                                                 <span>⭐</span>{user.stars}
                                                                             </span>
                                                                         )}
-                                                                        {user.device === 'mobile'
-                                                                            ? <Smartphone size={12} className="text-gray-400" />
-                                                                            : <Monitor size={12} className="text-gray-400" />
-                                                                        }
                                                                         <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-100")}>
                                                                             {isMe ? "Me" : user.name}
                                                                         </p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
+                                                                        <span title={user.country || "Unknown Country"} className="cursor-help select-none transition-all">
+                                                                            <CountryFlag countryCode={user.country} />
+                                                                        </span>
+                                                                        {user.device === 'mobile'
+                                                                            ? <Smartphone size={12} className="text-gray-400" />
+                                                                            : <Monitor size={12} className="text-gray-400" />
+                                                                        }
                                                                         {/* Theme Indicator */}
                                                                         {user.theme === 'dark' ? (
                                                                             <Moon size={12} className="text-gray-400" title="Dark Mode" />
