@@ -34,7 +34,7 @@ const LeaderboardSchema = new mongoose.Schema({
     required: false,
   },
   answers: {
-    type: Array, // Stores the user's answers (indices or IDs)
+    type: Object, // Stores the user's answers {index: optionId}
     required: false,
   }
 });

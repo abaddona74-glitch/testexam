@@ -19,16 +19,21 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
     // Mythic: Impossible Mode + 30 Consecutive Correct Answers
     // User requirement: "30 questions consecutive stack"
     let maxStreak = 0;
-    if (difficulty === 'impossible' && questions && questions.length > 0 && answers) {
-        let currentStreak = 0;
-        questions.forEach((q, idx) => {
-            if (answers[idx] === q.correct_answer) {
-                currentStreak++;
-                if (currentStreak > maxStreak) maxStreak = currentStreak;
-            } else {
-                currentStreak = 0;
-            }
-        });
+    if (difficulty === 'impossible') {
+        // Fallback: If score is 100% and total questions >= 30, streak is satisfied regardless of answers data availability
+        if (percentage === 100 && total >= 30) {
+            maxStreak = total;
+        } else if (questions && questions.length > 0 && answers) {
+            let currentStreak = 0;
+            questions.forEach((q, idx) => {
+                if (answers[idx] === q.correct_answer) {
+                    currentStreak++;
+                    if (currentStreak > maxStreak) maxStreak = currentStreak;
+                } else {
+                    currentStreak = 0;
+                }
+            });
+        }
     }
 
     if (difficulty === 'impossible' && maxStreak >= 30) {
