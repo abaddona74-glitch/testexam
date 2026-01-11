@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
+import confetti from 'canvas-confetti';
 
 const DIFFICULTIES = [
     { id: 'easy', name: 'Easy', hints: 3, icon: Lightbulb, color: 'text-green-500', bg: 'bg-green-100', border: 'border-green-200', timeLimit: null },
@@ -250,6 +251,211 @@ function validateJson(json) {
     return { valid: true };
 }
 
+const SPINNER_ITEMS = [
+    { id: 'h10', label: '+10 Hints', type: 'hint', amount: 10, color: 'bg-orange-100 text-orange-600', icon: Lightbulb, probability: 0.15 },
+    { id: 'h20', label: '+20 Hints', type: 'hint', amount: 20, color: 'bg-yellow-200 text-yellow-700', icon: Lightbulb, probability: 0.05 },
+    { id: 's25', label: '+25 Stars', type: 'star', amount: 25, color: 'bg-blue-100 text-blue-600', icon: Star, probability: 0.3 },
+    { id: 's50', label: '+50 Stars', type: 'star', amount: 50, color: 'bg-blue-200 text-blue-700', icon: Star, probability: 0.2 },
+    { id: 's100', label: '+100 Stars', type: 'star', amount: 100, color: 'bg-blue-600 text-white', icon: Star, probability: 0.05 },
+    { id: 'm2x', label: '2x (1h)', type: 'multiplier', val: 2, duration: 3600000, color: 'bg-purple-100 text-purple-600', icon: Zap, probability: 0.1 },
+    { id: 'm3x', label: '3x (15m)', type: 'multiplier', val: 3, duration: 900000, color: 'bg-rose-100 text-rose-600', icon: Zap, probability: 0.05 },
+    { id: 's10', label: '+10 Stars', type: 'star', amount: 10, color: 'bg-gray-100 text-gray-600', icon: Star, probability: 0.1 },
+];
+
+function DailySpinner({ onClose, onReward, canSpin }) {
+    const [spinning, setSpinning] = useState(false);
+    const [rotation, setRotation] = useState(0);
+    const [prize, setPrize] = useState(null);
+
+    const handleSpin = () => {
+        if (!canSpin || spinning) return;
+        setSpinning(true);
+
+        // Determine result based on weighted probability
+        const rand = Math.random();
+        let cumulative = 0;
+        let selectedIndex = 0;
+        
+        for (let i = 0; i < SPINNER_ITEMS.length; i++) {
+            cumulative += SPINNER_ITEMS[i].probability;
+            if (rand <= cumulative) {
+                selectedIndex = i;
+                break;
+            }
+        }
+
+        // Calculate rotation
+        // Each slice is 360 / 8 = 45deg
+        // To land on index i, we need to rotate so that index i is at the top (or pointer location).
+        // Let's assume pointer is at Top (0deg).
+        // If 0 is at 0deg, 1 is at 45deg...
+        // To bring index i to 0deg, we rotate - (i * 45).
+        // Add minimal spins (5 * 360).
+        // Add random jitter within the slice (+/- 20deg).
+        
+        const segmentAngle = 360 / SPINNER_ITEMS.length;
+        const baseRotation = 360 * 8; // 8 full spins
+        const targetAngle = -(selectedIndex * segmentAngle); 
+        // We want the Item to be at top. 
+        // Actually, usuall wheels rotate Clockwise.
+        // If we want item i to be at 0deg (top), and item 0 is initially at 0deg.
+        // Rotation should be: 360 - (i * segmentAngle) + baseRotation.
+        
+        const randomOffset = Math.floor(Math.random() * (segmentAngle - 4)) - (segmentAngle/2 - 2); // Random landing within slice
+        const totalRotation = baseRotation + (360 - (selectedIndex * segmentAngle)) + randomOffset;
+
+        setRotation(totalRotation);
+
+        setTimeout(() => {
+            setSpinning(false);
+            setPrize(SPINNER_ITEMS[selectedIndex]);
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                zIndex: 9999
+            });
+            setTimeout(() => {
+                onReward(SPINNER_ITEMS[selectedIndex]);
+            }, 1500);
+        }, 5000); // 5s spin duration matching CSS ease-out
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="relative max-w-sm w-full mx-4">
+                <button
+                    onClick={onClose}
+                    className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors"
+                    disabled={spinning}
+                >
+                    <XCircle size={32} />
+                </button>
+
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
+                    <div className="text-center mb-8">
+                        <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+                            Daily Lucky Spin
+                        </h2>
+                        <p className="text-gray-500 text-sm">Spin to win guaranteed prizes!</p>
+                    </div>
+
+                    {/* Wheel Container */}
+                    <div className="relative w-64 h-64 mx-auto mb-8">
+                        {/* Pointer */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20 text-red-500 filter drop-shadow-md">
+                            <div className="w-8 h-8 rotate-180">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2L2 22h20L12 2z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* The Wheel */}
+                        <div
+                            className="w-full h-full rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden relative transition-transform duration-[5000ms] ease-[cubic-bezier(0.1,0.7,0.1,1)]"
+                            style={{ transform: `rotate(${rotation}deg)` }}
+                        >
+                            {SPINNER_ITEMS.map((item, idx) => {
+                                const angle = (360 / SPINNER_ITEMS.length) * idx;
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className={clsx("absolute w-[50%] h-[50%] top-0 right-0 origin-bottom-left flex items-center justify-center pt-4 pr-4", item.id === 's100' ? "z-10" : "")}
+                                        style={{
+                                            transform: `rotate(${angle}deg) skewY(-45deg)`, // 45deg skew for 8 items (360/8 = 45) -> actually skew should be 90-sliceAngle? 
+                                            // CSS Wheel construction usually involves specific skew logic.
+                                            // Simpler approach: Place items radially without full background slices if CSS is tricky, or use a conic gradient background.
+                                            // Let's use Conical Gradient for background colors and standard rotation for icons.
+                                        }}
+                                    >
+                                        {/* Content needs to be counter-rotated or carefully placed */}
+                                    </div>
+                                );
+                            })}
+                            
+                            {/* Simplified Wheel using Conic Gradient Background + Absolute Icons */}
+                             <div className="absolute inset-0 rounded-full" 
+                                style={{
+                                    background: `conic-gradient(
+                                        from -22.5deg,
+                                        #fee2e2 0deg 45deg,   /* Red-100 */
+                                        #fef3c7 45deg 90deg,  /* Yellow-100 */
+                                        #dbeafe 90deg 135deg, /* Blue-100 */
+                                        #d1fae5 135deg 180deg,/* Green-100 */
+                                        #e0e7ff 180deg 225deg,/* Indigo-100 */
+                                        #fae8ff 225deg 270deg,/* Fuchsia-100 */
+                                        #ffe4e6 270deg 315deg,/* Rose-100 */
+                                        #f3f4f6 315deg 360deg /* Gray-100 */
+                                    )`
+                                }}>
+                            </div>
+
+                             {/* Render Items */}
+                             {SPINNER_ITEMS.map((item, idx) => {
+                                 const angle = (360 / SPINNER_ITEMS.length) * idx;
+                                 return (
+                                     <div
+                                         key={item.id}
+                                         className="absolute top-0 left-1/2 w-0 h-[50%] origin-bottom flex flex-col items-center justify-start pt-3"
+                                         style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
+                                     >
+                                         <div className="text-[10px] font-bold text-gray-600 dark:text-gray-800 text-center w-16 break-words leading-tight">
+                                           {item.label}
+                                         </div>
+                                         <div className={`mt-1 p-1 rounded-full ${item.color.split(' ')[0]}`}>
+                                            <item.icon size={14} className={item.color.split(' ')[1] || 'text-gray-700'} />
+                                         </div>
+                                     </div>
+                                 );
+                             })}
+                        </div>
+                         
+                         {/* Center Cap */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-100 flex items-center justify-center z-10">
+                             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    <div className="text-center">
+                        {!prize ? (
+                            <button
+                                onClick={handleSpin}
+                                disabled={!canSpin || spinning}
+                                className={clsx(
+                                    "px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 w-full",
+                                    !canSpin 
+                                        ? "bg-gray-400 cursor-not-allowed" 
+                                        : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-blue-500/25"
+                                )}
+                            >
+                                {spinning ? 'Spinning...' : !canSpin ? 'Come back tomorrow' : 'SPIN NOW'}
+                            </button>
+                        ) : (
+                            <div className="animate-in zoom-in duration-300">
+                                <p className="text-gray-500 mb-2">You won:</p>
+                                <div className={clsx("p-4 rounded-xl border-2 mb-4 flex items-center gap-3 justify-center", prize.color)}>
+                                    <prize.icon size={24} />
+                                    <span className="font-bold text-lg">{prize.label}</span>
+                                </div>
+                                <button
+                                    onClick={onClose}
+                                    className="bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+                                >
+                                    Claim & Close
+                                </button>
+                            </div>
+                        )}
+                        {!canSpin && !prize && (
+                             <p className="text-xs text-gray-400 mt-3">Next spin available at 00:00</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Home() {
     const { resolvedTheme } = useTheme();
     const [tests, setTests] = useState({ defaultTests: [], uploadedTests: [] });
@@ -278,6 +484,10 @@ export default function Home() {
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
+    // Spinner State
+    const [showSpinner, setShowSpinner] = useState(false);
+    const [lastSpinDate, setLastSpinDate] = useState(null);
 
     // New States for Stars and Achievements
     const [userStars, setUserStars] = useState(0);
@@ -338,6 +548,10 @@ export default function Home() {
             } catch (e) { }
         }
 
+        // Load Last Spin
+        const storedSpin = localStorage.getItem('examApp_lastSpinDate');
+        if (storedSpin) setLastSpinDate(storedSpin);
+
         // 3. Fetch initial data
         fetchTests();
         fetchLeaderboard();
@@ -394,11 +608,21 @@ export default function Home() {
         };
     }, []);
 
+    const canSpin = lastSpinDate !== new Date().toDateString();
+
     const updateUserStars = (amount) => {
         // Apply Multiplier based on Achievements
         let multiplier = 1;
-        if (unlockedLeagues.includes('Mythic')) multiplier = 3;
-        else if (unlockedLeagues.includes('Legendary')) multiplier = 2;
+        
+        // check for active time multiplier
+        const multEnd = parseInt(localStorage.getItem('examApp_multiplierEnd') || '0');
+        if (Date.now() < multEnd) {
+             const val = parseInt(localStorage.getItem('examApp_multiplierVal') || '1');
+             multiplier = Math.max(multiplier, val);
+        }
+
+        if (unlockedLeagues.includes('Mythic')) multiplier = Math.max(multiplier, 3);
+        else if (unlockedLeagues.includes('Legendary')) multiplier = Math.max(multiplier, 2);
 
         const earned = amount * multiplier;
         const newTotal = userStars + earned;
@@ -407,6 +631,28 @@ export default function Home() {
         localStorage.setItem('examApp_stars', newTotal.toString());
 
         // Optional: Visual feedback could be added here
+    };
+
+    const handleSpinReward = (prize) => {
+        if (prize.type === 'star') {
+            // Bypass multiplier for direct wins? Or apply it? 
+            // Usually spin rewards are fixed. So let's just add raw amount.
+            // But updateUserStars applies multiplier. let's create a raw add function or just manually add.
+            const newTotal = userStars + prize.amount;
+            setUserStars(newTotal);
+            localStorage.setItem('examApp_stars', newTotal.toString());
+        } else if (prize.type === 'hint') {
+            const currentExtra = parseInt(localStorage.getItem('examApp_extraHints') || '0', 10);
+            localStorage.setItem('examApp_extraHints', (currentExtra + prize.amount).toString());
+        } else if (prize.type === 'multiplier') {
+            const endTime = Date.now() + prize.duration;
+            localStorage.setItem('examApp_multiplierEnd', endTime.toString());
+            localStorage.setItem('examApp_multiplierVal', prize.val.toString());
+        }
+
+        const today = new Date().toDateString();
+        localStorage.setItem('examApp_lastSpinDate', today);
+        setLastSpinDate(today);
     };
 
     const spendStars = (amount) => {
@@ -983,7 +1229,7 @@ export default function Home() {
         <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
             <div className="max-w-7xl mx-auto">
                 <header className={clsx(
-                    "relative mb-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 sticky top-4 z-40 transition-all duration-300 ease-in-out",
+                    "mb-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 sticky top-4 z-40 transition-all duration-300 ease-in-out",
                     headerExpanded ? "p-6" : "p-0 py-2 border-transparent shadow-none bg-transparent"
                 )}>
                     <div className={clsx(
@@ -1001,6 +1247,18 @@ export default function Home() {
                             </div>
                         </div>
                         <div className="flex gap-2">
+                             {/* Daily Spinner */}
+                            <button
+                                onClick={() => setShowSpinner(true)}
+                                className="p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative"
+                                title="Daily Spin"
+                            >
+                                <Gift size={20} className={canSpin ? "animate-bounce" : ""} />
+                                {canSpin && (
+                                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                                )}
+                            </button>
+
                             <button
                                 onClick={() => setShowDonateModal(true)}
                                 className="p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors animate-pulse"
@@ -1184,6 +1442,14 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {showSpinner && (
+                    <DailySpinner 
+                        onClose={() => setShowSpinner(false)} 
+                        onReward={handleSpinReward}
+                        canSpin={canSpin}
+                    />
                 )}
 
                 {showDonateModal && (
