@@ -1765,8 +1765,8 @@ export default function Home() {
                                         <table className="w-full text-center">
                                             <thead>
                                                 <tr className="border-b border-gray-100 dark:border-gray-800/50 text-xs uppercase text-gray-400 font-semibold tracking-wider">
-                                                    <th className="pb-3 w-16 px-2">Rank</th>
-                                                    <th className="pb-3 w-48 px-2 text-left">User</th>
+                                                    <th className="pb-3 w-16 px-1">Rank</th>
+                                                    <th className="pb-3 w-48 px-2">User</th>
                                                     <th className="pb-3 w-32 px-2">Title</th>
                                                     <th className="pb-3 px-2">Test</th>
                                                     <th className="pb-3 w-24 px-2">Mode</th>
@@ -1800,10 +1800,10 @@ export default function Home() {
                                                                     <span className="text-gray-400 font-mono text-sm">#{idx + 1}</span>
                                                                 )}
                                                             </td>
-                                                            <td className="py-3 px-2 text-left">
+                                                            <td className="py-3 px-2">
                                                                 <div className="flex flex-col">
                                                                     {league.name === 'Mythic' ? (
-                                                                        <span className="text-base font-medium font-extrabold flex justify-start">
+                                                                        <span className="text-base font-medium font-extrabold flex justify-center">
                                                                             {entry.name.split('').map((char, i) => (
                                                                                 <span key={i} className="mythic-blood relative inline-block mx-[0.5px]">
                                                                                     {char === ' ' ? '\u00A0' : char}
