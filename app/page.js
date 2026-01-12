@@ -1517,76 +1517,77 @@ export default function Home() {
                         "flex justify-between items-center transition-all duration-300 overflow-hidden",
                         headerExpanded ? "opacity-100 max-h-[100px]" : "opacity-0 max-h-0 pointer-events-none"
                     )}>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 md:gap-4">
                             <div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                                     Exam Platform
                                 </h1>
-                                <p className="text-gray-500 text-xs mt-1">
-                                    Logged in as <span className="font-semibold text-gray-700 dark:text-gray-100">{userName}</span>
+                                <p className="text-gray-500 text-[10px] md:text-xs mt-1">
+                                    <span className="hidden md:inline">Logged in as </span>
+                                    <span className="font-semibold text-gray-700 dark:text-gray-100">{userName}</span>
                                 </p>
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1 md:gap-2 items-center">
                              {/* Daily Spinner */}
                             <button
                                 onClick={() => setShowSpinner(true)}
-                                className="p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative flex items-center gap-1"
+                                className="p-1.5 md:p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative flex items-center gap-1"
                                 title="Hourly Spin"
                             >
-                                <Gift size={20} className={canSpin ? "animate-bounce" : ""} />
+                                <Gift size={18} className={clsx("md:w-5 md:h-5", canSpin ? "animate-bounce" : "")} />
                                 {canSpin && (
-                                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                                    <span className="absolute top-1 right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-red-500 rounded-full animate-ping" />
                                 )}
                                 {!canSpin && boostInfo?.nextSpin && (
-                                     <span className="text-[10px] font-mono font-medium">{boostInfo.nextSpin}</span>
+                                     <span className="text-[10px] font-mono font-medium hidden md:block">{boostInfo.nextSpin}</span>
                                 )}
                             </button>
 
                             <button
                                 onClick={() => setShowDonateModal(true)}
-                                className="p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors animate-pulse"
+                                className="p-1.5 md:p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors animate-pulse"
                                 title="Support Project"
                             >
-                                <Heart size={20} className={showDonateModal ? "fill-rose-500" : ""} />
+                                <Heart size={18} className="md:w-5 md:h-5" />
                             </button>
                             <button
                                 onClick={() => setView('history')}
                                 className={clsx(
-                                    "p-2 rounded-lg transition-colors",
+                                    "p-1.5 md:p-2 rounded-lg transition-colors",
                                     view === 'history' ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:bg-gray-950"
                                 )}
                                 title="History"
                             >
-                                <Clock size={20} />
+                                <Clock size={18} className="md:w-5 md:h-5" />
                             </button>
                             <button
                                 onClick={() => {
                                     setNameInput(userName);
                                     setShowSettings(true);
                                 }}
-                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:bg-gray-950 rounded-lg transition-colors"
+                                className="p-1.5 md:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:bg-gray-950 rounded-lg transition-colors"
                             >
-                                <Settings size={20} />
+                                <Settings size={18} className="md:w-5 md:h-5" />
                             </button>
-                            <div className="mx-1">
+                            <div className="mx-0.5 md:mx-1 scale-90 md:scale-100">
                                 <ThemeToggle />
                             </div>
                             {/* Achievements Icon */}
                             <button
                                 onClick={() => setShowAchievements(!showAchievements)}
-                                className="p-2 rounded-lg transition-colors relative text-orange-500 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-gray-800"
+                                className="p-1.5 md:p-2 rounded-lg transition-colors relative text-orange-500 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-gray-800"
                                 title="Achievements"
                             >
-                                <Trophy size={20} />
-                                {unlockedLeagues.includes('Mythic') && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />}
+                                <Trophy size={18} className="md:w-5 md:h-5" />
+                                {unlockedLeagues.includes('Mythic') && <span className="absolute top-1 right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-red-500 rounded-full animate-pulse" />}
                             </button>
 
                             {/* Stars Icon */}
                             <div className="relative group">
-                                <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10 px-2 py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700/30 cursor-help">
-                                    <span className="text-xs">⭐</span>
-                                    <span className="text-sm font-bold text-yellow-700 dark:text-yellow-500">{userStars}</span>
+                                <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10 px-1.5 py-1 md:px-2 md:py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700/30 cursor-help">
+                                    <span className="text-[10px] md:text-xs">⭐</span>
+                                    <span className="text-xs md:text-sm font-bold text-yellow-700 dark:text-yellow-500">{userStars}</span>
                                 </div>
                                 
                                 {/* Boost Status Tooltip */}
@@ -1627,9 +1628,9 @@ export default function Home() {
                                         // But to be sure, we rely on SavedProgress state which is updated by TestRunner.
                                         setActiveTest(null);
                                     }}
-                                    className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors bg-gray-50 dark:bg-gray-950 px-4 py-2 rounded-lg"
+                                    className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors bg-gray-50 dark:bg-gray-950 px-3 py-1.5 md:px-4 md:py-2 rounded-lg"
                                 >
-                                    <List size={16} /> Back to List
+                                    <List size={16} /> <span className="hidden md:inline">Back to List</span>
                                 </button>
                             )}
                         </div>
