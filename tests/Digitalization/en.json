@@ -66,16 +66,16 @@
       },
       "correct_answer": "B"
     },
-      {
-        "id": 7,
-        "question": "Which food delivery platforms have significant market presence in Uzbekistan?",
-        "options": {
-      "A": "Yandex Eats (Yandex Go ecosystem, post-Express24 merger, ~87% market control)",
-      "B": "Uzum Tezkor (national leader, recognized dominant in 2025, top Google Play ranking)",
-      "C": "Express24 (grocery/medicine focus, now integrated with Yandex Eats)",
-      "D": "All of the above maintain strong positions despite market consolidation"
-    },
-    "correct_answer": "D"
+    {
+      "id": 7,
+      "question": "Which food delivery platforms have significant market presence in Uzbekistan?",
+      "options": {
+        "A": "Yandex Eats (Yandex Go ecosystem, post-Express24 merger, ~87% market control)",
+        "B": "Uzum Tezkor (national leader, recognized dominant in 2025, top Google Play ranking)",
+        "C": "Express24 (grocery/medicine focus, now integrated with Yandex Eats)",
+        "D": "All of the above maintain strong positions despite market consolidation"
+      },
+      "correct_answer": "D"
     },
     {
       "id": 8,
@@ -549,17 +549,501 @@
         "D": "Fewer than 5 million mobile users"
       },
       "correct_answer": "C"
+    },
+    {
+      "id": 51,
+      "question": "In how many countries does Yandex.Taxi operate?",
+      "options": {
+        "A": "17",
+        "B": "25",
+        "C": "70",
+        "D": "100"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 52,
+      "question": "How many monthly active users did Yandex.Taxi have in 2022?",
+      "options": {
+        "A": "36 million",
+        "B": "131 million",
+        "C": "100 million",
+        "D": "10 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 53,
+      "question": "How many rides did Yandex.Taxi facilitate in 2023?",
+      "options": {
+        "A": "2.4 billion",
+        "B": "7.6 billion",
+        "C": "90 million",
+        "D": "3 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 54,
+      "question": "Yandex mobility services generated approximately how much revenue in 2022?",
+      "options": {
+        "A": "$3.7 billion",
+        "B": "$36.5 billion",
+        "C": "$1 billion",
+        "D": "$900 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 55,
+      "question": "How many self-driving miles did Yandex autonomous taxis complete by 2023?",
+      "options": {
+        "A": "Over 10 million miles",
+        "B": "1 million miles",
+        "C": "100,000 miles",
+        "D": "50 million miles"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 56,
+      "question": "In how many countries does Uber operate?",
+      "options": {
+        "A": "70",
+        "B": "22",
+        "C": "17",
+        "D": "10"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 57,
+      "question": "How many monthly active users did Uber have in 2023?",
+      "options": {
+        "A": "131 million",
+        "B": "36 million",
+        "C": "100 million",
+        "D": "10 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 58,
+      "question": "How many rides did Uber complete globally in 2023?",
+      "options": {
+        "A": "7.6 billion",
+        "B": "2.4 billion",
+        "C": "90 million",
+        "D": "3 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 59,
+      "question": "Uber’s revenue in 2023 was approximately:",
+      "options": {
+        "A": "$36.5 billion",
+        "B": "$3.7 billion",
+        "C": "$10 billion",
+        "D": "$1.6 billion"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 60,
+      "question": "What share of the U.S. ride-hailing market does Uber hold?",
+      "options": {
+        "A": "68%",
+        "B": "40%",
+        "C": "25%",
+        "D": "90%"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 61,
+      "question": "How many countries does BlaBlaCar operate in?",
+      "options": {
+        "A": "Over 22",
+        "B": "17",
+        "C": "70",
+        "D": "10"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 62,
+      "question": "How many users does BlaBlaCar have worldwide?",
+      "options": {
+        "A": "Over 100 million",
+        "B": "36 million",
+        "C": "131 million",
+        "D": "4 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 63,
+      "question": "How many carpool trips does BlaBlaCar facilitate annually?",
+      "options": {
+        "A": "Over 90 million",
+        "B": "7.6 billion",
+        "C": "2.4 billion",
+        "D": "3 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 64,
+      "question": "What is the average distance of BlaBlaCar trips?",
+      "options": {
+        "A": "200–300 km",
+        "B": "10–20 km",
+        "C": "50–70 km",
+        "D": "500 km"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 65,
+      "question": "How much CO2 does BlaBlaCar claim to reduce annually?",
+      "options": {
+        "A": "1.6 million tons",
+        "B": "900 tons",
+        "C": "10 million tons",
+        "D": "100,000 tons"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 66,
+      "question": "Car2Go merged with which company to form Share Now?",
+      "options": {
+        "A": "DriveNow",
+        "B": "Uber",
+        "C": "BlaBlaCar",
+        "D": "Yandex"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 67,
+      "question": "How many vehicles does Share Now operate?",
+      "options": {
+        "A": "20,000",
+        "B": "500",
+        "C": "3,200",
+        "D": "4,000"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 68,
+      "question": "How many electric cars are in Share Now’s fleet?",
+      "options": {
+        "A": "3,200",
+        "B": "500",
+        "C": "20,000",
+        "D": "900"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 69,
+      "question": "In how many cities does Share Now operate?",
+      "options": {
+        "A": "16",
+        "B": "22",
+        "C": "70",
+        "D": "17"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 70,
+      "question": "What percentage of users sold their private cars after using car-sharing?",
+      "options": {
+        "A": "30%",
+        "B": "50%",
+        "C": "10%",
+        "D": "70%"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 71,
+      "question": "How many trips do Car2Go vehicles make annually?",
+      "options": {
+        "A": "Over 3 million",
+        "B": "90 million",
+        "C": "7.6 billion",
+        "D": "2.4 billion"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 72,
+      "question": "How many electric cars does Bluetorino operate?",
+      "options": {
+        "A": "500",
+        "B": "3,200",
+        "C": "20,000",
+        "D": "100"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 73,
+      "question": "Where does Bluetorino operate?",
+      "options": {
+        "A": "Turin, Italy",
+        "B": "Berlin",
+        "C": "Moscow",
+        "D": "Paris"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 74,
+      "question": "How many users does Bluetorino have?",
+      "options": {
+        "A": "Over 10,000",
+        "B": "100,000",
+        "C": "1 million",
+        "D": "4 million"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 75,
+      "question": "How much CO2 has Bluetorino helped avoid annually?",
+      "options": {
+        "A": "900 tons",
+        "B": "1.6 million tons",
+        "C": "10,000 tons",
+        "D": "100 tons"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 76,
+      "question": "Which business model does Airbnb use?",
+      "options": {
+        "A": "Commission-based",
+        "B": "Advertising",
+        "C": "Donation",
+        "D": "Government funded"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 77,
+      "question": "What is Airbnb’s host service fee?",
+      "options": {
+        "A": "Around 3%",
+        "B": "15%",
+        "C": "25%",
+        "D": "5%"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 78,
+      "question": "What booking fee does Airbnb charge guests?",
+      "options": {
+        "A": "Up to 14%",
+        "B": "3%",
+        "C": "20%",
+        "D": "1%"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 79,
+      "question": "What commission does Booking.com usually charge?",
+      "options": {
+        "A": "Around 15%",
+        "B": "3%",
+        "C": "10%",
+        "D": "25%"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 80,
+      "question": "What is a freemium model?",
+      "options": {
+        "A": "Free basic services with paid premium features",
+        "B": "Only free services",
+        "C": "Only paid services",
+        "D": "Government funded"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 81,
+      "question": "What do premium features provide on platforms?",
+      "options": {
+        "A": "Enhanced visibility",
+        "B": "Free trips",
+        "C": "Lower taxes",
+        "D": "More users"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 82,
+      "question": "Which of these is a car-sharing service?",
+      "options": {
+        "A": "Car2Go",
+        "B": "BlaBlaCar",
+        "C": "Uber",
+        "D": "Yandex"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 83,
+      "question": "Which company focuses only on electric car sharing?",
+      "options": {
+        "A": "Bluetorino",
+        "B": "Uber",
+        "C": "BlaBlaCar",
+        "D": "Yandex"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 84,
+      "question": "Which platform is mainly for long-distance trips?",
+      "options": {
+        "A": "BlaBlaCar",
+        "B": "Uber",
+        "C": "Car2Go",
+        "D": "Bluetorino"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 85,
+      "question": "Which company leads in autonomous taxi testing?",
+      "options": {
+        "A": "Yandex",
+        "B": "Uber",
+        "C": "BlaBlaCar",
+        "D": "Bluetorino"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 86,
+      "question": "Which platform operates in over 10,000 cities?",
+      "options": {
+        "A": "Uber",
+        "B": "Yandex",
+        "C": "BlaBlaCar",
+        "D": "Car2Go"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 87,
+      "question": "Which service focuses on reducing CO2 through carpooling?",
+      "options": {
+        "A": "BlaBlaCar",
+        "B": "Uber",
+        "C": "Yandex",
+        "D": "Booking"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 88,
+      "question": "Which model charges both hosts and guests?",
+      "options": {
+        "A": "Airbnb commission model",
+        "B": "Freemium",
+        "C": "Advertising",
+        "D": "Donation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 89,
+      "question": "What do digital ride-hailing platforms connect?",
+      "options": {
+        "A": "Drivers and passengers",
+        "B": "Hotels and tourists",
+        "C": "Banks and users",
+        "D": "Stores and buyers"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 90,
+      "question": "What is the main value of car-sharing platforms?",
+      "options": {
+        "A": "Reduce car ownership and emissions",
+        "B": "Increase car sales",
+        "C": "More traffic",
+        "D": "Higher fuel use"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 91,
+      "question": "Which platform operates mainly in Russia and Central Asia?",
+      "options": {
+        "A": "Yandex.Taxi",
+        "B": "Uber",
+        "C": "BlaBlaCar",
+        "D": "Bluetorino"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 92,
+      "question": "Which platform dominates the US ride-hailing market?",
+      "options": {
+        "A": "Uber",
+        "B": "Lyft",
+        "C": "Yandex",
+        "D": "Car2Go"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 93,
+      "question": "What do commission-based platforms earn?",
+      "options": {
+        "A": "A percentage of each transaction",
+        "B": "Monthly salaries",
+        "C": "Government grants",
+        "D": "User donations"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 94,
+      "question": "Which company provides both ride-hailing and delivery?",
+      "options": {
+        "A": "Uber",
+        "B": "Bluetorino",
+        "C": "Car2Go",
+        "D": "BlaBlaCar"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 95,
+      "question": "Which model allows free use but charges for premium features?",
+      "options": {
+        "A": "Freemium",
+        "B": "Commission",
+        "C": "Subscription",
+        "D": "Advertising"
+      },
+      "correct_answer": "A"
     }
-  ],
-  "instructions": "Each question has only one correct answer. Questions cover digitalization concepts, platform business models, and Uzbekistan's digital ecosystem.",
-  "total_questions": 50,
-  "topics_covered": [
-    "Digital Transformation Fundamentals",
-    "Platform Business Models",
-    "Fintech Innovation",
-    "Food Delivery Ecosystems",
-    "Uzbekistan's Digital Landscape",
-    "Emerging Technologies",
-    "Regulatory Environments"
   ]
 }
