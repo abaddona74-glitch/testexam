@@ -25,7 +25,27 @@ export async function GET(request) {
           dateQuery = { date: { $gte: sevenDaysAgo } };
       }
 
-      const leaderboard = await Leaderboard.find(dateQuery).sort({ score: -1 }).limit(100);
+      const leaderboard = await Leaderboard.aggregate([
+          { $match: dateQuery },
+          {
+              $addFields: {
+                  difficultyRank: {
+                      $switch: {
+                          branches: [
+                              { case: { $eq: ["$difficulty", "impossible"] }, then: 5 },
+                              { case: { $eq: ["$difficulty", "insane"] }, then: 4 },
+                              { case: { $eq: ["$difficulty", "hard"] }, then: 3 },
+                              { case: { $eq: ["$difficulty", "middle"] }, then: 2 },
+                              { case: { $eq: ["$difficulty", "easy"] }, then: 1 }
+                          ],
+                          default: 0
+                      }
+                  }
+              }
+          },
+          { $sort: { score: -1, difficultyRank: -1, duration: 1 } },
+          { $limit: 100 }
+      ]);
       return NextResponse.json(leaderboard);
   } catch (error) {
       console.error("Leaderboard GET Error:", error);
