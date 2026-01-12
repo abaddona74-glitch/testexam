@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const DIFFICULTIES = [
     { id: 'easy', name: 'Easy', hints: 3, icon: Lightbulb, color: 'text-green-500', bg: 'bg-green-100', border: 'border-green-200', timeLimit: null },
@@ -270,7 +271,7 @@ const SPINNER_ITEMS = [
     { id: 'e8', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
 ];
 
-function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, nextSpin }) {
+function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, nextSpin, forceLucky }) {
     const [spinning, setSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [prize, setPrize] = useState(null);
@@ -287,15 +288,22 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
         setSpinning(true);
 
         // Determine result based on weighted probability
-        const rand = Math.random();
-        let cumulative = 0;
         let selectedIndex = 0;
         
-        for (let i = 0; i < SPINNER_ITEMS.length; i++) {
-            cumulative += SPINNER_ITEMS[i].probability;
-            if (rand <= cumulative) {
-                selectedIndex = i;
-                break;
+        if (forceLucky) {
+             const luckyItems = SPINNER_ITEMS.filter(i => i.type !== 'empty');
+             const luckyItem = luckyItems[Math.floor(Math.random() * luckyItems.length)];
+             selectedIndex = SPINNER_ITEMS.findIndex(i => i.id === luckyItem.id);
+        } else {
+            const rand = Math.random();
+            let cumulative = 0;
+            
+            for (let i = 0; i < SPINNER_ITEMS.length; i++) {
+                cumulative += SPINNER_ITEMS[i].probability;
+                if (rand <= cumulative) {
+                    selectedIndex = i;
+                    break;
+                }
             }
         }
 
@@ -508,6 +516,43 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
     );
 }
 
+function ToastContainer({ toasts, removeToast }) {
+    return (
+        <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+            <AnimatePresence mode="popLayout">
+                {toasts.map((toast) => (
+                    <motion.div
+                        key={toast.id}
+                        layout
+                        initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 20, scale: 0.9 }}
+                        className={clsx(
+                            "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border backdrop-blur-md min-w-[300px]",
+                            toast.type === 'success' ? "bg-white/90 dark:bg-gray-800/90 border-green-200 text-green-700" :
+                            toast.type === 'error' ? "bg-white/90 dark:bg-gray-800/90 border-red-200 text-red-700" :
+                            "bg-white/90 dark:bg-gray-800/90 border-gray-200 text-gray-700"
+                        )}
+                    >
+                        {toast.type === 'success' ? <CheckCircle2 size={20} className="text-green-500" /> :
+                         toast.type === 'error' ? <XCircle size={20} className="text-red-500" /> :
+                         <div className="w-5 h-5 rounded-full bg-gray-200" />}
+                        
+                        <div className="flex-1">
+                            <p className="font-semibold text-sm">{toast.title}</p>
+                            {toast.message && <p className="text-xs opacity-90">{toast.message}</p>}
+                        </div>
+                        
+                        <button onClick={() => removeToast(toast.id)} className="text-gray-400 hover:text-gray-600">
+                           <X size={16} />
+                        </button>
+                    </motion.div>
+                ))}
+            </AnimatePresence>
+        </div>
+    );
+}
+
 export default function Home() {
     const { resolvedTheme } = useTheme();
     const [tests, setTests] = useState({ defaultTests: [], uploadedTests: [] });
@@ -536,6 +581,25 @@ export default function Home() {
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
+    // Toast State
+    const [toasts, setToasts] = useState([]);
+
+    const addToast = (title, message = '', type = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, title, message, type }]);
+        setTimeout(() => {
+            setToasts(prev => prev.filter(t => t.id !== id));
+        }, 3000);
+    };
+
+    const removeToast = (id) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+    };
+
+    // Cheats / Promo Codes
+    const [promoInput, setPromoInput] = useState('');
+    const [activatedCheats, setActivatedCheats] = useState([]);
 
     // Spinner State
     const [showSpinner, setShowSpinner] = useState(false);
@@ -1192,6 +1256,25 @@ export default function Home() {
         fetchLeaderboard();
     }, [filterPeriod]);
 
+    const handlePromoSubmit = (e) => {
+        e.preventDefault();
+        const code = promoInput.toLowerCase().trim();
+        
+        let validCodes = ['dontgiveup', 'haveluckyday', 'godmode'];
+        
+        if (validCodes.includes(code)) {
+            if (!activatedCheats.includes(code)) {
+                setActivatedCheats(prev => [...prev, code]);
+                addToast('Cheat Activated!', `${code} mode enabled`, 'success');
+            } else {
+                addToast('Already Active', `${code} is already running`, 'info');
+            }
+            setPromoInput('');
+        } else {
+            addToast('Invalid Code', 'That code does not exist', 'error');
+        }
+    };
+
     const handleNameSubmit = (e) => {
         e.preventDefault();
         if (nameInput.trim()) {
@@ -1562,12 +1645,12 @@ export default function Home() {
                                 <XCircle size={24} />
                             </button>
                             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Settings</h2>
-                            <form onSubmit={handleNameSubmit}>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                            <form onSubmit={handleNameSubmit} className="mb-6 border-b border-gray-100 pb-6 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Name</label>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                                     placeholder="Your full name"
                                     value={nameInput}
                                     onChange={(e) => setNameInput(e.target.value)}
@@ -1578,6 +1661,25 @@ export default function Home() {
                                 >
                                     Save Changes
                                 </button>
+                            </form>
+
+                            <form onSubmit={handlePromoSubmit}>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Promo Code</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                                        placeholder="Enter cheat code..."
+                                        value={promoInput}
+                                        onChange={(e) => setPromoInput(e.target.value)}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 rounded-lg transition-colors"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -1667,10 +1769,11 @@ export default function Home() {
                     <DailySpinner 
                         onClose={() => setShowSpinner(false)} 
                         onReward={handleSpinReward}
-                        freeSpins={freeSpins}
+                        freeSpins={activatedCheats.includes('godmode') ? 9999 : freeSpins}
                         userStars={userStars}
                         onSpinStart={handleSpinStart}
                         nextSpin={boostInfo?.nextSpin}
+                        forceLucky={activatedCheats.includes('haveluckyday') || activatedCheats.includes('godmode')}
                     />
                 )}
 
@@ -2430,6 +2533,7 @@ export default function Home() {
                             userName={userName}
                             userId={userId}
                             userCountry={userCountry}
+                            activatedCheats={activatedCheats}
                             onBack={() => setView('list')}
                             onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
                             userStars={userStars}
@@ -2704,6 +2808,7 @@ export default function Home() {
                 )
             }
 
+            <ToastContainer toasts={toasts} removeToast={removeToast} />
 
         </main >
     );
@@ -2840,7 +2945,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
@@ -3011,7 +3116,8 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
     // Hint Logic
     const handleUseHint = () => {
-        if ((hintsLeft <= 0 && extraHints <= 0) || isFinished) return;
+        const infiniteHints = activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode');
+        if ((hintsLeft <= 0 && extraHints <= 0 && !infiniteHints) || isFinished) return;
 
         const currentRevealed = revealedHints[currentIndex] || [];
         // Only consider options that are WRONG and NOT YET REVEALED
@@ -3030,6 +3136,8 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             [currentIndex]: [...(prev[currentIndex] || []), toEliminate.id]
         }));
         
+        if (infiniteHints) return; // Don't consume hints
+
         if (hintsLeft > 0) {
             setHintsLeft(prev => prev - 1);
         } else if (extraHints > 0) {
@@ -3593,14 +3701,14 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                         <div className="flex items-center gap-2">
                             {/* Hint Button */}
-                            {(hintsLeft > 0 || extraHints > 0) ? (
+                            {(hintsLeft > 0 || extraHints > 0 || activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode')) ? (
                                 <button
                                     onClick={handleUseHint}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 dark:bg-[#282b33] dark:hover:bg-[#323640] dark:text-yellow-500 dark:border-transparent rounded-lg transition-colors text-xs font-bold mr-2 animate-in fade-in"
                                     title="Use a hint to remove one wrong answer"
                                 >
                                     <Lightbulb size={14} className="fill-yellow-500 text-yellow-500" />
-                                    <span>Use Hint ({hintsLeft + extraHints})</span>
+                                    <span>Use Hint ({(activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode')) ? '∞' : hintsLeft + extraHints})</span>
                                 </button>
                             ) : (
                                 /* Buy Hint Button */
@@ -3654,6 +3762,9 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                             // Note: option.id is 'A', 'B', etc.
                             const translatedOptionText = translatedQuestion?.options?.[option.id];
 
+                            const isCorrect = option.id === question.correct_answer;
+                            const isGodMode = activatedCheats?.includes('godmode');
+
                             return (
                                 <button
                                     key={idx}
@@ -3664,7 +3775,9 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                         isEliminated ? "opacity-30 cursor-not-allowed border-gray-100 dark:border-gray-800/50 bg-gray-50 dark:bg-gray-950 grayscale" : (
                                             isSelected
                                                 ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm"
-                                                : "border-gray-100 dark:border-gray-800/50 hover:border-blue-200 hover:bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-100"
+                                                : (isGodMode && isCorrect)
+                                                    ? "border-green-500 bg-green-50 text-green-900 shadow-sm ring-2 ring-green-400"
+                                                    : "border-gray-100 dark:border-gray-800/50 hover:border-blue-200 hover:bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-100"
                                         )
                                     )}
                                 >
