@@ -7,7 +7,10 @@ export async function GET(request) {
   try {
       const { searchParams } = new URL(request.url);
       const period = searchParams.get('period');
-      
+      const page = parseInt(searchParams.get('page')) || 1;
+      const limit = parseInt(searchParams.get('limit')) || 100;
+      const skip = (page - 1) * limit;
+
       let dateQuery = {};
       const now = new Date();
       // Set to beginning of today (00:00:00)
@@ -24,6 +27,9 @@ export async function GET(request) {
           sevenDaysAgo.setDate(todayStart.getDate() - 6); // Includes today + 6 previous days
           dateQuery = { date: { $gte: sevenDaysAgo } };
       }
+
+      // Get Total Count for Pagination
+      const totalDocs = await Leaderboard.countDocuments(dateQuery);
 
       const leaderboard = await Leaderboard.aggregate([
           { $match: dateQuery },
@@ -44,9 +50,19 @@ export async function GET(request) {
               }
           },
           { $sort: { score: -1, difficultyRank: -1, duration: 1 } },
-          { $limit: 100 }
+          { $skip: skip },
+          { $limit: limit }
       ]);
-      return NextResponse.json(leaderboard);
+      
+      return NextResponse.json({
+          data: leaderboard,
+          pagination: {
+              total: totalDocs,
+              page,
+              limit,
+              totalPages: Math.ceil(totalDocs / limit)
+          }
+      });
   } catch (error) {
       console.error("Leaderboard GET Error:", error);
       return NextResponse.json({ error: "Failed to fetch leaderboard" }, { status: 500 });

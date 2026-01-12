@@ -571,7 +571,7 @@ export default function Home() {
     const [nameInput, setNameInput] = useState('');
     const [isNameSet, setIsNameSet] = useState(false);
     const [leaderboard, setLeaderboard] = useState([]);
-    const [filterPeriod, setFilterPeriod] = useState('all'); // Filter state
+    const [filterPeriod, setFilterPeriod] = useState('today'); // Filter state
     const [showSettings, setShowSettings] = useState(false);
     const [showDonateModal, setShowDonateModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('uzum');
@@ -1240,12 +1240,22 @@ export default function Home() {
         }
     };
 
+    const [leaderboardPage, setLeaderboardPage] = useState(1);
+    const [leaderboardLimit, setLeaderboardLimit] = useState(10);
+    const [leaderboardTotal, setLeaderboardTotal] = useState(0);
+
     const fetchLeaderboard = async () => {
         try {
-            const res = await fetch(`/api/leaderboard?period=${filterPeriod}`);
+            const res = await fetch(`/api/leaderboard?period=${filterPeriod}&page=${leaderboardPage}&limit=${leaderboardLimit}`);
             if (res.ok) {
-                const data = await res.json();
-                setLeaderboard(data);
+                const json = await res.json();
+                if (json.data) {
+                    setLeaderboard(json.data);
+                    setLeaderboardTotal(json.pagination.total);
+                } else {
+                    // Fallback for old API response format if cached or error
+                    setLeaderboard(Array.isArray(json) ? json : []);
+                }
             }
         } catch (e) {
             console.error("Leaderboard fetch error", e);
@@ -1254,7 +1264,7 @@ export default function Home() {
 
     useEffect(() => {
         fetchLeaderboard();
-    }, [filterPeriod]);
+    }, [filterPeriod, leaderboardPage, leaderboardLimit]);
 
     const handlePromoSubmit = (e) => {
         e.preventDefault();
@@ -2178,6 +2188,49 @@ export default function Home() {
                                         </table>
                                     </div>
                                 )}
+
+                                {/* Pagination Controls */}
+                                {filterPeriod === 'all' && leaderboard.length > 0 && (
+                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 text-xs font-medium text-gray-500 border-t border-gray-100 pt-4">
+                                            <div className="flex items-center gap-2">
+                                                <span>Rows per page:</span>
+                                                <select 
+                                                    value={leaderboardLimit} 
+                                                    onChange={(e) => {
+                                                        setLeaderboardLimit(Number(e.target.value));
+                                                        setLeaderboardPage(1); // Reset to first page
+                                                    }}
+                                                    className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 outline-none focus:border-blue-500 dark:text-gray-200 transition-colors"
+                                                >
+                                                    {[10, 20, 30, 50, 100].map(n => (
+                                                        <option key={n} value={n}>{n}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <span>
+                                                    {(leaderboardPage - 1) * leaderboardLimit + 1}-{Math.min(leaderboardPage * leaderboardLimit, leaderboardTotal)} of {leaderboardTotal}
+                                                </span>
+                                                <div className="flex items-center gap-1">
+                                                    <button 
+                                                        onClick={() => setLeaderboardPage(p => Math.max(1, p - 1))}
+                                                        disabled={leaderboardPage === 1}
+                                                        className="p-1 hover:bg-gray-100 rounded disabled:opacity-30 transition-colors"
+                                                    >
+                                                        <ChevronLeft size={16} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setLeaderboardPage(p => (p * leaderboardLimit < leaderboardTotal ? p + 1 : p))}
+                                                        disabled={leaderboardPage * leaderboardLimit >= leaderboardTotal}
+                                                        className="p-1 hover:bg-gray-100 rounded disabled:opacity-30 transition-colors"
+                                                    >
+                                                        <ChevronRight size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                             </section>
                         </div>
 
