@@ -1586,7 +1586,7 @@ export default function Home() {
                             {/* Stars Icon */}
                             <div className="relative group">
                                 <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10 px-1.5 py-1 md:px-2 md:py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700/30 cursor-help">
-                                    <span className="text-[10px] md:text-xs">⭐</span>
+                                    <img src="/star.gif" alt="Star" className="w-[18px] h-[18px] md:w-6 md:h-6 object-contain" />
                                     <span className="text-xs md:text-sm font-bold text-yellow-700 dark:text-yellow-500">{userStars}</span>
                                 </div>
                                 
