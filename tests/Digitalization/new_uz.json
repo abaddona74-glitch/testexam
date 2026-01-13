@@ -1,0 +1,114 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Biznesda digitization va digitalization o‘rtasidagi asosiy farq nima?",
+      "options": {
+        "A": "Digitization ma’lumotni raqamlashtiradi, digitalization esa biznes jarayonlarini o‘zgartiradi",
+        "B": "Ikkalasi bir xil tushuncha",
+        "C": "Digitization kompyuterda, digitalization telefonda bo‘ladi",
+        "D": "Digitization bepul, digitalization pullik"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "Digital transformation deganda nima tushuniladi?",
+      "options": {
+        "A": "Kompaniya uchun oddiy veb-sayt yaratish",
+        "B": "Raqamli texnologiyalar orqali biznes jarayonlarini tubdan o‘zgartirish",
+        "C": "Xodimlarga yangi kompyuter sotib olish",
+        "D": "Ijtimoiy tarmoqlarda reklama qilish"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 3,
+      "question": "Quyidagilardan qaysi biri digitalization’ning afzalligi hisoblanmaydi?",
+      "options": {
+        "A": "Jarayonlarni avtomatlashtirish",
+        "B": "Xarajatlarni kamaytirish",
+        "C": "Ma’lumot asosida qaror qabul qilish",
+        "D": "Qog‘oz hujjatlar sonini oshirish"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 4,
+      "question": "Aggregator platforma qanday qiymat yaratadi?",
+      "options": {
+        "A": "Mahsulotlarni o‘zi ishlab chiqaradi",
+        "B": "Turli xizmatlarni bitta platformada jamlaydi",
+        "C": "Omborda mahsulot saqlaydi",
+        "D": "Faqat logistika bilan shug‘ullanadi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 5,
+      "question": "Ovqat yetkazib berish platformalari qanday qilib daromad oladi?",
+      "options": {
+        "A": "Reklama orqali",
+        "B": "Restoranlardan komissiya olish orqali",
+        "C": "Obuna (subscription) orqali",
+        "D": "Barchasi orqali"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 6,
+      "question": "UberEats platformasining asosiy farqi nimada?",
+      "options": {
+        "A": "Bank xizmatlarini ko‘rsatadi",
+        "B": "Uber haydovchilar tarmog‘idan foydalanadi",
+        "C": "Uzoq masofali tashishga ixtisoslashgan",
+        "D": "Ko‘chmas mulk ijarasi bilan shug‘ullanadi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 7,
+      "question": "O‘zbekistonda qaysi ovqat yetkazib berish platformalari faol?",
+      "options": {
+        "A": "Yandex Eats",
+        "B": "Uzum Tezkor",
+        "C": "Express24",
+        "D": "Barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 8,
+      "question": "Fintech platforma deganda nima tushuniladi?",
+      "options": {
+        "A": "Ovqat yetkazib berish xizmati",
+        "B": "Moliyaviy xizmatlarni texnologiya orqali taqdim etish",
+        "C": "Transport platformasi",
+        "D": "Ijara xizmati"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "PayPal platformasi asosan qaysi yo‘nalishda ishlaydi?",
+      "options": {
+        "A": "Ovqat yetkazib berish",
+        "B": "Onlayn to‘lov va pul o‘tkazmalari",
+        "C": "Uy ijarasi",
+        "D": "Taksi xizmati"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 10,
+      "question": "O‘zbekistonda mashhur to‘lov tizimlari qaysilar?",
+      "options": {
+        "A": "Payme",
+        "B": "Click",
+        "C": "Apelsin",
+        "D": "Barchasi"
+      },
+      "correct_answer": "D"
+    }
+  ]
+}

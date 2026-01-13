@@ -3185,10 +3185,20 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         // Eliminate one random incorrect option
         const toEliminate = incorrectOptions[Math.floor(Math.random() * incorrectOptions.length)];
 
+        const newRevealed = [...(revealedHints[currentIndex] || []), toEliminate.id];
+
         setRevealedHints(prev => ({
             ...prev,
-            [currentIndex]: [...(prev[currentIndex] || []), toEliminate.id]
+            [currentIndex]: newRevealed
         }));
+
+        // Auto-select if only correct answer remains
+        if (question.shuffledOptions.length - newRevealed.length === 1) {
+             // Eliminate lag by checking against current state, but update immediately
+             if (!answers[currentIndex]) {
+                 handleAnswer(question.correct_answer);
+             }
+        }
         
         if (infiniteHints) return; // Don't consume hints
 
