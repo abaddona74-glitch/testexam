@@ -2379,12 +2379,27 @@ export default function Home() {
                                     </h3>
                                     <div className="space-y-4">
                                         {[
+                                            { isHeader: true, title: "Call 1" },
                                             { name: "Digitalization", day: "13", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
                                             { name: "Data Mining", day: "15", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
                                             { name: "Software Project Management", day: "17", month: "Jan", time: "12:00", room: "Lab-403", teacher: "Usmanov M." },
                                             { name: "Software for Sustainable Dev", day: "20", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Jamshid Y." },
                                             { name: "Mobile Apps (Native & Web)", day: "22", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Salokhiddinov M." },
+                                            { isHeader: true, title: "Call 2" },
+                                            { name: "Digitalization", day: "23", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Abdurasul B." },
+                                            { name: "Data Mining", day: "26", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Abdurasul B." },
+                                            { name: "Software Project Management", day: "27", month: "Jan", time: "12:00", room: "Lab-403/407", teacher: "Usmanov M." },
+                                            { name: "Software for Sustainable Dev", day: "30", month: "Jan", time: "09:00", room: "Lab-403/407", teacher: "Jamshid Y." },
+                                            { name: "Mobile Apps (Native & Web)", day: "31", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Salokhiddinov M." },
                                         ].map((item, idx) => {
+                                            if (item.isHeader) {
+                                                return (
+                                                    <div key={idx} className="bg-red-500/10 border border-red-500/20 rounded-lg p-1.5 text-center mt-4 mb-2 first:mt-0">
+                                                        <span className="text-red-500 font-bold uppercase text-xs tracking-widest">{item.title}</span>
+                                                    </div>
+                                                );
+                                            }
+
                                             // Calculate time remaining (Assuming Year 2026)
                                             const examDate = new Date(`${item.month} ${item.day}, 2026 ${item.time}`);
                                             const now = new Date();

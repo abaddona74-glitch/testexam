@@ -4,3 +4,4 @@ node_modules
 leaderboard.json
 .env
 .env.local
+materials/
