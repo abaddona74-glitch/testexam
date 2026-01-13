@@ -588,6 +588,7 @@ export default function Home() {
     const [keyInput, setKeyInput] = useState('');
     const [targetTestForUnlock, setTargetTestForUnlock] = useState(null);
     const [keyError, setKeyError] = useState('');
+    const [showPaymentOptions, setShowPaymentOptions] = useState(false);
 
     // Toast State
     const [toasts, setToasts] = useState([]);
@@ -671,6 +672,29 @@ export default function Home() {
                 const parsed = JSON.parse(storedLeagues);
                 if (Array.isArray(parsed)) setUnlockedLeagues(parsed);
             } catch (e) { }
+        }
+
+        // Load Premium Unlocks
+        const storedPremiumUnlocks = localStorage.getItem('examApp_premiumUnlocks');
+        if (storedPremiumUnlocks) {
+            try {
+                const parsedUnlocks = JSON.parse(storedPremiumUnlocks);
+                const now = Date.now();
+                const validUnlocks = new Set();
+                
+                Object.keys(parsedUnlocks).forEach(testId => {
+                    // Check if subscription is still valid
+                    if (parsedUnlocks[testId] > now) {
+                        validUnlocks.add(testId);
+                    }
+                });
+                
+                if (validUnlocks.size > 0) {
+                    setUnlockedTests(validUnlocks);
+                }
+            } catch (e) {
+                console.error("Failed to parse premium unlocks", e);
+            }
         }
 
         // Load Last Spin and Calculate Accrual
@@ -1302,47 +1326,98 @@ export default function Home() {
         }
     };
 
-    const handleUnlockSubmit = (e) => {
+    const handleUnlockSubmit = async (e) => {
         e.preventDefault();
+        setKeyError('');
 
-        // Simulating Key Validation - Hardcoded to "trial2026"
-        if (keyInput === 'trial2026') {
-            setUnlockedTests(prev => new Set(prev).add(targetTestForUnlock.id));
-
-            // Proceed to start test logic immediately
-            const test = targetTestForUnlock;
-            let translationContent = null;
-            const isEn = test.id.endsWith('en.json');
-            const isUz = test.id.endsWith('uz.json');
-
-            if (isEn || isUz) {
-                const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
-                const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
-                const translation = allTests.find(t => t.id === targetId);
-                if (translation) translationContent = translation.content;
-            }
-
-            if (savedProgress[test.id]) {
-                setActiveTest({
-                    ...test,
-                    ...savedProgress[test.id],
-                    translationContent,
-                    isResumed: true
+        // Admin Secret to Generate Keys (Hidden Feature)
+        if (keyInput.startsWith('admin:gen:')) {
+            const secret = keyInput.split(':')[2];
+            try {
+                const res = await fetch('/api/admin/generate-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminSecret: secret || 'admin123', count: 1 })
                 });
-                setView('test');
-            } else {
-                setPendingTest({ ...test, translationContent });
-                setShowDifficultyModal(true);
+                const data = await res.json();
+                if (data.success) {
+                    const newKey = data.keys[0];
+                    await navigator.clipboard.writeText(newKey);
+                    alert(`NEW KEY GENERATED & COPIED TO CLIPBOARD:\n${newKey}`);
+                    setKeyInput('');
+                } else {
+                    setKeyError(data.message);
+                }
+            } catch (err) {
+                setKeyError('Failed to contact server');
             }
-
-            setShowKeyModal(false);
-            setKeyInput('');
-            setKeyError('');
-            setTargetTestForUnlock(null);
-            addToast("Success", "Premium test unlocked", "success");
-        } else {
-            setKeyError("Please enter a valid key");
+            return;
         }
+
+        try {
+            // Call Server to Validate
+            const res = await fetch('/api/validate-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: keyInput, userId: userId })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const expiryDate = data.expiryDate;
+
+                // Update State
+                setUnlockedTests(prev => new Set(prev).add(targetTestForUnlock.id));
+
+                // Persist to LocalStorage
+                try {
+                    const storedPremiumUnlocks = JSON.parse(localStorage.getItem('examApp_premiumUnlocks') || '{}');
+                    storedPremiumUnlocks[targetTestForUnlock.id] = expiryDate;
+                    localStorage.setItem('examApp_premiumUnlocks', JSON.stringify(storedPremiumUnlocks));
+                    
+                    addToast('Premium Unlocked!', 'Access granted for 1 week', 'success');
+                } catch (err) {
+                    console.error("Failed to save unlock", err);
+                }
+
+                // Proceed to start test logic immediately
+                const test = targetTestForUnlock;
+                let translationContent = null;
+                const isEn = test.id.endsWith('en.json');
+                const isUz = test.id.endsWith('uz.json');
+
+                if (isEn || isUz) {
+                    const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
+                    const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
+                    const translation = allTests.find(t => t.id === targetId);
+                    if (translation) translationContent = translation.content;
+                }
+
+                if (savedProgress[test.id]) {
+                    setActiveTest({
+                        ...test,
+                        ...savedProgress[test.id],
+                        translationContent,
+                        isResumed: true
+                    });
+                    setView('test');
+                } else {
+                    setPendingTest({ ...test, translationContent });
+                    setShowDifficultyModal(true);
+                }
+
+                setShowKeyModal(false);
+                setKeyInput('');
+                setKeyError('');
+                setTargetTestForUnlock(null);
+                setShowPaymentOptions(false);
+            } else {
+                setKeyError(data.message || 'Invalid Key');
+            }
+        } catch (err) {
+            console.error(err);
+            setKeyError('Connection failed. Please check internet.');
+        } 
     };
 
     const startTest = (test) => {
@@ -2889,48 +2964,210 @@ export default function Home() {
                 showKeyModal && (
                     <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 dark:border-gray-800 overflow-hidden transform transition-all scale-100">
-                            <div className="p-6 text-center">
-                                <div className="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
-                                    <Lock size={32} className="text-white" />
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Premium Content</h2>
-                                <p className="text-gray-500 mb-6">
-                                    This test is locked. Please enter your access key to continue.
-                                </p>
-
-                                <form onSubmit={handleUnlockSubmit} className="space-y-4">
-                                    <div>
-                                        <div className="relative">
-                                            <Key className="absolute left-3 top-3.5 text-gray-400" size={20} />
-                                            <input
-                                                type="text"
-                                                value={keyInput}
-                                                onChange={(e) => setKeyInput(e.target.value)}
-                                                placeholder="Enter access key..."
-                                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-lg dark:text-white"
-                                                autoFocus
-                                            />
+                            {showPaymentOptions ? (
+                                <div className="p-6">
+                                     <div className="flex items-center gap-2 mb-6">
+                                        <button 
+                                            onClick={() => setShowPaymentOptions(false)}
+                                            className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                        >
+                                            <ArrowLeft size={20} className="text-gray-500" />
+                                        </button>
+                                        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Select Payment Method</h2>
+                                    </div>
+                                    
+                                    <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                                        <div className="text-center mb-4">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Send 50,000 UZS to this card:</p>
+                                            <div className="flex items-center justify-center gap-2 bg-white dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm group cursor-pointer"
+                                                 onClick={() => {
+                                                     navigator.clipboard.writeText('9860356624152985');
+                                                     setCardCopied(true);
+                                                     setTimeout(() => setCardCopied(false), 2000);
+                                                 }}
+                                            >
+                                                <span className="font-mono text-xl font-bold text-gray-800 dark:text-gray-200 tracking-wider">9860 35... 2985</span>
+                                                {cardCopied ? <CheckCircle2 size={18} className="text-green-500" /> : <div className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><span className="text-xs font-bold text-blue-500">COPY</span></div>}
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-2">Owner: Muzaffarov M.</p>
                                         </div>
-                                        {keyError && <p className="text-red-500 text-sm mt-2 font-medium animate-pulse">{keyError}</p>}
-                                    </div>
 
-                                    <div className="grid grid-cols-2 gap-3 pt-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => { setShowKeyModal(false); setKeyInput(''); setKeyError(''); setTargetTestForUnlock(null); }}
-                                            className="px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold shadow-lg shadow-orange-500/20 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            Unlock
-                                        </button>
+                                        <p className="text-sm text-center text-gray-600 dark:text-gray-400 mb-3">
+                                            Pay via your favorite app:
+                                        </p>
+
+                                        <div className="flex flex-col sm:flex-row justify-center gap-3 mb-4">
+                                            {/* Click */}
+                                            <a 
+                                                href="https://my.click.uz" 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="flex flex-1 items-center justify-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md rounded-xl py-3 px-4 transition-all group"
+                                            >
+                                                <div className="h-8 w-auto flex items-center gap-2">
+                                                    <svg className="h-full w-auto" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <g clipPath="url(#clip0_843_14736)">
+                                                            <path fillRule="evenodd" clipRule="evenodd" d="M912 512C912 665.333 665.333 912 512 912C358.667 912 112 665.333 112 512C112 358.667 358.667 112 512 112C665.333 112 912 358.667 912 512ZM672 512C672 572 572 672 512 672C452 672 352 572 352 512C352 452 452 352 512 352C572 352 672 452 672 512Z" fill="#0077FF"/>
+                                                        </g>
+                                                        <defs>
+                                                            <clipPath id="clip0_843_14736">
+                                                                <rect width="800" height="800" fill="white" transform="translate(112 112)"/>
+                                                            </clipPath>
+                                                        </defs>
+                                                    </svg>
+                                                    <span className="font-bold text-[#0077FF] text-lg">Click</span>
+                                                </div>
+                                            </a>
+
+                                            {/* Payme */}
+                                            <a 
+                                                href="https://payme.uz" 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="flex flex-1 items-center justify-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md rounded-xl py-3 px-4 transition-all group"
+                                            >
+                                                <svg className="h-8 w-auto dark:invert dark:brightness-0 dark:sepia-0 dark:invert-100" viewBox="0 0 138 40" xmlns="http://www.w3.org/2000/svg">
+                                                    <defs><style>{`.cls-1{fill:#333;}.cls-2{fill:#3cc;}.cls-3{fill:#fff;}`}</style></defs>
+                                                    <g id="Layer_2" data-name="Layer 2">
+                                                        <g id="Layer_1-2" data-name="Layer 1-2">
+                                                            <path className="cls-1" d="M22.73,3.95a7.1,7.1,0,0,0-1.85-2A9.18,9.18,0,0,0,18.45.77,13.68,13.68,0,0,0,15.56.16,34,34,0,0,0,12.1,0h-10A1.74,1.74,0,0,0,.2,1.62s0,.06,0,.09V17.95a15.37,15.37,0,0,0,6.57,7V21.69a1.92,1.92,0,0,1,1.75-2.08h3q6.14,0,9.37-2.57t3.28-7.62a12,12,0,0,0-.34-2.88A9,9,0,0,0,22.73,3.95Zm-5.86,8.35a3.52,3.52,0,0,1-1.49,1.39,6,6,0,0,1-2.15.57,19.58,19.58,0,0,1-2.47.15H7.88c-.69,0-1.12-.56-1.12-1.38V6.33A1,1,0,0,1,7.88,5.27h2.88q1.4,0,2.64.08a5.76,5.76,0,0,1,2.13.52A3.21,3.21,0,0,1,17,7.19a5.09,5.09,0,0,1,.51,2.52A5.08,5.08,0,0,1,16.87,12.29ZM6.78,25.93A18.19,18.19,0,0,1,.2,21.79v7.85a1.12,1.12,0,0,0,1,1.27H5.72c1.2,0,1.06-1.28,1.06-1.28ZM68.9,8.55H65a1.58,1.58,0,0,0-1.64,1.21L58.83,22.24s-4-11.37-4.3-12.25a1.82,1.82,0,0,0-1.76-1.45H49.18c-1.28,0-1.28,1-1.11,1.39s5.08,13.85,7,19a7.52,7.52,0,0,1,.63,2,5.28,5.28,0,0,1-.76,1.92,4.93,4.93,0,0,1-.5.7c3.7-1.1,8-5.11,10.16-9.44,2.18-6,5.05-14,5.18-14.41C69.92,9.07,69.92,8.55,68.9,8.55ZM51.52,34.77a9.47,9.47,0,0,1-1-.08c-.41-.06-1.19,0-1.19.7v3c0,1.15.56,1.23.85,1.31A12.92,12.92,0,0,0,53,40a7.29,7.29,0,0,0,3.25-.67,7.76,7.76,0,0,0,2.43-1.92,13.29,13.29,0,0,0,1.92-2.88q.83-1.66,1.58-3.67l.58-1.59C61.6,30.42,56.48,35.25,51.52,34.77ZM45.62,12.14a5.26,5.26,0,0,0-.86-1.39,6.06,6.06,0,0,0-1.22-1A8.92,8.92,0,0,0,42,8.91a11.53,11.53,0,0,0-1.69-.51,13.72,13.72,0,0,0-2-.29Q37.23,8,35.89,8q-8.94,0-10.18,5.64a1,1,0,0,0,.88,1.24h3.67c1,0,1-.31,1.38-1.17a2.57,2.57,0,0,1,.86-1.18,5.15,5.15,0,0,1,3.16-.81,4.5,4.5,0,0,1,2.95.73,3.44,3.44,0,0,1,1.09,2.38c0,1.24-.38,2.06-1.92,2.06-3.65-.13-7.57.28-9.78,1.55a7.23,7.23,0,0,0-3.46,6.38,6.52,6.52,0,0,0,.59,2.88,5.71,5.71,0,0,0,1.65,2A7,7,0,0,0,29.26,31a11.53,11.53,0,0,0,3.14.4,13.59,13.59,0,0,0,4.21-.6A15.7,15.7,0,0,0,40,28.89v.7c0,.69.21,1.31,1,1.31h4.25c.86,0,1.06-.61,1.06-1.37V16.44A16.14,16.14,0,0,0,46.14,14,7.68,7.68,0,0,0,45.62,12.14ZM39.81,25s-1.1,2.3-5,2.3a4.41,4.41,0,0,1-2.64-.73,2.61,2.61,0,0,1-1-2.28,2.88,2.88,0,0,1,1.65-2.82,12.59,12.59,0,0,1,4.95-.83,1.81,1.81,0,0,1,2.08,1.8Z"/>
+                                                            <path className="cls-2" d="M137,16.58a5,5,0,0,1,0,5.28c-1,1.52-6.45,7.34-8.25,9.21-1.56,1.62-3.67,3.26-5.76,3.26H79.7c-5.86,0-6.21-2-6.21-6.46V9.68c0-4.57,1.35-5.9,5.36-5.9h44.24c2.07,0,3.92,1.06,6,3.2C130.91,8.81,136.28,15.5,137,16.58Z"/>
+                                                            <path className="cls-3" d="M83.32,10.81V10.7c0-.59,0-1.16-1-1.16H78.69c-.85,0-.89.46-.89,1.18v4.8A15.17,15.17,0,0,1,83.32,10.81Z"/>
+                                                            <path className="cls-3" d="M107.63,28.17v-.26h0V16.33q0-7.27-6.42-7.27a6.4,6.4,0,0,0-3.36,1,12.18,12.18,0,0,0-2.93,2.56,5.1,5.1,0,0,0-2.08-2.63,6.89,6.89,0,0,0-3.61-.85,8.39,8.39,0,0,0-5.11,1.76c-.32.32-6.33,5-6.33,9.88v7.41c0,.23-.12,1.13.89,1.13h3.77c1.17,0,1.06-.77,1.06-1.09v-12c.63-.85,1.92-2.88,4.05-2.88a1.92,1.92,0,0,1,1.76.83,5.25,5.25,0,0,1,.54,2.76v9.35h0v1.92c0,.23-.12,1.13.89,1.13h3.73c1.17,0,1.06-.77,1.06-1.09v-.26h0V16.19c.68-.85,2-2.88,4.05-2.88a2,2,0,0,1,1.79.83,5.18,5.18,0,0,1,.55,2.76v9.35h0v1.92c0,.23-.12,1.13.89,1.13h3.77C107.77,29.24,107.63,28.48,107.63,28.17Z"/>
+                                                            <path className="cls-3" d="M128.42,23.46a8.63,8.63,0,0,1-8.54,5.61c-5.76,0-9.6-3.92-9.6-9.8s4-10,9.4-10,9,3.74,9.23,9.77c0,.77-.19,1.45-1.16,1.45H115.53c.08,3.23,1.63,5,4.39,5a3.84,3.84,0,0,0,3.54-2.14,1.36,1.36,0,0,1,1.15-.59h3.15a.63.63,0,0,1,.65.74ZM119.7,13c-2.29,0-3.84,1.59-4.18,4.21h8.2C123.51,14.92,122.27,13,119.7,13Z"/>
+                                                        </g>
+                                                    </g>
+                                                </svg>
+                                            </a>
+
+                                            {/* Uzum */}
+                                            <a 
+                                                href="https://uzum.uz" 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="flex flex-1 items-center justify-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md rounded-xl py-3 px-4 transition-all group"
+                                            >
+                                                <svg className="h-8 w-auto" viewBox="0 0 472 175" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <g clipPath="url(#clip0_148_495)">
+                                                        <rect y="0.5" width="174" height="174" rx="87" fill="#A6FC6F"/>
+                                                        <path d="M166.959 5.68649C174.791 13.5181 178.706 17.434 180.174 21.9494C181.464 25.9213 181.464 30.1998 180.174 34.1717C178.706 38.6871 174.791 42.6029 166.959 50.4346L103.049 114.345C95.2172 122.176 91.3013 126.092 86.7859 127.559C82.814 128.85 78.5355 128.85 74.5636 127.559C70.0482 126.092 66.1324 122.176 58.3007 114.345L34.2147 90.2587C26.383 82.427 22.4672 78.5112 21.0001 73.9958C19.7095 70.0239 19.7095 65.7454 21.0001 61.7735C22.4672 57.2581 26.383 53.3422 34.2147 45.5106L98.1248 -18.3995C105.956 -26.2312 109.872 -30.147 114.388 -31.6142C118.36 -32.9047 122.638 -32.9047 126.61 -31.6142C131.125 -30.147 135.041 -26.2312 142.873 -18.3995L166.959 5.68649Z" fill="#7000FF"/>
+                                                        <path d="M141.093 87.226C148.925 95.0577 152.841 98.9735 154.308 103.489C155.598 107.461 155.598 111.739 154.308 115.711C152.841 120.227 148.925 124.142 141.093 131.974L77.1831 195.884C69.3515 203.716 65.4356 207.632 60.9202 209.099C56.9483 210.389 52.6698 210.389 48.6979 209.099C44.1825 207.632 40.2667 203.716 32.435 195.884L8.34898 171.798C0.517325 163.967 -3.3985 160.051 -4.86565 155.535C-6.1562 151.563 -6.1562 147.285 -4.86565 143.313C-3.3985 138.798 0.517327 134.882 8.34898 127.05L72.2591 63.14C80.0907 55.3084 84.0066 51.3925 88.522 49.9254C92.4939 48.6348 96.7724 48.6348 100.744 49.9254C105.26 51.3925 109.176 55.3084 117.007 63.14L141.093 87.226Z" fill="#7000FF"/>
+                                                    </g>
+                                                    <rect x="4.23299" y="4.73299" width="165.534" height="165.534" rx="82.767" stroke="#A6FC6F" strokeWidth="8.46599"/>
+                                                    <path d="M111.65 60.731C114.271 61.308 116.807 61.801 119.296 62.4382C121.941 63.1114 124.562 63.929 127.183 64.6623C127.555 64.7705 127.7 64.9148 127.7 65.3356C127.688 73.5229 127.772 81.7223 127.664 89.9097C127.543 98.7102 124.766 106.669 119.416 113.666C113.453 121.469 105.651 126.494 96.105 128.779C92.342 129.68 88.5069 129.981 84.6477 129.752C75.4747 129.211 67.3477 125.977 60.3988 119.978C53.2335 113.811 48.7131 106.044 46.8977 96.7385C46.3808 94.0935 46.1764 91.4125 46.1764 88.7195C46.1644 80.9649 46.1764 73.2224 46.1523 65.4678C46.1523 64.9509 46.3207 64.7705 46.7895 64.6263C51.7908 63.0273 56.8883 61.7649 62.0458 60.8271C62.0939 60.8151 62.142 60.8271 62.2622 60.8151C62.2622 61.0195 62.2622 61.2239 62.2622 61.4162C62.2622 71.1425 62.2262 80.8807 62.2863 90.607C62.3223 95.5122 62.9836 100.357 64.6547 105.01C65.9771 108.701 67.9367 111.995 70.8582 114.664C73.5993 117.153 76.8092 118.728 80.4039 119.497C85.4893 120.591 90.5627 120.507 95.552 118.932C101.443 117.081 105.53 113.161 108.151 107.643C109.558 104.697 110.4 101.572 110.928 98.3615C111.518 94.7908 111.662 91.1841 111.662 87.5773C111.662 78.897 111.662 70.2047 111.662 61.5244C111.65 61.296 111.65 61.0796 111.65 60.731Z" fill="white"/>
+                                                    <path d="M94.0847 78.7657C89.2878 78.7657 84.539 78.7657 79.7661 78.7657C79.7661 67.5848 79.7661 56.4158 79.7661 45.2589C81.2569 44.79 91.2474 44.7539 94.0847 45.2228C94.0847 56.4038 94.0847 67.5848 94.0847 78.7657Z" fill="white"/>
+                                                    <path d="M368.811 54.7536C368.811 62.3915 364.585 65.9128 358.296 65.9128C352.006 65.9128 347.926 62.4411 347.926 54.7536V29.5586H334.352V55.2496C334.352 71.9884 348.072 78.5599 358.368 78.5599C368.665 78.5599 382.41 71.9884 382.41 55.2496V29.5586H368.835L368.811 54.7536Z" fill="#7000FF"/>
+                                                    <path d="M322.913 41.2634V29.5586H278.838V41.2634H304.919L277.77 65.9624V77.6672H324.54V65.9624H295.813L322.913 41.2634Z" fill="#7000FF"/>
+                                                    <path d="M450.331 28.6426C441.735 28.6426 435.251 32.2135 432.046 37.6443C428.767 32.2135 421.676 28.6426 414.294 28.6426C399.796 28.6426 392.244 38.0659 392.244 49.7211V77.6687H405.819V51.705C405.819 46.1253 408.684 41.2401 415.265 41.2401C416.601 41.1657 417.961 41.3641 419.199 41.86C420.462 42.356 421.603 43.1 422.551 44.0671C423.498 45.0342 424.226 46.1997 424.712 47.4893C425.173 48.7788 425.392 50.1427 425.295 51.5066V77.6935H438.869V51.4818C438.869 45.9022 442.099 41.1905 448.607 41.1905C455.115 41.1905 458.248 46.1006 458.248 51.6554V77.6191H471.823V49.7459C471.823 38.0907 464.829 28.6674 450.234 28.6674L450.331 28.6426Z" fill="#7000FF"/>
+                                                    <path d="M255.282 54.7536C255.282 62.3915 251.056 65.9128 244.815 65.9128C238.574 65.9128 234.398 62.4411 234.398 54.7536V29.5586H220.823V55.2496C220.823 71.9884 234.495 78.5599 244.84 78.5599C255.209 78.5599 268.832 71.9884 268.832 55.2496V29.5586H255.257L255.282 54.7536Z" fill="#7000FF"/>
+                                                    <path d="M336.585 137.904V106.732H323.156L323.229 114.32C320.315 109.857 315.167 105.74 306.06 105.74C290.373 105.74 282.335 118.214 282.335 130.687C282.044 143.334 291.15 155.882 305.405 155.882C312.981 155.882 319.829 152.411 323.156 146.459C323.933 148.964 325.488 151.146 327.625 152.659C329.737 154.171 332.287 154.915 334.861 154.766H342.632V143.111H340.471C337.8 143.111 336.585 142.094 336.585 137.928V137.904ZM308.902 143.88C301.228 143.88 295.424 138.449 295.424 130.811C295.424 123.173 301.252 117.941 308.902 117.941C316.867 117.941 322.622 123.223 322.622 130.811C322.622 138.375 316.867 143.88 308.902 143.88Z" fill="#7000FF"/>
+                                                    <path d="M248.652 155.932C232.406 155.932 220.823 148.096 220.823 129.002V91.8042H234.398V111.742C238.283 107.824 243.455 105.914 250.886 105.914C267.084 105.914 276.117 117.222 276.117 130.886C276.117 147.179 263.684 155.932 248.749 155.932H248.652ZM248.506 117.842C240.784 117.842 234.932 123.273 234.932 130.911C234.932 138.549 240.736 143.781 248.506 143.781C256.253 143.781 262.227 138.45 262.227 130.911C262.227 123.372 256.472 117.842 248.506 117.842Z" fill="#7000FF"/>
+                                                    <path d="M413.227 154.867H426.777V131.284L447.88 154.867H463.908L442.028 130.168L462.208 106.758H446.277L426.753 129.275V91.8794H413.203V154.867H413.227Z" fill="#7000FF"/>
+                                                    <path d="M352.395 106.758H365.97V115.388H366.723C367.524 113.776 368.69 112.337 370.196 111.073C371.458 110.031 373.158 108.99 375.319 108.072C377.481 107.155 380.249 106.659 383.673 106.659C386.442 106.659 389.016 107.055 391.444 107.849C393.872 108.643 395.961 109.882 397.758 111.569C399.555 113.255 400.939 115.412 401.959 117.991C402.955 120.571 403.465 123.645 403.465 127.241V154.792H389.89V131.159C389.89 127.043 388.797 123.993 386.612 121.984C384.426 119.975 381.512 118.983 377.942 118.983C373.984 118.983 370.997 120.124 368.981 122.406C366.99 124.687 365.946 127.613 365.946 131.159V154.792H352.371V106.758H352.395Z" fill="#7000FF"/>
+                                                    <defs>
+                                                        <clipPath id="clip0_148_495">
+                                                            <rect y="0.5" width="174" height="174" rx="87" fill="white"/>
+                                                        </clipPath>
+                                                    </defs>
+                                                </svg>
+                                            </a>
+                                        </div>
                                     </div>
-                                </form>
-                            </div>
+                                    
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={() => window.open('https://t.me/TheDarkLord_555', '_blank')}
+                                            className="w-full py-3 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all animate-pulse"
+                                        >
+                                            <MessageSquare size={20} />
+                                            <span>Send Receipt & Get Key</span>
+                                        </button>
+                                        <p className="text-xs text-center text-gray-500 px-4">
+                                            After payment, send the screenshot to admin via Telegram to receive your access key immediately.
+                                        </p>
+                                    </div>
+                                    
+                                    <p className="text-center text-sm text-gray-500 mt-6">
+                                        Subscription cost: <span className="font-bold text-gray-900 dark:text-white">50,000 UZS</span> / week
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="p-6 text-center">
+                                    <div className="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+                                        <Lock size={32} className="text-white" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Premium Content</h2>
+                                    <p className="text-gray-500 mb-6">
+                                        This test is locked. Please enter your access key to continue.
+                                    </p>
+
+                                    <form onSubmit={handleUnlockSubmit} className="space-y-4">
+                                        <div>
+                                            <div className="relative flex items-center">
+                                                <div className="absolute left-3 pointer-events-none z-10">
+                                                    <Key className="text-gray-400" size={20} />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={keyInput}
+                                                    onChange={(e) => setKeyInput(e.target.value)}
+                                                    placeholder="Enter access key..."
+                                                    className="w-full pl-10 pr-20 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-lg dark:text-white"
+                                                    autoComplete="off"
+                                                    autoFocus
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        try {
+                                                            const text = await navigator.clipboard.readText();
+                                                            if (text) setKeyInput(text);
+                                                        } catch (err) {
+                                                            console.error('Failed to read clipboard', err);
+                                                        }
+                                                    }}
+                                                    className="absolute right-2 top-2 bottom-2 px-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold rounded-md transition-colors z-10 flex items-center"
+                                                >
+                                                    PASTE
+                                                </button>
+                                            </div>
+                                            {keyError && <p className="text-red-500 text-sm mt-2 font-medium animate-pulse">{keyError}</p>}
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPaymentOptions(true)}
+                                                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg shadow-blue-500/20 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 group border border-blue-400/20"
+                                            >
+                                                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-colors">
+                                                    <CreditCard size={20} className="text-white" />
+                                                </div>
+                                                <div className="flex flex-col items-start">
+                                                    <span className="text-xs font-medium text-blue-100">Get Subscription for 1 week</span>
+                                                    <span className="text-sm">50,000 UZS</span>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3 pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowKeyModal(false); setKeyInput(''); setKeyError(''); setTargetTestForUnlock(null); setShowPaymentOptions(false); }}
+                                                className="px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold shadow-lg shadow-orange-500/20 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                Unlock
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )
