@@ -68,6 +68,7 @@ export async function GET() {
                       name: baseName,
                       category: entry.name,
                       type: 'default',
+                      isPremium: baseName.toLowerCase().includes('premium'),
                       variants: {}
                   });
               }
@@ -90,6 +91,7 @@ export async function GET() {
                   name: group.name,
                   category: group.category,
                   type: group.type,
+                  isPremium: group.isPremium,
                   content: variants[primaryLang],
                   translations: variants // Pass all variants to frontend
               });

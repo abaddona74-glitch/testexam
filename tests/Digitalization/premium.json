@@ -1,0 +1,110 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Match the correct technology to the platform feature",
+      "options": {
+        "A": "Route optimization → GPS",
+        "B": "Fraud detection → AI",
+        "C": "Mobile payments → Cloud + APIs",
+        "D": "Secure transactions → Blockchain"
+      },
+      "correct_answer": "A, B, C, D"
+    },
+    {
+      "id": 2,
+      "question": "Match challenges to correct platforms",
+      "options": {
+        "A": "High courier costs → Food delivery",
+        "B": "Data privacy → All digital platforms",
+        "C": "Regulatory compliance → FinTech"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 3,
+      "question": "Which benefit of digitalization directly improves managerial decisions?",
+      "options": {
+        "A": "Data analytics",
+        "B": "Cost reduction",
+        "C": "Automation",
+        "D": "Increased efficiency"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 4,
+      "question": "Dark kitchens operate exclusively for dine-in customers.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 5,
+      "question": "Aggregator platforms usually own the services they provide.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 6,
+      "question": "Which platform type primarily connects customers and restaurants through delivery services?",
+      "options": {
+        "A": "FinTech platform",
+        "B": "Food delivery platform",
+        "C": "Renting platform",
+        "D": "Aggregator platform"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 7,
+      "question": "Which concept focuses on leveraging digital technologies to create new value and engagement?",
+      "options": {
+        "A": "Digitization",
+        "B": "Digitalization",
+        "C": "Automation",
+        "D": "Digital transformation"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 8,
+      "question": "Which technology enables real-time courier tracking in food delivery apps?",
+      "options": {
+        "A": "QR codes",
+        "B": "GPS",
+        "C": "Cloud storage",
+        "D": "Blockchain"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "Which revenue model is most common for food delivery platforms?",
+      "options": {
+        "A": "Advertising revenue",
+        "B": "Hardware sales",
+        "C": "Restaurant commissions",
+        "D": "Licensing fees"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 10,
+      "question": "Match the platform with its category",
+      "options": {
+        "A": "Payme → FinTech platform",
+        "B": "Revolut → Digital bank",
+        "C": "Airbnb → Renting platform",
+        "D": "Glovo → Multi-service delivery",
+        "E": "UberEats → Food delivery"
+      },
+      "correct_answer": "A, B, C, D, E"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift } from 'lucide-react';
+import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, Key } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -581,6 +581,13 @@ export default function Home() {
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
+    // Premium / Unlock State
+    const [unlockedTests, setUnlockedTests] = useState(new Set());
+    const [showKeyModal, setShowKeyModal] = useState(false);
+    const [keyInput, setKeyInput] = useState('');
+    const [targetTestForUnlock, setTargetTestForUnlock] = useState(null);
+    const [keyError, setKeyError] = useState('');
 
     // Toast State
     const [toasts, setToasts] = useState([]);
@@ -1295,7 +1302,57 @@ export default function Home() {
         }
     };
 
+    const handleUnlockSubmit = (e) => {
+        e.preventDefault();
+        
+        // Simulating Key Validation - Hardcoded to "trial2026"
+        if (keyInput === 'trial2026') {
+            setUnlockedTests(prev => new Set(prev).add(targetTestForUnlock.id));
+            
+            // Proceed to start test logic immediately
+            const test = targetTestForUnlock;
+            let translationContent = null;
+            const isEn = test.id.endsWith('en.json');
+            const isUz = test.id.endsWith('uz.json');
+
+            if (isEn || isUz) {
+                const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
+                const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
+                const translation = allTests.find(t => t.id === targetId);
+                if (translation) translationContent = translation.content;
+            }
+
+            if (savedProgress[test.id]) {
+                setActiveTest({
+                    ...test,
+                    ...savedProgress[test.id],
+                    translationContent, 
+                    isResumed: true
+                });
+                setView('test');
+            } else {
+                setPendingTest({ ...test, translationContent });
+                setShowDifficultyModal(true);
+            }
+
+            setShowKeyModal(false);
+            setKeyInput('');
+            setKeyError('');
+            setTargetTestForUnlock(null);
+            addToast("Success", "Premium test unlocked", "success");
+        } else {
+            setKeyError("Please enter a valid key");
+        }
+    };
+
     const startTest = (test) => {
+        // Premium Check
+        if (test.isPremium && !unlockedTests.has(test.id)) {
+            setTargetTestForUnlock(test);
+            setShowKeyModal(true);
+            return;
+        }
+
         // Check if there is a translation available (auto-detect counterpart in same folder)
         let translationContent = null;
         const isEn = test.id.endsWith('en.json');
@@ -2018,6 +2075,7 @@ export default function Home() {
                                                             badgeColor={badgeColor}
                                                             isUpdated={isUpdated}
                                                             hasProgress={!!savedProgress[test.id]}
+                                                            isLocked={test.isPremium && !unlockedTests.has(test.id)}
                                                         />
                                                     );
                                                 }) : (
@@ -2048,6 +2106,7 @@ export default function Home() {
                                                         badge="Community"
                                                         badgeColor="bg-green-100 text-green-700"
                                                         hasProgress={!!savedProgress[test.id]}
+                                                        isLocked={test.isPremium && !unlockedTests.has(test.id)}
                                                     />
                                                 ))}
                                             </div>
@@ -2825,6 +2884,57 @@ export default function Home() {
                     </div>
                 )
             }
+            {/* Key Unlock Modal */}
+            {
+                showKeyModal && (
+                    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 dark:border-gray-800 overflow-hidden transform transition-all scale-100">
+                             <div className="p-6 text-center">
+                                <div className="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+                                    <Lock size={32} className="text-white" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Premium Content</h2>
+                                <p className="text-gray-500 mb-6">
+                                    This test is locked. Please enter your access key to continue.
+                                </p>
+                                
+                                <form onSubmit={handleUnlockSubmit} className="space-y-4">
+                                    <div>
+                                        <div className="relative">
+                                            <Key className="absolute left-3 top-3.5 text-gray-400" size={20} />
+                                            <input
+                                                type="text"
+                                                value={keyInput}
+                                                onChange={(e) => setKeyInput(e.target.value)}
+                                                placeholder="Enter access key..."
+                                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-lg dark:text-white"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        {keyError && <p className="text-red-500 text-sm mt-2 font-medium animate-pulse">{keyError}</p>}
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setShowKeyModal(false); setKeyInput(''); setKeyError(''); setTargetTestForUnlock(null); }}
+                                            className="px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold shadow-lg shadow-orange-500/20 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            Unlock
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
             {/* JSON Error Modal */}
             {
                 jsonError && (
@@ -2885,7 +2995,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, activeUsers = [] }) {
+function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, activeUsers = [], isLocked }) {
     const [selectedLang, setSelectedLang] = useState(() => {
         if (!test.translations) return null;
         return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
@@ -2927,9 +3037,14 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                         <RefreshCcw size={12} strokeWidth={3} /> UPDATED
                     </div>
                 )}
-                {hasProgress && (
+                {hasProgress && !isLocked && (
                     <div className={clsx("bg-orange-100 text-orange-700 text-xs px-2 py-1 font-medium flex items-center gap-1", isUpdated ? "" : "rounded-bl-lg")}>
                         <Save size={12} /> Resumable
+                    </div>
+                )}
+                {isLocked && (
+                    <div className={clsx("bg-amber-100 text-amber-700 text-xs px-2 py-1 font-bold flex items-center gap-1", isUpdated ? "" : "rounded-bl-lg")}>
+                        <Lock size={12} /> PREMIUM
                     </div>
                 )}
             </div>
@@ -3017,13 +3132,15 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 onClick={handleStart}
                 className={clsx(
                     "mt-4 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
-                    hasProgress
+                    isLocked 
+                        ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/10 dark:border-amber-800 dark:text-amber-500 hover:border-amber-300" 
+                        : hasProgress
                         ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400"
                         : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-200 dark:hover:text-blue-400 dark:hover:border-blue-700"
                 )}
             >
-                {hasProgress ? <Play size={18} /> : <Play size={18} />}
-                {hasProgress ? "Resume Attempt" : "Start Attempt"}
+                {isLocked ? <Lock size={18} /> : (hasProgress ? <Play size={18} /> : <Play size={18} />)}
+                {isLocked ? "Unlock Access" : (hasProgress ? "Resume Attempt" : "Start Attempt")}
             </button>
         </div>
     );
