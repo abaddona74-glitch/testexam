@@ -2012,6 +2012,7 @@ export default function Home() {
                                                         <TestCard
                                                             key={test.id}
                                                             test={test}
+                                                            activeUsers={globalActiveUsers}
                                                             onStart={(t) => startTest(t || test)}
                                                             badge={badgeLabel}
                                                             badgeColor={badgeColor}
@@ -2042,6 +2043,7 @@ export default function Home() {
                                                     <TestCard
                                                         key={test.id}
                                                         test={test}
+                                                        activeUsers={globalActiveUsers}
                                                         onStart={(t) => startTest(t || test)}
                                                         badge="Community"
                                                         badgeColor="bg-green-100 text-green-700"
@@ -2868,7 +2870,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated }) {
+function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, activeUsers = [] }) {
     const [selectedLang, setSelectedLang] = useState(() => {
         if (!test.translations) return null;
         return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
@@ -2885,6 +2887,9 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     const questionCount = activeContent?.test_questions?.length || 0;
 
     const languages = test.translations ? Object.keys(test.translations) : [];
+
+    // Filter active users for this test
+    const currentTestUsers = activeUsers.filter(u => u.testId === test.id && u.status === 'in-test');
 
     const handleStart = () => {
         if (selectedLang && test.translations) {
@@ -2962,14 +2967,41 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200 mb-1 group-hover:text-blue-600 transition-colors">
                     {test.name}
                 </h3>
-                <p className="text-gray-500 text-sm">
-                    {questionCount} Questions
-                </p>
+                <div className="flex justify-between items-center">
+                    <p className="text-gray-500 text-sm">
+                        {questionCount} Questions
+                    </p>
+                    
+                    {/* Active Users Avatars */}
+                    {currentTestUsers.length > 0 && (
+                        <div className="flex -space-x-2 h-8 items-center" title={`${currentTestUsers.length} people solving this`}>
+                            {currentTestUsers.slice(0, 3).map((user, i) => (
+                                <div 
+                                    key={i} 
+                                    className="inline-flex h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-indigo-100 items-center justify-center text-xs font-bold text-indigo-700 cursor-help relative group/avatar z-10 hover:z-50"
+                                >
+                                    {user.name.charAt(0).toUpperCase()}
+                                    <div className="absolute top-1/2 right-full mr-2 -translate-y-1/2 hidden group-hover/avatar:block bg-gray-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-50 shadow-lg">
+                                        {user.name}
+                                        {/* Little Triangle Pointer */}
+                                        <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                                    </div>
+                                </div>
+                            ))}
+                            {currentTestUsers.length > 3 && (
+                                <div className="inline-flex h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-100 items-center justify-center text-xs font-bold text-gray-500 z-0">
+                                    +{currentTestUsers.length - 3}
+                                </div>
+                            )}
+                            <span className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Solving now"></span>
+                        </div>
+                    )}
+                </div>
             </div>
             <button
                 onClick={handleStart}
                 className={clsx(
-                    "mt-6 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
+                    "mt-4 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
                     hasProgress
                         ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400"
                         : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-200 dark:hover:text-blue-400 dark:hover:border-blue-700"
