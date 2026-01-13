@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, Key } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -676,6 +676,7 @@ export default function Home() {
 
         // Load Premium Unlocks
         const storedPremiumUnlocks = localStorage.getItem('examApp_premiumUnlocks');
+        console.log('[DEBUG] Loading premium unlocks from localStorage:', storedPremiumUnlocks);
         if (storedPremiumUnlocks) {
             try {
                 const parsedUnlocks = JSON.parse(storedPremiumUnlocks);
@@ -683,12 +684,14 @@ export default function Home() {
                 const validUnlocks = new Set();
                 
                 Object.keys(parsedUnlocks).forEach(testId => {
+                    console.log('[DEBUG] Checking testId:', testId, 'expiry:', parsedUnlocks[testId], 'now:', now, 'valid:', parsedUnlocks[testId] > now);
                     // Check if subscription is still valid
                     if (parsedUnlocks[testId] > now) {
                         validUnlocks.add(testId);
                     }
                 });
                 
+                console.log('[DEBUG] Valid unlocks Set:', [...validUnlocks]);
                 if (validUnlocks.size > 0) {
                     setUnlockedTests(validUnlocks);
                 }
@@ -1367,7 +1370,11 @@ export default function Home() {
                 const expiryDate = data.expiryDate;
 
                 // Update State
-                setUnlockedTests(prev => new Set(prev).add(targetTestForUnlock.id));
+                setUnlockedTests(prev => {
+                    const newSet = new Set(prev);
+                    newSet.add(targetTestForUnlock.id);
+                    return newSet;
+                });
 
                 // Persist to LocalStorage
                 try {
@@ -1375,7 +1382,7 @@ export default function Home() {
                     storedPremiumUnlocks[targetTestForUnlock.id] = expiryDate;
                     localStorage.setItem('examApp_premiumUnlocks', JSON.stringify(storedPremiumUnlocks));
                     
-                    addToast('Premium Unlocked!', 'Access granted for 1 week', 'success');
+                    addToast('Premium Unlocked!', `Access granted for ${targetTestForUnlock.name}`, 'success');
                 } catch (err) {
                     console.error("Failed to save unlock", err);
                 }
@@ -1421,9 +1428,11 @@ export default function Home() {
     };
 
     const startTest = (test) => {
-        // Premium Check
-        if (test.isPremium && !unlockedTests.has(test.id)) {
-            setTargetTestForUnlock(test);
+        // Premium Check - use baseId if available (for translated tests)
+        const checkId = test.baseId || test.id;
+        if (test.isPremium && !unlockedTests.has(checkId)) {
+            // Store the original test with baseId for unlock
+            setTargetTestForUnlock({ ...test, id: checkId });
             setShowKeyModal(true);
             return;
         }
@@ -2140,6 +2149,14 @@ export default function Home() {
                                                     // Check if Updated recently (e.g. within 3 days)
                                                     const isUpdated = test.updatedAt && (new Date() - new Date(test.updatedAt) < 3 * 24 * 60 * 60 * 1000);
 
+                                                    // Check unlock status - also check with common base patterns
+                                                    const testIsUnlocked = test.isPremium && (
+                                                        unlockedTests.has(test.id) || 
+                                                        unlockedTests.has(`${test.id}_en`) || 
+                                                        unlockedTests.has(`${test.id}_uz`)
+                                                    );
+                                                    console.log('[DEBUG] TestCard render:', test.id, 'isPremium:', test.isPremium, 'unlockedTests:', [...unlockedTests], 'isUnlocked:', testIsUnlocked);
+
                                                     return (
                                                         <TestCard
                                                             key={test.id}
@@ -2150,7 +2167,8 @@ export default function Home() {
                                                             badgeColor={badgeColor}
                                                             isUpdated={isUpdated}
                                                             hasProgress={!!savedProgress[test.id]}
-                                                            isLocked={test.isPremium && !unlockedTests.has(test.id)}
+                                                            isLocked={test.isPremium && !testIsUnlocked}
+                                                            isUnlocked={testIsUnlocked}
                                                         />
                                                     );
                                                 }) : (
@@ -2182,6 +2200,7 @@ export default function Home() {
                                                         badgeColor="bg-green-100 text-green-700"
                                                         hasProgress={!!savedProgress[test.id]}
                                                         isLocked={test.isPremium && !unlockedTests.has(test.id)}
+                                                        isUnlocked={test.isPremium && unlockedTests.has(test.id)}
                                                     />
                                                 ))}
                                             </div>
@@ -3232,7 +3251,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, activeUsers = [], isLocked }) {
+function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, activeUsers = [], isLocked, isUnlocked }) {
     const [selectedLang, setSelectedLang] = useState(() => {
         if (!test.translations) return null;
         return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
@@ -3253,11 +3272,15 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     // Filter active users for this test
     const currentTestUsers = activeUsers.filter(u => u.testId === test.id && u.status === 'in-test');
 
+    // Get the base ID (without language suffix) for premium checking
+    const baseTestId = test.id;
+
     const handleStart = () => {
         if (selectedLang && test.translations) {
             onStart({
                 ...test,
                 id: `${test.id}_${selectedLang}`, // Unique ID for progress saving
+                baseId: baseTestId, // Keep base ID for premium checking
                 content: activeContent,
                 language: selectedLang
             });
@@ -3282,6 +3305,14 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 {isLocked && (
                     <div className={clsx("bg-amber-100 text-amber-700 text-xs px-2 py-1 font-bold flex items-center gap-1", isUpdated ? "" : "rounded-bl-lg")}>
                         <Lock size={12} /> PREMIUM
+                    </div>
+                )}
+                {isUnlocked && (
+                    <div className={clsx("bg-green-100 text-green-700 text-xs px-2 py-1 font-bold flex items-center gap-1", isUpdated ? "" : "rounded-bl-lg")}>
+                        <div className="relative">
+                           <LockOpen size={12} className="text-green-700"/>
+                        </div> 
+                        UNLOCKED
                     </div>
                 )}
             </div>
@@ -3370,14 +3401,18 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 className={clsx(
                     "mt-4 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
                     isLocked
-                        ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/10 dark:border-amber-800 dark:text-amber-500 hover:border-amber-300"
-                        : hasProgress
-                            ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400"
-                            : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-200 dark:hover:text-blue-400 dark:hover:border-blue-700"
+                        ? "bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-100 hover:border-amber-300 shadow-sm"
+                        : (isUnlocked 
+                            ? "bg-green-600 border-green-600 text-white hover:bg-green-700 shadow-md transform hover:-translate-y-0.5"
+                            : (hasProgress
+                                ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400"
+                                : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-200 dark:hover:text-blue-400 dark:hover:border-blue-700"
+                            )
+                        )
                 )}
             >
-                {isLocked ? <Lock size={18} /> : (hasProgress ? <Play size={18} /> : <Play size={18} />)}
-                {isLocked ? "Unlock Access" : (hasProgress ? "Resume Attempt" : "Start Attempt")}
+                {isLocked ? <Lock size={18} /> : <Play size={18} className={isUnlocked ? "fill-white" : ""} />}
+                {isLocked ? "Unlock Access" : (hasProgress ? "Resume Attempt" : (isUnlocked ? "Start Premium Attempt" : "Start Attempt"))}
             </button>
         </div>
     );
