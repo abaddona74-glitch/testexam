@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, Key } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, Key } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -3163,6 +3163,220 @@ function TranslatableText({ text, translation, type = 'text' }) {
     );
 }
 
+function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion }) {
+    // Parse Pairs from "A -> B" strings
+    // Need state to track user's matches: { [leftText]: rightText }
+    // Problem: Page re-renders when `answers` changes, but we shouldn't submit answer until ALL pairs are matched.
+    // So we need local state here, and only call `handleAnswer` when done?
+    // BUT `handleAnswer` expects a single ID (e.g. "A"). For multiple choice we select one.
+    // The JSON says `correct_answer: "A, B, C, D"`. This implies we need to submit ALL of them?
+    // Or just submit "A_B_C_D"?
+    // The current engine checks `answers[currentIndex] === question.correct_answer`.
+    // So if correct_answer is "A, B, C, D", we need to construct exactly that string?
+    // Wait, the user's logic might be "Select all that apply" OR "Matching".
+    // For Matching, the "game" is to match Lefts to Rights.
+    // If we assume a "Matching" type, the concept of "Option ID" is reusable if we map pairs back to IDs.
+    
+    // Let's parse the options first.
+    const pairs = useMemo(() => {
+        return question.shuffledOptions.map(opt => {
+            const parts = opt.text.split('→').map(s => s.trim());
+            return {
+                id: opt.id,
+                left: parts[0],
+                right: parts[1], // This is the Correct Right for this Left (defined in option text)
+            };
+        });
+    }, [question]);
+
+    // Initialize local state for the Drag/Drop interaction
+    // We need:
+    // 1. List of Left items (fixed order or shuffled?) -> Fixed Usually
+    // 2. List of Right items (shuffled pool)
+    // 3. Current associations: { [leftSideText]: rightSideText }
+    
+    const [leftItems] = useState(pairs.map(p => p.left));
+    // Provide Right items pool shuffled
+    const [rightPool, setRightPool] = useState(() => {
+        const rights = pairs.map(p => p.right);
+        // Shuffle
+        return rights.sort(() => Math.random() - 0.5);
+    });
+    
+    const [matches, setMatches] = useState({}); // { leftText: rightText }
+
+    const handleMatch = (left, right) => {
+        setMatches(prev => {
+           const newMatches = { ...prev };
+           // If right was already used elsewhere, remove it from there
+           Object.keys(newMatches).forEach(key => {
+               if (newMatches[key] === right) delete newMatches[key];
+           });
+           
+           if (newMatches[left] === right) {
+               delete newMatches[left]; // Toggle off if clicked again? Or just set.
+           } else {
+               newMatches[left] = right;
+           }
+           return newMatches;
+        });
+    };
+
+    // When matches change, we need to verify if the user is "Done".
+    // Or we provide a "Submit" button?
+    // Current UI doesn't have a "Submit" button separate from next. 
+    // Usually clicking an option calls `handleAnswer`.
+    // Here we need to construct the answer string "A, B, C..." if matches are correct?
+    // No, we should construct a string that REPRESENTS the user's choice.
+    // BUT standard system expects a string.
+    // If correct_answer is "A, B, C, D", it means "Option A is valid, Option B is valid...".
+    // This looks like simple Multi-Select if we just look at "correct_answer".
+    // BUT user implicitly wants MATCHING game because of "->".
+    // If user matches Payme -> FinTech, that corresponds to Option A (Payme->Fintech).
+    // So if user matches ALL pairs correctly, they have effectively selected options A, B, C, D, E.
+    // So we invoke `handleAnswer("A, B, C, D...")` when ALL are matched?
+    // Or better: We handle validation internally here?
+    // The engine checks `answers[idx] === correct`.
+    // So we must produce a string equal to `question.correct_answer` ("A, B, C, D") ONLY if user matches everything 100% correct.
+    // If they match wrong, we produce "WRONG".
+    
+    // Let's look at `correct_answer`: "A, B, C"
+    // So we need to match the IDs of the pairs the user successfully recreated.
+    // For each `left` item, user picked `right`.
+    // Find the pair in `pairs` where `p.left === left` AND `p.right === right`.
+    // If found, that is a valid Option ID (e.g. "A").
+    // Collect all valid Option IDs found.
+    // If the set of collected IDs matches the set in `correct_answer`, then we send `correct_answer`.
+    
+    useEffect(() => {
+        const userMatchedIDs = [];
+        let allMatched = true;
+        
+        // Check every Left Item
+        pairs.forEach(p => {
+            const userRight = matches[p.left];
+            if (!userRight) {
+                allMatched = false;
+                return;
+            }
+            
+            // Did user match correctly?
+            if (userRight === p.right) {
+                 userMatchedIDs.push(p.id);
+            } else {
+                 // User matched wrong.
+                 // We don't push valid ID.
+            }
+        });
+
+        // If user has filled ALL slots
+        if (Object.keys(matches).length === pairs.length) {
+            // Construct answer string.
+            // Original correct_answer is "A, B, C, D" (comma space sep).
+            // We should reconstruct format.
+            // If user got A and B right, but C wrong, result is "A, B". 
+            // If correct is "A, B, C", then user is wrong.
+            // Our standard engine checks strict equality `userAnswer === correctAnswer`.
+            // So we just sort and join.
+            const derivedAnswer = userMatchedIDs.sort().join(', ');
+            // Ensure we send truthy string even if no correct matches, to avoid "Skip" modal
+            handleAnswer(derivedAnswer === "" ? "NO_MATCH" : derivedAnswer); 
+        }
+    }, [matches, pairs]);
+    
+    // We also need to support "Multi-Select" logic from JSON which has "A, B, C".
+    // Actually, "Matching" implies ALL must be correct effectively.
+    
+    return (
+        <div className="space-y-4">
+             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-2">
+                <Settings size={16} />
+                <span>Match the items on the left with the correct category on the right.</span>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
+                 {/* Left Side (Drop Zones / Targets) */}
+                 <div className="space-y-3">
+                     {pairs.map((p, i) => (
+                         <div key={p.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl">
+                             <span className="font-bold text-gray-800 dark:text-gray-200">{p.left}</span>
+                             <div className="h-4 w-4 text-gray-400">
+                                <ArrowRight size={16} />
+                             </div>
+                         </div>
+                     ))}
+                 </div>
+
+                 {/* Right Side (Slots & Interaction) */}
+                 <div className="space-y-3">
+                    {pairs.map((p) => {
+                        const filled = matches[p.left];
+                        return (
+                             <div 
+                                key={`slot-${p.left}`} 
+                                className={clsx(
+                                    "p-3 rounded-xl border-2 border-dashed flex items-center justify-between min-h-[52px] cursor-pointer transition-all",
+                                    filled 
+                                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" 
+                                     : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:border-blue-300"
+                                )}
+                                onClick={() => {
+                                    // If filled, remove. 
+                                    if (filled) {
+                                        setMatches(curr => {
+                                            const next = {...curr};
+                                            delete next[p.left];
+                                            return next;
+                                        });
+                                    }
+                                }}
+                             >
+                                {filled ? (
+                                    <span className="font-semibold text-blue-700 dark:text-blue-300">{filled}</span>
+                                ) : (
+                                    <span className="text-sm text-gray-400 italic">Select match...</span>
+                                )}
+                                {filled && <X size={14} className="text-blue-400 hover:text-red-500" />}
+                             </div>
+                        );
+                    })}
+                 </div>
+             </div>
+
+             {/* Pool of Options */}
+             <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Available Options</p>
+                 <div className="flex flex-wrap gap-2">
+                     {rightPool.map((text, idx) => {
+                         // Check if used
+                         const isUsed = Object.values(matches).includes(text);
+                         if (isUsed) return null; // Hide used options
+
+                         return (
+                             <button
+                                key={idx}
+                                onClick={() => {
+                                    // Find first empty slot
+                                    const firstEmptyLeft = pairs.find(p => !matches[p.left]);
+                                    if (firstEmptyLeft) {
+                                        handleMatch(firstEmptyLeft.left, text);
+                                    }
+                                }}
+                                className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md hover:border-blue-400 transition-all font-medium text-sm text-gray-700 dark:text-gray-300 active:scale-95"
+                             >
+                                 {text}
+                             </button>
+                         );
+                     })}
+                     {rightPool.every(t => Object.values(matches).includes(t)) && (
+                         <span className="text-sm text-gray-400 italic py-2">All items placed. Review your matches.</span>
+                     )}
+                 </div>
+             </div>
+        </div>
+    );
+}
+
 function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
@@ -3523,8 +3737,28 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         try {
             let score = 0;
             test.questions.forEach((q, idx) => {
-                if (answers[idx] === q.correct_answer) {
+                const ua = answers[idx];
+                const ca = q.correct_answer;
+
+                if (ua === ca) {
                     score++;
+                } else if (ca && ca.includes(',')) {
+                    // Partial Credit for Multi/Matching
+                    const correctIds = ca.split(',').map(s => s.trim());
+                    const userIds = (ua || '').split(',').map(s => s.trim());
+                    
+                    // Filter out empty or invalid "NO_MATCH"
+                    const validUserIds = userIds.filter(id => id && id !== 'NO_MATCH');
+                    
+                    // Count matches
+                    const matchCount = validUserIds.reduce((acc, id) => {
+                        return correctIds.includes(id) ? acc + 1 : acc;
+                    }, 0);
+
+                    // Add fraction (e.g. 1/4 = 0.25)
+                    if (correctIds.length > 0) {
+                        score += (matchCount / correctIds.length);
+                    }
                 }
             });
 
@@ -3711,8 +3945,23 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                             {test.questions.map((q, idx) => {
                                 const userAnswer = answers[idx];
                                 const isCorrect = userAnswer === q.correct_answer;
-                                const userOption = q.shuffledOptions.find(o => o.id === userAnswer);
-                                const correctOption = q.shuffledOptions.find(o => o.id === q.correct_answer);
+                                // Multi-Answer / Matching Logic check
+                                const isMulti = q.correct_answer && q.correct_answer.includes(',');
+
+                                // Helper to formatting
+                                const formatAnswer = (ansStr) => {
+                                    if (!ansStr || ansStr === 'NO_MATCH') return "No valid selection";
+                                    if (!ansStr.includes(',')) {
+                                        const opt = q.shuffledOptions.find(o => o.id === ansStr);
+                                        return opt ? opt.text : ansStr;
+                                    }
+                                    // Multi handling
+                                    return ansStr.split(',').map(id => {
+                                        const opt = q.shuffledOptions.find(o => o.id === id.trim());
+                                        // For matching, option text is "Left -> Right"
+                                        return opt ? `[${id}] ${opt.text}` : id;
+                                    }).join('  |  ');
+                                };
 
                                 return (
                                     <div key={q.id} className="p-6 hover:bg-gray-50 dark:bg-gray-950 transition-colors group">
@@ -3721,7 +3970,14 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                                 {isCorrect ? (
                                                     <CheckCircle2 className="text-green-500" size={24} />
                                                 ) : (
-                                                    <XCircle className="text-red-500" size={24} />
+                                                    <div className="relative">
+                                                         <XCircle className="text-red-500" size={24} />
+                                                         {isMulti && (
+                                                             <span className="absolute -bottom-2 -right-2 text-[10px] bg-blue-100 text-blue-800 px-1 rounded border border-blue-200">
+                                                                 Partial
+                                                             </span>
+                                                         )}
+                                                    </div>
                                                 )}
                                             </div>
                                             <div className="flex-1">
@@ -3741,15 +3997,19 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                                         <Flag size={16} />
                                                     </button>
                                                 </div>
-                                                <div className="text-sm space-y-1">
-                                                    <div className={clsx("flex items-center gap-2", isCorrect ? "text-green-700" : "text-red-700")}>
-                                                        <span className="font-semibold w-24 flex-shrink-0">Your Answer:</span>
-                                                        <span>{userOption ? userOption.text : "Skipped"}</span>
+                                                <div className="text-sm space-y-2 mt-3 p-3 bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-800/50">
+                                                    <div className={clsx("flex flex-col gap-1", isCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
+                                                        <span className="font-bold text-xs uppercase tracking-wider opacity-70">Your Answer</span>
+                                                        <span className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-gray-100 dark:border-gray-700/50">
+                                                            {formatAnswer(userAnswer)}
+                                                        </span>
                                                     </div>
                                                     {!isCorrect && (
-                                                        <div className="flex items-center gap-2 text-green-700">
-                                                            <span className="font-semibold w-24 flex-shrink-0">Correct:</span>
-                                                            <span>{correctOption?.text}</span>
+                                                        <div className="flex flex-col gap-1 text-green-700 dark:text-green-400 mobile-mt-2">
+                                                            <span className="font-bold text-xs uppercase tracking-wider opacity-70">Correct Answer</span>
+                                                            <span className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-green-100 dark:border-green-900/30 bg-green-50/10">
+                                                                {formatAnswer(q.correct_answer)}
+                                                            </span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -3981,47 +4241,58 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     </h2>
 
                     <div className="space-y-3 flex-1">
-                        {question.shuffledOptions.map((option, idx) => {
-                            const isSelected = answers[currentIndex] === option.id;
-                            const isEliminated = (revealedHints[currentIndex] || []).includes(option.id);
-                            // Find option translation in translatedQuestion
-                            // Note: option.id is 'A', 'B', etc.
-                            const translatedOptionText = translatedQuestion?.options?.[option.id];
+                        {/* Check if it's a Matching Question (contains '→') */}
+                        {question.shuffledOptions.every(o => o.text.includes('→')) ? (
+                            <MatchingQuestionComponent 
+                                key={question.id} // Reset state on new question
+                                question={question}
+                                answers={answers}
+                                currentIndex={currentIndex}
+                                handleAnswer={handleAnswer}
+                                revealedHints={revealedHints}
+                                activatedCheats={activatedCheats}
+                                translatedQuestion={translatedQuestion}
+                            />
+                        ) : (
+                            question.shuffledOptions.map((option, idx) => {
+                                const isSelected = answers[currentIndex] === option.id;
+                                const isEliminated = (revealedHints[currentIndex] || []).includes(option.id);
+                                const translatedOptionText = translatedQuestion?.options?.[option.id];
+                                const isCorrect = option.id === question.correct_answer;
+                                const isGodMode = activatedCheats?.includes('godmode');
 
-                            const isCorrect = option.id === question.correct_answer;
-                            const isGodMode = activatedCheats?.includes('godmode');
-
-                            return (
-                                <button
-                                    key={idx}
-                                    disabled={isEliminated}
-                                    onClick={() => !isEliminated && handleAnswer(option.id)}
-                                    className={clsx(
-                                        "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
-                                        isEliminated ? "opacity-30 cursor-not-allowed border-gray-100 dark:border-gray-800/50 bg-gray-50 dark:bg-gray-950 grayscale" : (
-                                            isSelected
-                                                ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm"
-                                                : (isGodMode && isCorrect)
-                                                    ? "border-green-500 bg-green-50 text-green-900 shadow-sm ring-2 ring-green-400"
-                                                    : "border-gray-100 dark:border-gray-800/50 hover:border-blue-200 hover:bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-100"
-                                        )
-                                    )}
-                                >
-                                    <div className={clsx(
-                                        "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border transiton-colors",
-                                        isSelected ? "bg-blue-600 border-blue-600 text-white" : "bg-white dark:bg-gray-800 border-gray-200 text-gray-400"
-                                    )}>
-                                        {String.fromCharCode(65 + idx)}
-                                    </div>
-                                    <span className="font-medium">
-                                        <TranslatableText
-                                            text={option.text}
-                                            translation={translatedOptionText}
-                                        />
-                                    </span>
-                                </button>
-                            );
-                        })}
+                                return (
+                                    <button
+                                        key={idx}
+                                        disabled={isEliminated}
+                                        onClick={() => !isEliminated && handleAnswer(option.id)}
+                                        className={clsx(
+                                            "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
+                                            isEliminated ? "opacity-30 cursor-not-allowed border-gray-100 dark:border-gray-800/50 bg-gray-50 dark:bg-gray-950 grayscale" : (
+                                                isSelected
+                                                    ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm"
+                                                    : (isGodMode && isCorrect)
+                                                        ? "border-green-500 bg-green-50 text-green-900 shadow-sm ring-2 ring-green-400"
+                                                        : "border-gray-100 dark:border-gray-800/50 hover:border-blue-200 hover:bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-100"
+                                            )
+                                        )}
+                                    >
+                                        <div className={clsx(
+                                            "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border transiton-colors",
+                                            isSelected ? "bg-blue-600 border-blue-600 text-white" : "bg-white dark:bg-gray-800 border-gray-200 text-gray-400"
+                                        )}>
+                                            {String.fromCharCode(65 + idx)}
+                                        </div>
+                                        <span className="font-medium">
+                                            <TranslatableText
+                                                text={option.text}
+                                                translation={translatedOptionText}
+                                            />
+                                        </span>
+                                    </button>
+                                );
+                            })
+                        )}
                     </div>
 
                     <div className="mt-10 flex justify-between items-center">
