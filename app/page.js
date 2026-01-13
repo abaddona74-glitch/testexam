@@ -280,7 +280,7 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
     const handleSpin = (type) => {
         if (spinning) return;
         setPrize(null);
-        
+
         // Attempt to start spin
         const success = onSpinStart(type);
         if (!success) return;
@@ -289,15 +289,15 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
 
         // Determine result based on weighted probability
         let selectedIndex = 0;
-        
+
         if (forceLucky) {
-             const luckyItems = SPINNER_ITEMS.filter(i => i.type !== 'empty');
-             const luckyItem = luckyItems[Math.floor(Math.random() * luckyItems.length)];
-             selectedIndex = SPINNER_ITEMS.findIndex(i => i.id === luckyItem.id);
+            const luckyItems = SPINNER_ITEMS.filter(i => i.type !== 'empty');
+            const luckyItem = luckyItems[Math.floor(Math.random() * luckyItems.length)];
+            selectedIndex = SPINNER_ITEMS.findIndex(i => i.id === luckyItem.id);
         } else {
             const rand = Math.random();
             let cumulative = 0;
-            
+
             for (let i = 0; i < SPINNER_ITEMS.length; i++) {
                 cumulative += SPINNER_ITEMS[i].probability;
                 if (rand <= cumulative) {
@@ -309,25 +309,25 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
 
         // Calculate rotation
         const segmentAngle = 360 / SPINNER_ITEMS.length;
-        const randomOffset = Math.floor(Math.random() * (segmentAngle - 4)) - (segmentAngle/2 - 2); 
-        
+        const randomOffset = Math.floor(Math.random() * (segmentAngle - 4)) - (segmentAngle / 2 - 2);
+
         // Target angle for the selected item to be at the top
         // Start from a clean modulo 360 representation of where we want to land
         const targetBaseAngle = (360 - (selectedIndex * segmentAngle)) + randomOffset;
-        
+
         // Add minimum spins to the CURRENT rotation
         const minSpins = 360 * 8; // 8 full spins
         const rawNextRotation = rotation + minSpins;
-        
+
         // Calculate adjustment needed to land on targetBaseAngle
         // (rawNextRotation + adjustment) % 360 = targetBaseAngle
         const currentMod = rawNextRotation % 360;
         let adjustment = targetBaseAngle - currentMod;
-        
+
         // Ensure we always rotate forward or at least don't spin "backwards" too much relative to the visual velocity
         // Actually, ensuring adjustment is positive is safest for consistent speed feeling
         if (adjustment < 0) adjustment += 360;
-        
+
         const totalRotation = rawNextRotation + adjustment;
 
         setRotation(totalRotation);
@@ -336,7 +336,7 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
             setSpinning(false);
             const wonItem = SPINNER_ITEMS[selectedIndex];
             setPrize(wonItem);
-            
+
             if (wonItem.type !== 'empty') {
                 confetti({
                     particleCount: 100,
@@ -365,21 +365,21 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                 <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
                     <div className="text-center mb-8">
                         <div className="flex items-center justify-between mb-2">
-                             <div className="flex flex-col items-start gap-1">
-                                 <div className="text-xs font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-gray-500">
+                            <div className="flex flex-col items-start gap-1">
+                                <div className="text-xs font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-gray-500">
                                     Spins: <span className={freeSpins > 0 || isDev ? "text-green-600 font-bold" : "text-gray-500"}>
                                         {isDev ? "Infinite" : `${freeSpins}/10`}
                                     </span>
-                                 </div>
-                                 {!isDev && freeSpins < 10 && nextSpin && (
-                                     <span className="text-[10px] text-gray-400 font-mono pl-1">
-                                         Next in: {nextSpin}
-                                     </span>
-                                 )}
-                             </div>
-                             <div className="text-xs font-mono bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded text-yellow-700 dark:text-yellow-500">
+                                </div>
+                                {!isDev && freeSpins < 10 && nextSpin && (
+                                    <span className="text-[10px] text-gray-400 font-mono pl-1">
+                                        Next in: {nextSpin}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="text-xs font-mono bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded text-yellow-700 dark:text-yellow-500">
                                 Stars: {userStars}
-                             </div>
+                            </div>
                         </div>
                         <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
                             Lucky Spin
@@ -404,7 +404,7 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                             style={{ transform: `rotate(${rotation}deg)` }}
                         >
                             {/* Simplified Wheel using Conic Gradient Background + Absolute Icons */}
-                             <div className="absolute inset-0 rounded-full" 
+                            <div className="absolute inset-0 rounded-full"
                                 style={{
                                     background: `conic-gradient(
                                         from -11.25deg,
@@ -428,29 +428,29 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                                 }}>
                             </div>
 
-                             {/* Render Items */}
-                             {SPINNER_ITEMS.map((item, idx) => {
-                                 const angle = (360 / SPINNER_ITEMS.length) * idx;
-                                 return (
-                                     <div
-                                         key={item.id}
-                                         className="absolute top-0 left-1/2 w-0 h-[50%] origin-bottom flex flex-col items-center justify-start pt-3"
-                                         style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
-                                     >
-                                         <div className="text-[10px] font-bold text-gray-600 dark:text-gray-800 text-center w-16 break-words leading-tight">
-                                           {item.label}
-                                         </div>
-                                         <div className={`mt-1 p-1 rounded-full ${item.color.split(' ')[0]}`}>
+                            {/* Render Items */}
+                            {SPINNER_ITEMS.map((item, idx) => {
+                                const angle = (360 / SPINNER_ITEMS.length) * idx;
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className="absolute top-0 left-1/2 w-0 h-[50%] origin-bottom flex flex-col items-center justify-start pt-3"
+                                        style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
+                                    >
+                                        <div className="text-[10px] font-bold text-gray-600 dark:text-gray-800 text-center w-16 break-words leading-tight">
+                                            {item.label}
+                                        </div>
+                                        <div className={`mt-1 p-1 rounded-full ${item.color.split(' ')[0]}`}>
                                             <item.icon size={14} className={item.color.split(' ')[1] || 'text-gray-700'} />
-                                         </div>
-                                     </div>
-                                 );
-                             })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                         
-                         {/* Center Cap */}
+
+                        {/* Center Cap */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-100 flex items-center justify-center z-10">
-                             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
                         </div>
                     </div>
 
@@ -502,7 +502,7 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                         >
                             Spin for 10 Stars <Star size={14} />
                         </button>
-                        
+
                         <button
                             onClick={onClose}
                             className="mt-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm underline decoration-gray-300 underline-offset-4"
@@ -530,21 +530,21 @@ function ToastContainer({ toasts, removeToast }) {
                         className={clsx(
                             "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border backdrop-blur-md min-w-[300px]",
                             toast.type === 'success' ? "bg-white/90 dark:bg-gray-800/90 border-green-200 text-green-700" :
-                            toast.type === 'error' ? "bg-white/90 dark:bg-gray-800/90 border-red-200 text-red-700" :
-                            "bg-white/90 dark:bg-gray-800/90 border-gray-200 text-gray-700"
+                                toast.type === 'error' ? "bg-white/90 dark:bg-gray-800/90 border-red-200 text-red-700" :
+                                    "bg-white/90 dark:bg-gray-800/90 border-gray-200 text-gray-700"
                         )}
                     >
                         {toast.type === 'success' ? <CheckCircle2 size={20} className="text-green-500" /> :
-                         toast.type === 'error' ? <XCircle size={20} className="text-red-500" /> :
-                         <div className="w-5 h-5 rounded-full bg-gray-200" />}
-                        
+                            toast.type === 'error' ? <XCircle size={20} className="text-red-500" /> :
+                                <div className="w-5 h-5 rounded-full bg-gray-200" />}
+
                         <div className="flex-1">
                             <p className="font-semibold text-sm">{toast.title}</p>
                             {toast.message && <p className="text-xs opacity-90">{toast.message}</p>}
                         </div>
-                        
+
                         <button onClick={() => removeToast(toast.id)} className="text-gray-400 hover:text-gray-600">
-                           <X size={16} />
+                            <X size={16} />
                         </button>
                     </motion.div>
                 ))}
@@ -610,7 +610,7 @@ export default function Home() {
 
     // Spinner State
     const [showSpinner, setShowSpinner] = useState(false);
-    const [freeSpins, setFreeSpins] = useState(0); 
+    const [freeSpins, setFreeSpins] = useState(0);
     const [lastAccrualTime, setLastAccrualTime] = useState(0);
 
     // New States for Stars and Achievements
@@ -677,11 +677,11 @@ export default function Home() {
         const loadSpins = () => {
             const storedLastAccrual = parseInt(localStorage.getItem('examApp_lastAccrual') || '0');
             const storedFreeSpins = parseInt(localStorage.getItem('examApp_freeSpins') || '0');
-            
+
             const now = Date.now();
             let newFreeSpins = storedFreeSpins;
             let newLastAccrual = storedLastAccrual;
-            
+
             // First time setup
             if (storedLastAccrual === 0) {
                 newLastAccrual = now;
@@ -700,18 +700,18 @@ export default function Home() {
             if (hoursPassed > 0) {
                 if (newFreeSpins < 10) {
                     const toAdd = Math.min(10 - newFreeSpins, hoursPassed);
-                     newFreeSpins += toAdd;
-                     newLastAccrual = storedLastAccrual + (hoursPassed * 3600 * 1000);
-                     
-                     localStorage.setItem('examApp_freeSpins', newFreeSpins);
-                     localStorage.setItem('examApp_lastAccrual', newLastAccrual);
+                    newFreeSpins += toAdd;
+                    newLastAccrual = storedLastAccrual + (hoursPassed * 3600 * 1000);
+
+                    localStorage.setItem('examApp_freeSpins', newFreeSpins);
+                    localStorage.setItem('examApp_lastAccrual', newLastAccrual);
                 } else {
                     // If already full, reset timer to now so it starts counting when they spend one
                     newLastAccrual = now;
                     localStorage.setItem('examApp_lastAccrual', newLastAccrual);
                 }
             }
-            
+
             setFreeSpins(newFreeSpins);
             setLastAccrualTime(newLastAccrual);
         };
@@ -719,22 +719,22 @@ export default function Home() {
         const updateBoosts = () => {
             const multEnd = parseInt(localStorage.getItem('examApp_multiplierEnd') || '0');
             const multVal = parseInt(localStorage.getItem('examApp_multiplierVal') || '1');
-            
+
             // Spin Timer Logic
             const storedLastAccrual = parseInt(localStorage.getItem('examApp_lastAccrual') || '0');
             const storedFreeSpins = parseInt(localStorage.getItem('examApp_freeSpins') || '0');
             let nextSpinStr = '';
-            
+
             const now = Date.now();
 
             if (storedFreeSpins < 10 && storedLastAccrual > 0) {
-                 const nextAccrual = storedLastAccrual + 3600000; // 1 hour
-                 if (nextAccrual > now) {
-                     const left = nextAccrual - now;
-                     const m = Math.floor(left / 60000);
-                     const s = Math.floor((left % 60000) / 1000);
-                     nextSpinStr = `${m}:${s < 10 ? '0' + s : s}`;
-                 }
+                const nextAccrual = storedLastAccrual + 3600000; // 1 hour
+                if (nextAccrual > now) {
+                    const left = nextAccrual - now;
+                    const m = Math.floor(left / 60000);
+                    const s = Math.floor((left % 60000) / 1000);
+                    nextSpinStr = `${m}:${s < 10 ? '0' + s : s}`;
+                }
             }
 
             const details = [];
@@ -746,14 +746,14 @@ export default function Home() {
                 const hours = Math.floor(leftMs / 3600000);
                 const mins = Math.ceil((leftMs % 3600000) / 60000);
                 const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-                
+
                 total = Math.max(total, multVal);
                 details.push({
                     type: 'time',
                     source: `Time Boost (x${multVal})`,
                     remaining: `${timeStr} remaining`,
                     val: multVal,
-                    color: 'text-purple-500' 
+                    color: 'text-purple-500'
                 });
             }
 
@@ -781,7 +781,7 @@ export default function Home() {
             setBoostInfo({
                 multiplier: total,
                 activeBoosts: details,
-                nextSpin: nextSpinStr,      
+                nextSpin: nextSpinStr,
                 active: details.length > 0
             });
 
@@ -876,12 +876,12 @@ export default function Home() {
     const updateUserStars = (amount) => {
         // Apply Multiplier based on Achievements
         let multiplier = 1;
-        
+
         // check for active time multiplier
         const multEnd = parseInt(localStorage.getItem('examApp_multiplierEnd') || '0');
         if (Date.now() < multEnd) {
-             const val = parseInt(localStorage.getItem('examApp_multiplierVal') || '1');
-             multiplier = Math.max(multiplier, val);
+            const val = parseInt(localStorage.getItem('examApp_multiplierVal') || '1');
+            multiplier = Math.max(multiplier, val);
         }
 
         if (unlockedLeagues.includes('Mythic')) multiplier = Math.max(multiplier, 3);
@@ -1276,9 +1276,9 @@ export default function Home() {
     const handlePromoSubmit = (e) => {
         e.preventDefault();
         const code = promoInput.toLowerCase().trim();
-        
+
         let validCodes = ['dontgiveup', 'haveluckyday', 'godmode'];
-        
+
         if (validCodes.includes(code)) {
             if (!activatedCheats.includes(code)) {
                 setActivatedCheats(prev => [...prev, code]);
@@ -1304,11 +1304,11 @@ export default function Home() {
 
     const handleUnlockSubmit = (e) => {
         e.preventDefault();
-        
+
         // Simulating Key Validation - Hardcoded to "trial2026"
         if (keyInput === 'trial2026') {
             setUnlockedTests(prev => new Set(prev).add(targetTestForUnlock.id));
-            
+
             // Proceed to start test logic immediately
             const test = targetTestForUnlock;
             let translationContent = null;
@@ -1326,7 +1326,7 @@ export default function Home() {
                 setActiveTest({
                     ...test,
                     ...savedProgress[test.id],
-                    translationContent, 
+                    translationContent,
                     isResumed: true
                 });
                 setView('test');
@@ -1586,7 +1586,7 @@ export default function Home() {
                             </div>
                         </div>
                         <div className="flex gap-1 md:gap-2 items-center">
-                             {/* Daily Spinner */}
+                            {/* Daily Spinner */}
                             <button
                                 onClick={() => setShowSpinner(true)}
                                 className="p-1.5 md:p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative flex items-center gap-1"
@@ -1597,7 +1597,7 @@ export default function Home() {
                                     <span className="absolute top-1 right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-red-500 rounded-full animate-ping" />
                                 )}
                                 {!canSpin && boostInfo?.nextSpin && (
-                                     <span className="text-[10px] font-mono font-medium hidden md:block">{boostInfo.nextSpin}</span>
+                                    <span className="text-[10px] font-mono font-medium hidden md:block">{boostInfo.nextSpin}</span>
                                 )}
                             </button>
 
@@ -1646,14 +1646,14 @@ export default function Home() {
                                     <img src="/star.gif" alt="Star" className="w-[18px] h-[18px] md:w-6 md:h-6 object-contain" />
                                     <span className="text-xs md:text-sm font-bold text-yellow-700 dark:text-yellow-500">{userStars}</span>
                                 </div>
-                                
+
                                 {/* Boost Status Tooltip */}
                                 <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700/50 p-3 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
                                     <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
                                         <span className="text-xs font-semibold text-gray-500">Active Multiplier</span>
                                         <span className="text-sm font-bold text-blue-600">x{boostInfo?.multiplier || 1}</span>
                                     </div>
-                                    
+
                                     <div className="space-y-2">
                                         {boostInfo?.activeBoosts?.length > 0 ? (
                                             boostInfo.activeBoosts.map((boost, idx) => (
@@ -1702,7 +1702,7 @@ export default function Home() {
                         )}
                         title={headerExpanded ? "Collapse Header" : "Expand Header"}
                     >
-                         {headerExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        {headerExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
                 </header>
 
@@ -1834,8 +1834,8 @@ export default function Home() {
                 )}
 
                 {showSpinner && (
-                    <DailySpinner 
-                        onClose={() => setShowSpinner(false)} 
+                    <DailySpinner
+                        onClose={() => setShowSpinner(false)}
                         onReward={handleSpinReward}
                         freeSpins={activatedCheats.includes('godmode') ? 9999 : freeSpins}
                         userStars={userStars}
@@ -2254,45 +2254,45 @@ export default function Home() {
                                 {/* Pagination Controls */}
                                 {filterPeriod === 'all' && leaderboard.length > 0 && (
                                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 text-xs font-medium text-gray-500 border-t border-gray-100 pt-4">
-                                            <div className="flex items-center gap-2">
-                                                <span>Rows per page:</span>
-                                                <select 
-                                                    value={leaderboardLimit} 
-                                                    onChange={(e) => {
-                                                        setLeaderboardLimit(Number(e.target.value));
-                                                        setLeaderboardPage(1); // Reset to first page
-                                                    }}
-                                                    className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 outline-none focus:border-blue-500 dark:text-gray-200 transition-colors"
-                                                >
-                                                    {[10, 20, 30, 50, 100].map(n => (
-                                                        <option key={n} value={n}>{n}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            <span>Rows per page:</span>
+                                            <select
+                                                value={leaderboardLimit}
+                                                onChange={(e) => {
+                                                    setLeaderboardLimit(Number(e.target.value));
+                                                    setLeaderboardPage(1); // Reset to first page
+                                                }}
+                                                className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 outline-none focus:border-blue-500 dark:text-gray-200 transition-colors"
+                                            >
+                                                {[10, 20, 30, 50, 100].map(n => (
+                                                    <option key={n} value={n}>{n}</option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                            <div className="flex items-center gap-2">
-                                                <span>
-                                                    {(leaderboardPage - 1) * leaderboardLimit + 1}-{Math.min(leaderboardPage * leaderboardLimit, leaderboardTotal)} of {leaderboardTotal}
-                                                </span>
-                                                <div className="flex items-center gap-1">
-                                                    <button 
-                                                        onClick={() => setLeaderboardPage(p => Math.max(1, p - 1))}
-                                                        disabled={leaderboardPage === 1}
-                                                        className="p-1 hover:bg-gray-100 rounded disabled:opacity-30 transition-colors"
-                                                    >
-                                                        <ChevronLeft size={16} />
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => setLeaderboardPage(p => (p * leaderboardLimit < leaderboardTotal ? p + 1 : p))}
-                                                        disabled={leaderboardPage * leaderboardLimit >= leaderboardTotal}
-                                                        className="p-1 hover:bg-gray-100 rounded disabled:opacity-30 transition-colors"
-                                                    >
-                                                        <ChevronRight size={16} />
-                                                    </button>
-                                                </div>
+                                        <div className="flex items-center gap-2">
+                                            <span>
+                                                {(leaderboardPage - 1) * leaderboardLimit + 1}-{Math.min(leaderboardPage * leaderboardLimit, leaderboardTotal)} of {leaderboardTotal}
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => setLeaderboardPage(p => Math.max(1, p - 1))}
+                                                    disabled={leaderboardPage === 1}
+                                                    className="p-1 hover:bg-gray-100 rounded disabled:opacity-30 transition-colors"
+                                                >
+                                                    <ChevronLeft size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setLeaderboardPage(p => (p * leaderboardLimit < leaderboardTotal ? p + 1 : p))}
+                                                    disabled={leaderboardPage * leaderboardLimit >= leaderboardTotal}
+                                                    className="p-1 hover:bg-gray-100 rounded disabled:opacity-30 transition-colors"
+                                                >
+                                                    <ChevronRight size={16} />
+                                                </button>
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
+                                )}
                             </section>
                         </div>
 
@@ -2889,7 +2889,7 @@ export default function Home() {
                 showKeyModal && (
                     <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 dark:border-gray-800 overflow-hidden transform transition-all scale-100">
-                             <div className="p-6 text-center">
+                            <div className="p-6 text-center">
                                 <div className="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
                                     <Lock size={32} className="text-white" />
                                 </div>
@@ -2897,7 +2897,7 @@ export default function Home() {
                                 <p className="text-gray-500 mb-6">
                                     This test is locked. Please enter your access key to continue.
                                 </p>
-                                
+
                                 <form onSubmit={handleUnlockSubmit} className="space-y-4">
                                     <div>
                                         <div className="relative">
@@ -2913,7 +2913,7 @@ export default function Home() {
                                         </div>
                                         {keyError && <p className="text-red-500 text-sm mt-2 font-medium animate-pulse">{keyError}</p>}
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-2 gap-3 pt-2">
                                         <button
                                             type="button"
@@ -3101,13 +3101,13 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                     <p className="text-gray-500 text-sm">
                         {questionCount} Questions
                     </p>
-                    
+
                     {/* Active Users Avatars */}
                     {currentTestUsers.length > 0 && (
                         <div className="flex -space-x-2 h-8 items-center" title={`${currentTestUsers.length} people solving this`}>
                             {currentTestUsers.slice(0, 3).map((user, i) => (
-                                <div 
-                                    key={i} 
+                                <div
+                                    key={i}
                                     className="inline-flex h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-indigo-100 items-center justify-center text-xs font-bold text-indigo-700 cursor-help relative group/avatar z-10 hover:z-50"
                                 >
                                     {user.name.charAt(0).toUpperCase()}
@@ -3132,11 +3132,11 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 onClick={handleStart}
                 className={clsx(
                     "mt-4 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
-                    isLocked 
-                        ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/10 dark:border-amber-800 dark:text-amber-500 hover:border-amber-300" 
+                    isLocked
+                        ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/10 dark:border-amber-800 dark:text-amber-500 hover:border-amber-300"
                         : hasProgress
-                        ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400"
-                        : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-200 dark:hover:text-blue-400 dark:hover:border-blue-700"
+                            ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400"
+                            : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-200 dark:hover:text-blue-400 dark:hover:border-blue-700"
                 )}
             >
                 {isLocked ? <Lock size={18} /> : (hasProgress ? <Play size={18} /> : <Play size={18} />)}
@@ -3176,7 +3176,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     // Wait, the user's logic might be "Select all that apply" OR "Matching".
     // For Matching, the "game" is to match Lefts to Rights.
     // If we assume a "Matching" type, the concept of "Option ID" is reusable if we map pairs back to IDs.
-    
+
     // Let's parse the options first.
     const pairs = useMemo(() => {
         return question.shuffledOptions.map(opt => {
@@ -3194,7 +3194,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     // 1. List of Left items (fixed order or shuffled?) -> Fixed Usually
     // 2. List of Right items (shuffled pool)
     // 3. Current associations: { [leftSideText]: rightSideText }
-    
+
     const [leftItems] = useState(pairs.map(p => p.left));
     // Provide Right items pool shuffled
     const [rightPool, setRightPool] = useState(() => {
@@ -3202,23 +3202,63 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
         // Shuffle
         return rights.sort(() => Math.random() - 0.5);
     });
-    
+
     const [matches, setMatches] = useState({}); // { leftText: rightText }
+
+    // Track how many hints have been applied to auto-place correct matches
+    const [hintsApplied, setHintsApplied] = useState(0);
+
+    // When revealedHints changes, auto-place one correct match for each new hint
+    useEffect(() => {
+        const currentHints = revealedHints[currentIndex] || [];
+        const newHintCount = currentHints.length;
+
+        // If new hints were added, auto-place correct matches
+        if (newHintCount > hintsApplied) {
+            const hintsToApply = newHintCount - hintsApplied;
+
+            setMatches(prevMatches => {
+                const newMatches = { ...prevMatches };
+                let applied = 0;
+
+                // Find unmatched pairs and auto-place correct matches
+                for (const pair of pairs) {
+                    // Skip if already matched correctly
+                    if (newMatches[pair.left] === pair.right) continue;
+
+                    // Auto-place the correct match
+                    // First, remove this right value if used elsewhere
+                    Object.keys(newMatches).forEach(key => {
+                        if (newMatches[key] === pair.right) delete newMatches[key];
+                    });
+
+                    newMatches[pair.left] = pair.right;
+                    applied++;
+
+                    if (applied >= hintsToApply) break;
+                }
+
+                return newMatches;
+            });
+
+            setHintsApplied(newHintCount);
+        }
+    }, [revealedHints, currentIndex, pairs, hintsApplied]);
 
     const handleMatch = (left, right) => {
         setMatches(prev => {
-           const newMatches = { ...prev };
-           // If right was already used elsewhere, remove it from there
-           Object.keys(newMatches).forEach(key => {
-               if (newMatches[key] === right) delete newMatches[key];
-           });
-           
-           if (newMatches[left] === right) {
-               delete newMatches[left]; // Toggle off if clicked again? Or just set.
-           } else {
-               newMatches[left] = right;
-           }
-           return newMatches;
+            const newMatches = { ...prev };
+            // If right was already used elsewhere, remove it from there
+            Object.keys(newMatches).forEach(key => {
+                if (newMatches[key] === right) delete newMatches[key];
+            });
+
+            if (newMatches[left] === right) {
+                delete newMatches[left]; // Toggle off if clicked again? Or just set.
+            } else {
+                newMatches[left] = right;
+            }
+            return newMatches;
         });
     };
 
@@ -3239,7 +3279,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     // The engine checks `answers[idx] === correct`.
     // So we must produce a string equal to `question.correct_answer` ("A, B, C, D") ONLY if user matches everything 100% correct.
     // If they match wrong, we produce "WRONG".
-    
+
     // Let's look at `correct_answer`: "A, B, C"
     // So we need to match the IDs of the pairs the user successfully recreated.
     // For each `left` item, user picked `right`.
@@ -3247,11 +3287,11 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     // If found, that is a valid Option ID (e.g. "A").
     // Collect all valid Option IDs found.
     // If the set of collected IDs matches the set in `correct_answer`, then we send `correct_answer`.
-    
+
     useEffect(() => {
         const userMatchedIDs = [];
         let allMatched = true;
-        
+
         // Check every Left Item
         pairs.forEach(p => {
             const userRight = matches[p.left];
@@ -3259,13 +3299,13 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                 allMatched = false;
                 return;
             }
-            
+
             // Did user match correctly?
             if (userRight === p.right) {
-                 userMatchedIDs.push(p.id);
+                userMatchedIDs.push(p.id);
             } else {
-                 // User matched wrong.
-                 // We don't push valid ID.
+                // User matched wrong.
+                // We don't push valid ID.
             }
         });
 
@@ -3280,80 +3320,80 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             // So we just sort and join.
             const derivedAnswer = userMatchedIDs.sort().join(', ');
             // Ensure we send truthy string even if no correct matches, to avoid "Skip" modal
-            handleAnswer(derivedAnswer === "" ? "NO_MATCH" : derivedAnswer); 
+            handleAnswer(derivedAnswer === "" ? "NO_MATCH" : derivedAnswer);
         }
     }, [matches, pairs]);
-    
+
     // We also need to support "Multi-Select" logic from JSON which has "A, B, C".
     // Actually, "Matching" implies ALL must be correct effectively.
-    
+
     return (
         <div className="space-y-4">
-             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-2">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-2">
                 <Settings size={16} />
                 <span>Match the items on the left with the correct category on the right.</span>
-             </div>
+            </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
-                 {/* Left Side (Drop Zones / Targets) */}
-                 <div className="space-y-3">
-                     {pairs.map((p, i) => (
-                         <div key={p.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl">
-                             <span className="font-bold text-gray-800 dark:text-gray-200">{p.left}</span>
-                             <div className="h-4 w-4 text-gray-400">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
+                {/* Left Side (Drop Zones / Targets) */}
+                <div className="space-y-3">
+                    {pairs.map((p, i) => (
+                        <div key={p.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl">
+                            <span className="font-bold text-gray-800 dark:text-gray-200">{p.left}</span>
+                            <div className="h-4 w-4 text-gray-400">
                                 <ArrowRight size={16} />
-                             </div>
-                         </div>
-                     ))}
-                 </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-                 {/* Right Side (Slots & Interaction) */}
-                 <div className="space-y-3">
+                {/* Right Side (Slots & Interaction) */}
+                <div className="space-y-3">
                     {pairs.map((p) => {
                         const filled = matches[p.left];
                         return (
-                             <div 
-                                key={`slot-${p.left}`} 
+                            <div
+                                key={`slot-${p.left}`}
                                 className={clsx(
                                     "p-3 rounded-xl border-2 border-dashed flex items-center justify-between min-h-[52px] cursor-pointer transition-all",
-                                    filled 
-                                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" 
-                                     : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:border-blue-300"
+                                    filled
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                        : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:border-blue-300"
                                 )}
                                 onClick={() => {
                                     // If filled, remove. 
                                     if (filled) {
                                         setMatches(curr => {
-                                            const next = {...curr};
+                                            const next = { ...curr };
                                             delete next[p.left];
                                             return next;
                                         });
                                     }
                                 }}
-                             >
+                            >
                                 {filled ? (
                                     <span className="font-semibold text-blue-700 dark:text-blue-300">{filled}</span>
                                 ) : (
                                     <span className="text-sm text-gray-400 italic">Select match...</span>
                                 )}
                                 {filled && <X size={14} className="text-blue-400 hover:text-red-500" />}
-                             </div>
+                            </div>
                         );
                     })}
-                 </div>
-             </div>
+                </div>
+            </div>
 
-             {/* Pool of Options */}
-             <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
-                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Available Options</p>
-                 <div className="flex flex-wrap gap-2">
-                     {rightPool.map((text, idx) => {
-                         // Check if used
-                         const isUsed = Object.values(matches).includes(text);
-                         if (isUsed) return null; // Hide used options
+            {/* Pool of Options */}
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Available Options</p>
+                <div className="flex flex-wrap gap-2">
+                    {rightPool.map((text, idx) => {
+                        // Check if used
+                        const isUsed = Object.values(matches).includes(text);
+                        if (isUsed) return null; // Hide used options
 
-                         return (
-                             <button
+                        return (
+                            <button
                                 key={idx}
                                 onClick={() => {
                                     // Find first empty slot
@@ -3363,16 +3403,16 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                     }
                                 }}
                                 className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md hover:border-blue-400 transition-all font-medium text-sm text-gray-700 dark:text-gray-300 active:scale-95"
-                             >
-                                 {text}
-                             </button>
-                         );
-                     })}
-                     {rightPool.every(t => Object.values(matches).includes(t)) && (
-                         <span className="text-sm text-gray-400 italic py-2">All items placed. Review your matches.</span>
-                     )}
-                 </div>
-             </div>
+                            >
+                                {text}
+                            </button>
+                        );
+                    })}
+                    {rightPool.every(t => Object.values(matches).includes(t)) && (
+                        <span className="text-sm text-gray-400 italic py-2">All items placed. Review your matches.</span>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
@@ -3402,7 +3442,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         origin: { y: 0.6 },
                         zIndex: 9999
                     });
-                    
+
                     setTimeout(() => setShowLegendaryEffect(false), 3000);
                 }
             }, 100);
@@ -3494,7 +3534,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         // Skip reset on first render if we have a resumed time to preserve it
         if (isFirstRender.current) {
             isFirstRender.current = false;
-            if (test.timeLeft !== undefined) return; 
+            if (test.timeLeft !== undefined) return;
         }
 
         // When index changes, reset timer
@@ -3572,12 +3612,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
         // Auto-select if only correct answer remains
         if (question.shuffledOptions.length - newRevealed.length === 1) {
-             // Eliminate lag by checking against current state, but update immediately
-             if (!answers[currentIndex]) {
-                 handleAnswer(question.correct_answer);
-             }
+            // Eliminate lag by checking against current state, but update immediately
+            if (!answers[currentIndex]) {
+                handleAnswer(question.correct_answer);
+            }
         }
-        
+
         if (infiniteHints) return; // Don't consume hints
 
         if (hintsLeft > 0) {
@@ -3746,10 +3786,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     // Partial Credit for Multi/Matching
                     const correctIds = ca.split(',').map(s => s.trim());
                     const userIds = (ua || '').split(',').map(s => s.trim());
-                    
+
                     // Filter out empty or invalid "NO_MATCH"
                     const validUserIds = userIds.filter(id => id && id !== 'NO_MATCH');
-                    
+
                     // Count matches
                     const matchCount = validUserIds.reduce((acc, id) => {
                         return correctIds.includes(id) ? acc + 1 : acc;
@@ -3971,12 +4011,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                                     <CheckCircle2 className="text-green-500" size={24} />
                                                 ) : (
                                                     <div className="relative">
-                                                         <XCircle className="text-red-500" size={24} />
-                                                         {isMulti && (
-                                                             <span className="absolute -bottom-2 -right-2 text-[10px] bg-blue-100 text-blue-800 px-1 rounded border border-blue-200">
-                                                                 Partial
-                                                             </span>
-                                                         )}
+                                                        <XCircle className="text-red-500" size={24} />
+                                                        {isMulti && (
+                                                            <span className="absolute -bottom-2 -right-2 text-[10px] bg-blue-100 text-blue-800 px-1 rounded border border-blue-200">
+                                                                Partial
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -4243,7 +4283,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     <div className="space-y-3 flex-1">
                         {/* Check if it's a Matching Question (contains '→') */}
                         {question.shuffledOptions.every(o => o.text.includes('→')) ? (
-                            <MatchingQuestionComponent 
+                            <MatchingQuestionComponent
                                 key={question.id} // Reset state on new question
                                 question={question}
                                 answers={answers}
