@@ -3136,7 +3136,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    handleNext(); // Auto-skip
+                    proceedToNext(0); // Auto-skip with 0 time left
                     return 0;
                 }
                 return prev - 1;
@@ -3311,14 +3311,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         proceedToNext();
     };
 
-    const proceedToNext = () => {
+    const proceedToNext = (remainingTimeOverride) => {
         // Time Banking Logic
         if (test.difficultyMode === 'impossible' && baseTimeLimit !== null) {
-            // FIX: If we answer, we save the remaining time. 
-            // BUT we do NOT add it to previous banked time, because previous banked time is already INSIDE timeLeft.
-            // Example: Limit 14s (8+6). Answer at 12s left. Bank becomes 12s. Next Limit = 8+12 = 20s.
-            // Correct Rollover.
-            const unusedTime = Math.max(0, timeLeft);
+            // FIX: Use override if provided (e.g. 0 from timeout)
+            const finalTimeLabel = remainingTimeOverride !== undefined ? remainingTimeOverride : timeLeft;
+            const unusedTime = Math.max(0, finalTimeLabel);
             setBankedTime(unusedTime);
         }
 
