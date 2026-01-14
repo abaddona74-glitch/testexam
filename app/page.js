@@ -593,6 +593,7 @@ export default function Home() {
 
     // Premium / Unlock State
     const [unlockedTests, setUnlockedTests] = useState(new Set());
+    const [allPremiumUnlocked, setAllPremiumUnlocked] = useState(false); // Master key unlock
     const [showKeyModal, setShowKeyModal] = useState(false);
     const [keyInput, setKeyInput] = useState('');
     const [targetTestForUnlock, setTargetTestForUnlock] = useState(null);
@@ -686,6 +687,24 @@ export default function Home() {
         // Load Premium Unlocks
         const storedPremiumUnlocks = localStorage.getItem('examApp_premiumUnlocks');
         console.log('[DEBUG] Loading premium unlocks from localStorage:', storedPremiumUnlocks);
+        
+        // Check for master key (all premium unlocked)
+        const storedMasterUnlock = localStorage.getItem('examApp_allPremiumUnlocked');
+        if (storedMasterUnlock) {
+            try {
+                const masterData = JSON.parse(storedMasterUnlock);
+                const now = Date.now();
+                if (masterData.expiry > now) {
+                    setAllPremiumUnlocked(true);
+                    console.log('[DEBUG] All premium tests unlocked via master key until:', new Date(masterData.expiry));
+                } else {
+                    localStorage.removeItem('examApp_allPremiumUnlocked');
+                }
+            } catch (e) {
+                console.error("Failed to parse master unlock", e);
+            }
+        }
+        
         if (storedPremiumUnlocks) {
             try {
                 const parsedUnlocks = JSON.parse(storedPremiumUnlocks);
@@ -1342,6 +1361,46 @@ export default function Home() {
         e.preventDefault();
         setKeyError('');
 
+        // Master Key - Unlocks ALL premium tests
+        const MASTER_KEY = 'ALLPREMIUM2026';
+        if (keyInput.toUpperCase() === MASTER_KEY) {
+            const expiryDate = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
+            setAllPremiumUnlocked(true);
+            localStorage.setItem('examApp_allPremiumUnlocked', JSON.stringify({ expiry: expiryDate }));
+            addToast('🎉 All Premium Unlocked!', 'All premium tests are now accessible for 30 days', 'success');
+            setShowKeyModal(false);
+            setKeyInput('');
+            
+            // Start the test immediately if one was targeted
+            if (targetTestForUnlock) {
+                const test = targetTestForUnlock;
+                let translationContent = null;
+                const isEn = test.id.endsWith('en.json');
+                const isUz = test.id.endsWith('uz.json');
+
+                if (isEn || isUz) {
+                    const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
+                    const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
+                    const translation = allTests.find(t => t.id === targetId);
+                    if (translation) translationContent = translation.content;
+                }
+
+                if (savedProgress[test.id]) {
+                    setActiveTest({
+                        ...test,
+                        ...savedProgress[test.id],
+                        translationContent,
+                        isResumed: true
+                    });
+                    setView('test');
+                } else {
+                    setSelectedTestForDifficulty({ ...test, translationContent });
+                    setShowDifficultyModal(true);
+                }
+            }
+            return;
+        }
+
         // Admin Secret to Generate Keys (Hidden Feature)
         if (keyInput.startsWith('admin:gen:')) {
             const secret = keyInput.split(':')[2];
@@ -1439,7 +1498,7 @@ export default function Home() {
     const startTest = (test) => {
         // Premium Check - use baseId if available (for translated tests)
         const checkId = test.baseId || test.id;
-        if (test.isPremium && !unlockedTests.has(checkId)) {
+        if (test.isPremium && !allPremiumUnlocked && !unlockedTests.has(checkId)) {
             // Store the original test with baseId for unlock
             setTargetTestForUnlock({ ...test, id: checkId });
             setShowKeyModal(true);
@@ -2159,11 +2218,11 @@ export default function Home() {
                                                     const isUpdated = test.updatedAt && (new Date() - new Date(test.updatedAt) < 3 * 24 * 60 * 60 * 1000);
 
                                                     // Check unlock status - also check with common base patterns
-                                                    const testIsUnlocked = test.isPremium && (
+                                                    const testIsUnlocked = allPremiumUnlocked || (test.isPremium && (
                                                         unlockedTests.has(test.id) || 
                                                         unlockedTests.has(`${test.id}_en`) || 
                                                         unlockedTests.has(`${test.id}_uz`)
-                                                    );
+                                                    ));
                                                     console.log('[DEBUG] TestCard render:', test.id, 'isPremium:', test.isPremium, 'unlockedTests:', [...unlockedTests], 'isUnlocked:', testIsUnlocked);
 
                                                     return (
@@ -2208,8 +2267,8 @@ export default function Home() {
                                                         badge="Community"
                                                         badgeColor="bg-green-100 text-green-700"
                                                         hasProgress={!!savedProgress[test.id]}
-                                                        isLocked={test.isPremium && !unlockedTests.has(test.id)}
-                                                        isUnlocked={test.isPremium && unlockedTests.has(test.id)}
+                                                        isLocked={test.isPremium && !allPremiumUnlocked && !unlockedTests.has(test.id)}
+                                                        isUnlocked={allPremiumUnlocked || (test.isPremium && unlockedTests.has(test.id))}
                                                     />
                                                 ))}
                                             </div>
