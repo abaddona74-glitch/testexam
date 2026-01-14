@@ -1946,7 +1946,7 @@ export default function Home() {
                         <div className="flex gap-1 md:gap-2 items-center">
                             {/* Daily Spinner */}
                             <button
-                                onClick={() => setShowSpinner(true)}
+                                onClick={() => { playStartSound(); setShowSpinner(true); }}
                                 className="p-1.5 md:p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative flex items-center gap-1"
                                 title="Hourly Spin"
                             >
@@ -1960,14 +1960,14 @@ export default function Home() {
                             </button>
 
                             <button
-                                onClick={() => setShowDonateModal(true)}
+                                onClick={() => { playStartSound(); setShowDonateModal(true); }}
                                 className="p-1.5 md:p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors animate-pulse"
                                 title="Support Project"
                             >
                                 <Heart size={18} className="md:w-5 md:h-5" />
                             </button>
                             <button
-                                onClick={() => setView('history')}
+                                onClick={() => { playStartSound(); setView('history'); }}
                                 className={clsx(
                                     "p-1.5 md:p-2 rounded-lg transition-colors",
                                     view === 'history' ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:bg-gray-950"
@@ -1978,6 +1978,7 @@ export default function Home() {
                             </button>
                             <button
                                 onClick={() => {
+                                    playStartSound();
                                     setNameInput(userName);
                                     setShowSettings(true);
                                 }}
@@ -1986,11 +1987,11 @@ export default function Home() {
                                 <Settings size={18} className="md:w-5 md:h-5" />
                             </button>
                             <div className="mx-0.5 md:mx-1 scale-90 md:scale-100">
-                                <ThemeToggle />
+                                <ThemeToggle onToggle={playStartSound} />
                             </div>
                             {/* Achievements Icon */}
                             <button
-                                onClick={() => setShowAchievements(!showAchievements)}
+                                onClick={() => { playStartSound(); setShowAchievements(!showAchievements); }}
                                 className="p-1.5 md:p-2 rounded-lg transition-colors relative text-orange-500 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-gray-800"
                                 title="Achievements"
                             >
@@ -2406,7 +2407,7 @@ export default function Home() {
                                         <List className="text-blue-500" /> Available Tests
                                     </h2>
                                     <button
-                                        onClick={() => { setUploadFolder(folders[0] || ''); setShowUploadModal(true); }}
+                                        onClick={() => { playStartSound(); setUploadFolder(folders[0] || ''); setShowUploadModal(true); }}
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                                     >
                                         <Upload size={16} /> Upload Test
@@ -2929,7 +2930,7 @@ export default function Home() {
                                     <Clock className="text-blue-500" /> Your History
                                 </h2>
                                 <button
-                                    onClick={() => setView('list')}
+                                    onClick={() => { playStartSound(); setView('list'); }}
                                     className="text-gray-500 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
                                 >
                                     <ArrowLeft size={16} /> Back
@@ -3015,7 +3016,7 @@ export default function Home() {
                                     <CheckCircle2 className="text-green-500" /> Test Review: {activeReview.testName}
                                 </h2>
                                 <button
-                                    onClick={() => setView('history')}
+                                    onClick={() => { playStartSound(); setView('history'); }}
                                     className="text-gray-500 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
                                 >
                                     <ArrowLeft size={16} /> Back to History
@@ -3053,6 +3054,7 @@ export default function Home() {
                             userCountry={userCountry}
                             activatedCheats={activatedCheats}
                             soundVolume={soundVolume}
+                            playClickSound={playStartSound}
                             onBack={() => setView('list')}
                             onLeaveWithoutResult={() => {
                                 clearProgress(activeTest.id);
@@ -4039,7 +4041,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8 }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, playClickSound }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
@@ -4427,6 +4429,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     };
 
     const handleAnswer = (optionId) => {
+        playClickSound?.();
         setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
     };
 
@@ -4611,6 +4614,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 {/* Back Button for Finished View */}
                 <button
                     onClick={() => {
+                        playClickSound?.();
                         stopCelebrationSound();
                         onBack();
                     }}
@@ -4986,7 +4990,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 <span>{userStars}</span>
                             </div>
                             <button
-                                onClick={onBack}
+                                onClick={() => { playClickSound?.(); onBack(); }}
                                 className="text-gray-400 hover:text-gray-600 transition-colors mr-1 hover:bg-gray-100 p-1 rounded-lg"
                                 title="Back to list"
                             >
@@ -5128,7 +5132,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         </button>
 
                         <button
-                            onClick={handleNext}
+                            onClick={() => { playClickSound?.(); handleNext(); }}
                             className={clsx(
                                 "px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all",
                                 answers[currentIndex]
@@ -5265,7 +5269,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 Cancel
                             </button>
                             <button
-                                onClick={proceedToNext}
+                                onClick={() => { playClickSound?.(); proceedToNext(); }}
                                 className="flex-1 py-2.5 rounded-lg bg-yellow-500 font-semibold text-white hover:bg-yellow-600 transition-colors shadow-md"
                             >
                                 Yes, Skip
