@@ -2896,10 +2896,10 @@ export default function Home() {
                                                     <div className={clsx(
                                                         "flex-1 flex gap-3 items-center p-3 rounded-xl border transition-all",
                                                         isFinished 
-                                                            ? "bg-gray-800/50 border-gray-700/50 opacity-70" 
+                                                            ? "bg-[#111824]/50 border-gray-700/50 opacity-70" 
                                                             : isNext
-                                                                ? "bg-gray-800 border-blue-500/50 shadow-lg shadow-blue-500/10"
-                                                                : "bg-gray-800 border-gray-700/50"
+                                                                ? "bg-[#111824] border-blue-500/50 shadow-lg shadow-blue-500/10"
+                                                                : "bg-[#111824] border-gray-700/50"
                                                     )}>
                                                         {/* Date Box */}
                                                         <div className={clsx(
