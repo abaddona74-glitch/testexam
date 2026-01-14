@@ -3054,6 +3054,12 @@ export default function Home() {
                             activatedCheats={activatedCheats}
                             soundVolume={soundVolume}
                             onBack={() => setView('list')}
+                            onLeaveWithoutResult={() => {
+                                clearProgress(activeTest.id);
+                                saveCurrentProgress(activeTest.id, null);
+                                setActiveTest(null);
+                                setView('list');
+                            }}
                             onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
                             userStars={userStars}
                             unlockedLeagues={unlockedLeagues}
@@ -4033,7 +4039,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8 }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8 }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
@@ -4544,6 +4550,21 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             console.error("Finish error", error);
             alert("Error submitting results. Please try again.");
             setIsSubmitting(false);
+        }
+    };
+
+    const leaveWithoutResult = async () => {
+        if (isSubmitting) return;
+        stopCelebrationSound();
+        setNeedsSoundTap(false);
+        setShowConfirmFinish(false);
+        try {
+            await fetch(`/api/active?userId=${userId}`, { method: 'DELETE', keepalive: true });
+        } catch { }
+        if (onLeaveWithoutResult) {
+            onLeaveWithoutResult();
+        } else if (onBack) {
+            onBack();
         }
     };
 
@@ -5076,17 +5097,24 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 </span>
                             )}
                         </p>
-                        <div className="flex gap-3">
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={leaveWithoutResult}
+                                disabled={isSubmitting}
+                                className="w-full py-2.5 rounded-lg border border-red-200 bg-red-50 font-semibold text-red-700 hover:bg-red-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                Leave (no result)
+                            </button>
                             <button
                                 onClick={() => setShowConfirmFinish(false)}
-                                className="flex-1 py-2.5 rounded-lg border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 dark:bg-gray-950 transition-colors"
+                                className="w-full py-2.5 rounded-lg border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 dark:bg-gray-950 transition-colors"
                             >
                                 No, Continue
                             </button>
                             <button
                                 onClick={confirmFinish}
                                 disabled={isSubmitting}
-                                className="flex-1 py-2.5 rounded-lg bg-blue-600 font-semibold text-white hover:bg-blue-700 transition-colors shadow-md disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full py-2.5 rounded-lg bg-blue-600 font-semibold text-white hover:bg-blue-700 transition-colors shadow-md disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? (
                                     <>
