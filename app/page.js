@@ -881,7 +881,6 @@ export default function Home() {
 
         // Load Premium Unlocks
         const storedPremiumUnlocks = localStorage.getItem('examApp_premiumUnlocks');
-        console.log('[DEBUG] Loading premium unlocks from localStorage:', storedPremiumUnlocks);
         
         // Check for master key (all premium unlocked)
         const storedMasterUnlock = localStorage.getItem('examApp_allPremiumUnlocked');
@@ -891,7 +890,6 @@ export default function Home() {
                 const now = Date.now();
                 if (masterData.expiry > now) {
                     setAllPremiumUnlocked(true);
-                    console.log('[DEBUG] All premium tests unlocked via master key until:', new Date(masterData.expiry));
                 } else {
                     localStorage.removeItem('examApp_allPremiumUnlocked');
                 }
@@ -907,14 +905,12 @@ export default function Home() {
                 const validUnlocks = new Set();
                 
                 Object.keys(parsedUnlocks).forEach(testId => {
-                    console.log('[DEBUG] Checking testId:', testId, 'expiry:', parsedUnlocks[testId], 'now:', now, 'valid:', parsedUnlocks[testId] > now);
                     // Check if subscription is still valid
                     if (parsedUnlocks[testId] > now) {
                         validUnlocks.add(testId);
                     }
                 });
                 
-                console.log('[DEBUG] Valid unlocks Set:', [...validUnlocks]);
                 if (validUnlocks.size > 0) {
                     setUnlockedTests(validUnlocks);
                 }
@@ -2450,7 +2446,6 @@ export default function Home() {
                                                         unlockedTests.has(`${test.id}_en`) || 
                                                         unlockedTests.has(`${test.id}_uz`)
                                                     ));
-                                                    console.log('[DEBUG] TestCard render:', test.id, 'isPremium:', test.isPremium, 'unlockedTests:', [...unlockedTests], 'isUnlocked:', testIsUnlocked);
 
                                                     return (
                                                         <TestCard
