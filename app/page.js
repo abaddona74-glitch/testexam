@@ -114,6 +114,15 @@ function formatDuration(ms) {
     return `${minutes}m ${seconds}s`;
 }
 
+// Helper for Score Formatting (rounds to 1 decimal place)
+function formatScore(score) {
+    if (score === undefined || score === null) return "0";
+    // If it's a whole number, show without decimals
+    if (Number.isInteger(score)) return score.toString();
+    // Otherwise round to 1 decimal place
+    return score.toFixed(1);
+}
+
 // Helper for relative time (simple version)
 function timeAgo(dateString) {
     if (!dateString) return "-";
@@ -2334,7 +2343,7 @@ export default function Home() {
                                                             <td className="py-3 text-sm text-gray-400 px-2">{timeAgo(entry.date)}</td>
                                                             <td className="py-3 text-sm text-gray-500 font-mono px-2">{formatDuration(entry.duration)}</td>
                                                             <td className="py-3 text-right px-2">
-                                                                <span className="font-bold text-lg text-gray-700">{entry.score}</span>
+                                                                <span className="font-bold text-lg text-gray-700">{formatScore(entry.score)}</span>
                                                                 <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
                                                             </td>
                                                         </tr>
@@ -2698,7 +2707,7 @@ export default function Home() {
                                                                     {formatDuration(entry.duration)}
                                                                 </td>
                                                                 <td className="py-4 text-right pr-4">
-                                                                    <span className="font-bold text-lg text-gray-700">{entry.score}</span>
+                                                                    <span className="font-bold text-lg text-gray-700">{formatScore(entry.score)}</span>
                                                                     <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
                                                                 </td>
                                                             </tr>
@@ -2731,7 +2740,7 @@ export default function Home() {
                             {/* Score Summary */}
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 mb-6 flex justify-around items-center">
                                 <div className="text-center">
-                                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{activeReview.score} / {activeReview.total}</div>
+                                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{formatScore(activeReview.score)} / {activeReview.total}</div>
                                     <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Score</div>
                                 </div>
                                 <div className="text-center">
@@ -3435,6 +3444,20 @@ function TranslatableText({ text, translation, type = 'text' }) {
     );
 }
 
+// Colors for godmode matching hints - each pair gets a unique color
+const MATCH_COLORS = [
+    { border: 'border-red-500', bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400' },
+    { border: 'border-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400' },
+    { border: 'border-green-500', bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400' },
+    { border: 'border-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400' },
+    { border: 'border-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' },
+    { border: 'border-pink-500', bg: 'bg-pink-50 dark:bg-pink-900/20', text: 'text-pink-600 dark:text-pink-400' },
+    { border: 'border-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
+    { border: 'border-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20', text: 'text-cyan-600 dark:text-cyan-400' },
+    { border: 'border-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-400' },
+    { border: 'border-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' },
+];
+
 function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion }) {
     // Parse Pairs from "A -> B" strings
     // Need state to track user's matches: { [leftText]: rightText }
@@ -3448,6 +3471,8 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     // Wait, the user's logic might be "Select all that apply" OR "Matching".
     // For Matching, the "game" is to match Lefts to Rights.
     // If we assume a "Matching" type, the concept of "Option ID" is reusable if we map pairs back to IDs.
+
+    const isGodMode = activatedCheats?.includes('godmode');
 
     // Let's parse the options first.
     const pairs = useMemo(() => {
@@ -3609,28 +3634,45 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
                 {/* Left Side (Drop Zones / Targets) */}
                 <div className="space-y-3">
-                    {pairs.map((p, i) => (
-                        <div key={p.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl">
-                            <span className="font-bold text-gray-800 dark:text-gray-200">{p.left}</span>
-                            <div className="h-4 w-4 text-gray-400">
-                                <ArrowRight size={16} />
+                    {pairs.map((p, i) => {
+                        const godModeColor = isGodMode ? MATCH_COLORS[i % MATCH_COLORS.length] : null;
+                        return (
+                            <div 
+                                key={p.id} 
+                                className={clsx(
+                                    "flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 rounded-xl transition-all",
+                                    godModeColor 
+                                        ? `${godModeColor.border} ${godModeColor.bg}` 
+                                        : "border-gray-100 dark:border-gray-700"
+                                )}
+                            >
+                                <span className={clsx(
+                                    "font-bold",
+                                    godModeColor ? godModeColor.text : "text-gray-800 dark:text-gray-200"
+                                )}>{p.left}</span>
+                                <div className={clsx("h-4 w-4", godModeColor ? godModeColor.text : "text-gray-400")}>
+                                    <ArrowRight size={16} />
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Right Side (Slots & Interaction) */}
                 <div className="space-y-3">
-                    {pairs.map((p) => {
+                    {pairs.map((p, i) => {
                         const filled = matches[p.left];
+                        const godModeColor = isGodMode ? MATCH_COLORS[i % MATCH_COLORS.length] : null;
                         return (
                             <div
                                 key={`slot-${p.left}`}
                                 className={clsx(
                                     "p-3 rounded-xl border-2 border-dashed flex items-center justify-between min-h-[52px] cursor-pointer transition-all",
-                                    filled
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                        : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:border-blue-300"
+                                    godModeColor
+                                        ? `${godModeColor.border} ${godModeColor.bg}`
+                                        : filled
+                                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                            : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:border-blue-300"
                                 )}
                                 onClick={() => {
                                     // If filled, remove. 
@@ -3644,11 +3686,17 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                 }}
                             >
                                 {filled ? (
-                                    <span className="font-semibold text-blue-700 dark:text-blue-300">{filled}</span>
+                                    <span className={clsx(
+                                        "font-semibold",
+                                        godModeColor ? godModeColor.text : "text-blue-700 dark:text-blue-300"
+                                    )}>{filled}</span>
                                 ) : (
-                                    <span className="text-sm text-gray-400 italic">Select match...</span>
+                                    <span className={clsx(
+                                        "text-sm italic",
+                                        godModeColor ? godModeColor.text : "text-gray-400"
+                                    )}>Select match...</span>
                                 )}
-                                {filled && <X size={14} className="text-blue-400 hover:text-red-500" />}
+                                {filled && <X size={14} className={clsx(godModeColor ? godModeColor.text : "text-blue-400", "hover:text-red-500")} />}
                             </div>
                         );
                     })}
@@ -3664,6 +3712,10 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                         const isUsed = Object.values(matches).includes(text);
                         if (isUsed) return null; // Hide used options
 
+                        // In godmode, find which pair this right text belongs to and use that color
+                        const pairIndex = isGodMode ? pairs.findIndex(p => p.right === text) : -1;
+                        const godModeColor = pairIndex >= 0 ? MATCH_COLORS[pairIndex % MATCH_COLORS.length] : null;
+
                         return (
                             <button
                                 key={idx}
@@ -3674,7 +3726,12 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                         handleMatch(firstEmptyLeft.left, text);
                                     }
                                 }}
-                                className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md hover:border-blue-400 transition-all font-medium text-sm text-gray-700 dark:text-gray-300 active:scale-95"
+                                className={clsx(
+                                    "px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all font-medium text-sm active:scale-95 border-2",
+                                    godModeColor
+                                        ? `${godModeColor.border} ${godModeColor.bg} ${godModeColor.text}`
+                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-400 text-gray-700 dark:text-gray-300"
+                                )}
                             >
                                 {text}
                             </button>
@@ -4224,7 +4281,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                             {/* Internal Text */}
                             <div className="absolute bottom-0 left-0 w-full text-center pb-2 z-30">
-                                <div className="text-4xl font-extrabold text-white drop-shadow-md">{score}</div>
+                                <div className="text-4xl font-extrabold text-white drop-shadow-md">{formatScore(score)}</div>
                                 <div className="text-[10px] text-gray-300 uppercase tracking-widest">of {totalQuestions}</div>
                             </div>
                         </div>
