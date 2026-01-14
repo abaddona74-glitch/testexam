@@ -4101,9 +4101,18 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             stopCelebrationSound();
             return;
         }
-        playCelebrationSound();
+        const score = test.questions.reduce((acc, q, idx) => acc + (answers[idx] === q.correct_answer ? 1 : 0), 0);
+        const totalQuestions = test.questions.length;
+        const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+
+        if (percentage >= 70) {
+            playCelebrationSound();
+        } else {
+            setNeedsSoundTap(false);
+            stopCelebrationSound();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFinished]);
+    }, [isFinished, test.questions, answers]);
 
     // Fallback: if autoplay blocked, play on the next user click/tap anywhere
     useEffect(() => {
@@ -4624,54 +4633,105 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                             </button>
                         )}
 
-                        {/* Speedometer Gauge */}
+                        {/* Speedometer Gauge - Full Neon Style */}
                         <div className="relative w-72 h-36 overflow-hidden mb-4 p-4">
-                            {/* Scale Ticks (Lines) */}
+                            {/* Outer Neon Glow Ring */}
+                            <div 
+                                className="absolute bottom-4 left-1/2 -translate-x-1/2 w-64 h-32 overflow-hidden pointer-events-none"
+                                style={{
+                                    filter: 'blur(8px)',
+                                    opacity: 0.6
+                                }}
+                            >
+                                <div className="w-64 h-64 rounded-full"
+                                    style={{
+                                        background: `conic-gradient(from 180deg, 
+                                        #ef4444 0deg, #ef4444 54deg,
+                                        #eab308 54deg, #eab308 90deg,
+                                        #3b82f6 90deg, #3b82f6 126deg,
+                                        #22c55e 126deg, #22c55e 180deg,
+                                        transparent 180deg, transparent 360deg)`,
+                                        maskImage: 'radial-gradient(transparent 55%, black 56%, black 66%, transparent 67%)',
+                                        WebkitMaskImage: 'radial-gradient(transparent 55%, black 56%, black 66%, transparent 67%)'
+                                    }}
+                                ></div>
+                            </div>
+
+                            {/* Scale Ticks (Lines) - Neon Cyan */}
                             {Array.from({ length: 11 }).map((_, i) => {
-                                const deg = (i * 10 / 100) * 180 - 90; // 0 to 180 mapped to -90 to 90
+                                const deg = (i * 10 / 100) * 180 - 90;
                                 return (
                                     <div
                                         key={i}
                                         className="absolute bottom-4 left-1/2 w-0.5 h-36 origin-bottom z-20 pointer-events-none"
                                         style={{ transform: `translateX(-50%) rotate(${deg}deg)` }}
                                     >
-                                        <div className="w-full h-3 bg-white dark:bg-gray-800/50 absolute top-0"></div>
+                                        <div 
+                                            className="w-full h-3 bg-cyan-400 absolute top-0"
+                                            style={{
+                                                boxShadow: '0 0 4px #22d3ee, 0 0 8px #22d3ee'
+                                            }}
+                                        ></div>
                                     </div>
                                 );
                             })}
 
-                            {/* Gauge Background (Colored Segments) */}
+                            {/* Gauge Background (Colored Segments) - With Neon Glow */}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-64 h-32 overflow-hidden">
                                 <div className="w-64 h-64 rounded-full"
                                     style={{
-                                        background: `conic-gradient(from 270deg, 
-                                        #ef4444 0deg, #ef4444 36deg, 
-                                        #f97316 36deg, #f97316 72deg, 
-                                        #eab308 72deg, #eab308 108deg,
-                                        #3b82f6 108deg, #3b82f6 144deg, 
-                                        #22c55e 144deg, #22c55e 180deg)`,
+                                        background: `conic-gradient(from 180deg, 
+                                        #ef4444 0deg, #ef4444 54deg,
+                                        #eab308 54deg, #eab308 90deg,
+                                        #3b82f6 90deg, #3b82f6 126deg,
+                                        #22c55e 126deg, #22c55e 180deg,
+                                        transparent 180deg, transparent 360deg)`,
                                         maskImage: 'radial-gradient(transparent 60%, black 61%)',
                                         WebkitMaskImage: 'radial-gradient(transparent 60%, black 61%)',
-                                        transform: 'rotate(-90deg)'
+                                        boxShadow: 'inset 0 0 20px rgba(34, 211, 238, 0.3), 0 0 30px rgba(34, 211, 238, 0.2)'
                                     }}
                                 ></div>
                             </div>
 
-                            {/* Needle */}
+                            {/* Needle - Neon Style */}
                             <div
                                 className="absolute bottom-4 left-1/2 w-1 h-32 origin-bottom transition-transform duration-[2000ms] cubic-bezier(0.34, 1.56, 0.64, 1) z-30"
                                 style={{
                                     transform: `translateX(-50%) rotate(${(animatedScorePercent / 100) * 180 - 90}deg)`
                                 }}
                             >
-                                <div className="w-1.5 h-[90%] bg-white dark:bg-gray-800 rounded-t-full mx-auto mt-[10%] shadow-lg border border-gray-300"></div>
-                                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-6 bg-white dark:bg-gray-800 rounded-full shadow-xl border-4 border-gray-200 z-40"></div>
+                                <div 
+                                    className="w-1.5 h-[90%] bg-cyan-400 rounded-t-full mx-auto mt-[10%]"
+                                    style={{
+                                        boxShadow: '0 0 6px #22d3ee, 0 0 12px #22d3ee, 0 0 24px #06b6d4'
+                                    }}
+                                ></div>
+                                <div 
+                                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-6 bg-cyan-400 rounded-full z-40"
+                                    style={{
+                                        boxShadow: '0 0 10px #22d3ee, 0 0 20px #22d3ee, 0 0 40px #06b6d4'
+                                    }}
+                                ></div>
                             </div>
 
-                            {/* Internal Text */}
-                            <div className="absolute bottom-0 left-0 w-full text-center pb-2 z-30">
-                                <div className="text-4xl font-extrabold text-white drop-shadow-md">{formatScore(score)}</div>
-                                <div className="text-[10px] text-gray-300 uppercase tracking-widest">of {totalQuestions}</div>
+                            {/* Internal Text - Neon Speedometer Style */}
+                            <div className="absolute bottom-10 left-0 w-full text-center z-30">
+                                <div 
+                                    className="text-5xl font-black text-cyan-400"
+                                    style={{
+                                        textShadow: '0 0 5px #22d3ee, 0 0 10px #22d3ee, 0 0 20px #22d3ee, 0 0 40px #06b6d4, 0 0 80px #06b6d4'
+                                    }}
+                                >
+                                    {formatScore(score)}
+                                </div>
+                                <div 
+                                    className="text-xs text-cyan-200 uppercase tracking-widest mt-1"
+                                    style={{
+                                        textShadow: '0 0 5px #22d3ee, 0 0 10px #22d3ee'
+                                    }}
+                                >
+                                    of {totalQuestions}
+                                </div>
                             </div>
                         </div>
 
