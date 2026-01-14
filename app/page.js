@@ -2821,11 +2821,13 @@ export default function Home() {
                                 </div>
 
                                 {/* Exam Schedule Widget */}
-                                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 p-5 border-t-4 border-t-indigo-500">
-                                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                                        <Calendar className="text-indigo-500" size={18} /> Exam Schedule
-                                    </h3>
-                                    <div className="space-y-4">
+                                <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 overflow-hidden">
+                                    <div className="p-4 border-b border-gray-800">
+                                        <h3 className="font-bold text-white flex items-center gap-2">
+                                            <Calendar className="text-emerald-400" size={18} /> Exam Schedule
+                                        </h3>
+                                    </div>
+                                    <div className="p-4 space-y-3">
                                         {[
                                             { isHeader: true, title: "Call 1" },
                                             { name: "Digitalization", day: "13", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
@@ -2839,77 +2841,107 @@ export default function Home() {
                                             { name: "Software Project Management", day: "27", month: "Jan", time: "12:00", room: "Lab-403/407", teacher: "Usmanov M." },
                                             { name: "Software for Sustainable Dev", day: "30", month: "Jan", time: "09:00", room: "Lab-403/407", teacher: "Jamshid Y." },
                                             { name: "Mobile Apps (Native & Web)", day: "31", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Salokhiddinov M." },
-                                        ].map((item, idx) => {
+                                        ].map((item, idx, arr) => {
                                             if (item.isHeader) {
                                                 return (
-                                                    <div key={idx} className="bg-red-500/10 border border-red-500/20 rounded-lg p-1.5 text-center mt-4 mb-2 first:mt-0">
-                                                        <span className="text-red-500 font-bold uppercase text-xs tracking-widest">{item.title}</span>
+                                                    <div key={idx} className="bg-red-500/10 border border-red-500/30 rounded-lg py-2 text-center">
+                                                        <span className="text-red-400 font-bold uppercase text-sm tracking-widest">{item.title}</span>
                                                     </div>
                                                 );
                                             }
 
-                                            // Calculate time remaining (Assuming Year 2026)
+                                            // Calculate time remaining (Year 2026)
                                             const examDate = new Date(`${item.month} ${item.day}, 2026 ${item.time}`);
                                             const now = new Date();
                                             const diffMs = examDate - now;
+                                            const isFinished = diffMs < 0;
+
+                                            // Find if this is the NEXT upcoming exam
+                                            const upcomingExams = arr.filter(e => !e.isHeader).map(e => {
+                                                const d = new Date(`${e.month} ${e.day}, 2026 ${e.time}`);
+                                                return { ...e, date: d, diff: d - now };
+                                            }).filter(e => e.diff > 0).sort((a, b) => a.diff - b.diff);
+                                            const isNext = upcomingExams.length > 0 && 
+                                                upcomingExams[0].day === item.day && 
+                                                upcomingExams[0].month === item.month &&
+                                                upcomingExams[0].name === item.name;
 
                                             let timeStatus = "";
-                                            let statusColor = "text-gray-400";
-
-                                            if (diffMs < 0) {
+                                            if (isFinished) {
                                                 timeStatus = "Finished";
                                             } else {
                                                 const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                                                 const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                                const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-                                                if (diffDays > 7) {
-                                                    timeStatus = `${diffDays}d left`;
-                                                    statusColor = "text-emerald-500 font-medium";
-                                                } else if (diffDays >= 3) {
+                                                if (diffDays > 0) {
                                                     timeStatus = `${diffDays}d ${diffHours}h`;
-                                                    statusColor = "text-blue-500 font-medium";
-                                                } else if (diffDays >= 1) {
-                                                    timeStatus = `${diffDays}d ${diffHours}h`;
-                                                    statusColor = "text-amber-500 font-bold";
+                                                } else if (diffHours > 0) {
+                                                    timeStatus = `${diffHours}h ${diffMinutes}m`;
                                                 } else {
-                                                    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                                                    if (diffHours < 1) {
-                                                        timeStatus = `${diffMinutes}m left`;
-                                                        statusColor = "text-rose-600 font-extrabold animate-pulse bg-rose-50 border-rose-100";
-                                                    } else {
-                                                        timeStatus = `${diffHours}h ${diffMinutes}m`;
-                                                        statusColor = "text-rose-500 font-bold";
-                                                    }
+                                                    timeStatus = `${diffMinutes}m`;
                                                 }
                                             }
 
                                             return (
-                                                <div key={idx} className="flex gap-3 items-center p-3 rounded-xl bg-gray-50 dark:bg-gray-950/50 hover:bg-white dark:bg-gray-800 hover:shadow-md border border-transparent hover:border-gray-100 dark:border-gray-800/50 transition-all">
-                                                    <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm border border-gray-100 dark:border-gray-800/50 w-14 h-14 shrink-0">
-                                                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">{item.month}</span>
-                                                        <span className="text-xl font-black text-gray-800 dark:text-gray-200 leading-none">{item.day}</span>
-                                                    </div>
+                                                <div key={idx} className="relative">
+                                                    {/* Arrow indicator for next exam */}
+                                                    {isNext && (
+                                                        <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-emerald-400">
+                                                            <ChevronRight size={20} className="animate-bounce-x" />
+                                                        </div>
+                                                    )}
 
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex justify-between items-start">
-                                                            <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate pr-2">{item.name}</h4>
-                                                            <span className={clsx("text-[10px] font-medium whitespace-nowrap px-1.5 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800/50 shadow-sm", statusColor)}>
-                                                                {timeStatus}
-                                                            </span>
+                                                    {/* Card */}
+                                                    <div className={clsx(
+                                                        "flex-1 flex gap-3 items-center p-3 rounded-xl border transition-all",
+                                                        isFinished 
+                                                            ? "bg-gray-800/50 border-gray-700/50 opacity-70" 
+                                                            : isNext
+                                                                ? "bg-gray-800 border-blue-500/50 shadow-lg shadow-blue-500/10"
+                                                                : "bg-gray-800 border-gray-700/50"
+                                                    )}>
+                                                        {/* Date Box */}
+                                                        <div className={clsx(
+                                                            "flex flex-col items-center justify-center rounded-lg p-2 w-14 h-14 shrink-0",
+                                                            isFinished ? "bg-gray-700" : "bg-[#1f2937]"
+                                                        )}>
+                                                            <span className="text-[10px] font-bold text-red-400 uppercase">{item.month}</span>
+                                                            <span className="text-xl font-black text-white leading-none">{item.day}</span>
                                                         </div>
 
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
-                                                                <Clock size={10} className="text-gray-400" />
-                                                                {item.time}
-                                                            </span>
-                                                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                                            <span className="text-[11px] text-gray-500">
-                                                                {item.room}
-                                                            </span>
-                                                        </div>
+                                                        {/* Info */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <h4 className="text-sm font-bold text-white truncate">{item.name}</h4>
+                                                                
+                                                                {/* Status Badge */}
+                                                                {isFinished ? (
+                                                                    <div className="flex items-center gap-1 bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
+                                                                        <CheckCircle2 size={12} />
+                                                                        <span>Finished</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className={clsx(
+                                                                        "text-[10px] font-bold whitespace-nowrap px-2 py-0.5 rounded-full shrink-0",
+                                                                        isNext 
+                                                                            ? "bg-blue-500 text-white" 
+                                                                            : "bg-blue-500/20 text-blue-300"
+                                                                    )}>
+                                                                        {timeStatus}
+                                                                    </span>
+                                                                )}
+                                                            </div>
 
-                                                        <p className="text-[9px] text-gray-400 truncate mt-0.5">{item.teacher}</p>
+                                                            <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400">
+                                                                <Clock size={10} />
+                                                                <span>{item.time}</span>
+                                                                <span className="text-gray-600">•</span>
+                                                                <span>{item.room}</span>
+                                                            </div>
+
+                                                            <p className="text-[10px] text-gray-500 mt-0.5">{item.teacher}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
