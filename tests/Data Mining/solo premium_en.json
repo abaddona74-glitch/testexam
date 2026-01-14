@@ -1,0 +1,554 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "How do you connect to a database in MongoDB shell?",
+      "options": {
+        "A": "mongodb://localhost:27017",
+        "B": "use database_name",
+        "C": "connect('database_name')",
+        "D": "db.connect('localhost')"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "question": "How do you view the current database in MongoDB?",
+      "options": {
+        "A": "show db",
+        "B": "db.current()",
+        "C": "db",
+        "D": "currentDatabase()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 3,
+      "question": "What is the main difference between SQL and NoSQL?",
+      "options": {
+        "A": "SQL is faster, NoSQL is slower",
+        "B": "SQL is structured (table-based), NoSQL is semi-structured/unstructured",
+        "C": "SQL is free, NoSQL is paid",
+        "D": "SQL works only on Windows, NoSQL only on Linux"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 4,
+      "question": "When should you choose NoSQL over SQL?",
+      "options": {
+        "A": "When data structure is flexible/changing",
+        "B": "When fast read/write operations are needed",
+        "C": "When scalability is required",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 5,
+      "question": "What is the main goal of Data Mining?",
+      "options": {
+        "A": "To store large volumes of data",
+        "B": "To discover new knowledge and patterns from data",
+        "C": "To present data in a beautiful format",
+        "D": "To edit and delete data"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 6,
+      "question": "What is the difference between Data Mining and Data Analytics?",
+      "options": {
+        "A": "Data Mining - pattern discovery, Data Analytics - statistical analysis",
+        "B": "They are the same thing, just different names",
+        "C": "Data Mining is simpler, Data Analytics is more complex",
+        "D": "Data Mining doesn't require a powerful computer"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 7,
+      "question": "What are the 3Vs of Big Data?",
+      "options": {
+        "A": "Volume, Velocity, Variety",
+        "B": "Value, Veracity, Visualization",
+        "C": "Volume, Value, Velocity",
+        "D": "Variety, Volume, Veracity"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 8,
+      "question": "How do you view all collections (tables) in MongoDB?",
+      "options": {
+        "A": "show tables",
+        "B": "show collections",
+        "C": "db.getCollections()",
+        "D": "list collections"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "What is usually the first step in the Data Mining process?",
+      "options": {
+        "A": "Building a model",
+        "B": "Data collection",
+        "C": "Evaluating results",
+        "D": "Data preparation"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 10,
+      "question": "How many steps are in the CRISP-DM model?",
+      "options": {
+        "A": "5",
+        "B": "6",
+        "C": "7",
+        "D": "8"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 11,
+      "question": "How do you display query results in a readable format in MongoDB?",
+      "options": {
+        "A": ".pretty()",
+        "B": ".format()",
+        "C": ".beautiful()",
+        "D": ".show()"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 12,
+      "question": "What are the types of NoSQL databases?",
+      "options": {
+        "A": "Document, Key-Value, Column-family, Graph",
+        "B": "Relational, Hierarchical, Network",
+        "C": "MySQL, PostgreSQL, Oracle",
+        "D": "XML, JSON, CSV"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 13,
+      "question": "What are the main algorithms used in Data Mining?",
+      "options": {
+        "A": "Classification, Clustering, Association, Regression",
+        "B": "Sorting, Searching, Filtering",
+        "C": "Encryption, Decryption, Hashing",
+        "D": "Compression, Decompression, Archiving"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 14,
+      "question": "Which operator is used for conditional searching in MongoDB?",
+      "options": {
+        "A": "$if",
+        "B": "$condition",
+        "C": "$match",
+        "D": "$where"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 15,
+      "question": "Which technologies are used for working with Big Data?",
+      "options": {
+        "A": "Hadoop, Spark, Kafka",
+        "B": "MySQL, MongoDB, Redis",
+        "C": "Excel, Tableau, Power BI",
+        "D": "Python, R, Java"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 16,
+      "question": "What is Overfitting in Data Mining?",
+      "options": {
+        "A": "When a model fits training data too well but performs poorly on test data",
+        "B": "When a model is not trained enough",
+        "C": "Insufficient data",
+        "D": "Insufficient computer memory"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 17,
+      "question": "Which command is used to insert data in MongoDB?",
+      "options": {
+        "A": "db.collection.add()",
+        "B": "db.collection.insert()",
+        "C": "db.collection.create()",
+        "D": "db.collection.append()"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 18,
+      "question": "What is the difference between Data Mining and Machine Learning?",
+      "options": {
+        "A": "Data Mining - knowledge discovery, Machine Learning - prediction",
+        "B": "They are the same thing",
+        "C": "Data Mining is simpler",
+        "D": "Machine Learning works only in Python"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 19,
+      "question": "Which stage in MongoDB aggregation pipeline is used for sorting data?",
+      "options": {
+        "A": "$order",
+        "B": "$arrange",
+        "C": "$sort",
+        "D": "$sequence"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 20,
+      "question": "Why is Data Mining important for Big Data?",
+      "options": {
+        "A": "Not important because data is too large",
+        "B": "Very important to find useful patterns in large volumes of data",
+        "C": "Only for small databases",
+        "D": "Only for scientific research"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 21,
+      "question": "Which method is used to insert multiple documents in MongoDB?",
+      "options": {
+        "A": "insertOne()",
+        "B": "insertMany()",
+        "C": "addMany()",
+        "D": "createMany()"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 22,
+      "question": "What is a Confusion Matrix used for in Data Mining?",
+      "options": {
+        "A": "To evaluate classification models",
+        "B": "To visualize data",
+        "C": "To train models",
+        "D": "To clean data"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 23,
+      "question": "What is one advantage of NoSQL?",
+      "options": {
+        "A": "Horizontal scaling",
+        "B": "Complex join operations",
+        "C": "Strict schema",
+        "D": "Strict ACID compliance"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 24,
+      "question": "What is Cross-Validation in Data Mining?",
+      "options": {
+        "A": "Testing a model on different train/test splits",
+        "B": "Validating data",
+        "C": "Tuning model parameters",
+        "D": "Normalizing data"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 25,
+      "question": "Which operator is used to update documents in MongoDB?",
+      "options": {
+        "A": "$change",
+        "B": "$update",
+        "C": "$set",
+        "D": "$modify"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 26,
+      "question": "What is Feature Selection in Data Mining?",
+      "options": {
+        "A": "Choosing the most important variables",
+        "B": "Making data colorful",
+        "C": "Choosing a model",
+        "D": "Optimizing program code"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 27,
+      "question": "What is the main challenge of Data Mining with Big Data?",
+      "options": {
+        "A": "Extremely large volume of data",
+        "B": "Lack of programming languages",
+        "C": "Shortage of specialists",
+        "D": "High cost"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 28,
+      "question": "Which method is used to delete documents in MongoDB?",
+      "options": {
+        "A": "remove()",
+        "B": "delete()",
+        "C": "erase()",
+        "D": "drop()"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 29,
+      "question": "What is the Apriori algorithm used for in Data Mining?",
+      "options": {
+        "A": "Finding association rules",
+        "B": "Clustering",
+        "C": "Classification",
+        "D": "Regression"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 30,
+      "question": "When is it appropriate to use both SQL and NoSQL?",
+      "options": {
+        "A": "SQL for structured data, NoSQL for semi-structured data",
+        "B": "Always use only one",
+        "C": "NoSQL is always better",
+        "D": "SQL is always better"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 31,
+      "question": "How do you enable text search in MongoDB?",
+      "options": {
+        "A": "Create an index",
+        "B": "Restart the database",
+        "C": "Delete and recreate the collection",
+        "D": "Update MongoDB"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 32,
+      "question": "What are Precision and Recall in Data Mining?",
+      "options": {
+        "A": "Classification model metrics",
+        "B": "Regression model parameters",
+        "C": "Clustering algorithms",
+        "D": "Data preparation methods"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 33,
+      "question": "How are transactions handled in NoSQL databases?",
+      "options": {
+        "A": "Limited in some, absent in others",
+        "B": "Better than in SQL",
+        "C": "There is a universal standard",
+        "D": "Always fully supported"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 34,
+      "question": "What is Dimensionality Reduction in Data Mining?",
+      "options": {
+        "A": "Reducing the number of variables",
+        "B": "Increasing data volume",
+        "C": "Increasing model complexity",
+        "D": "Shortening program code"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 35,
+      "question": "Which command completely deletes a collection in MongoDB?",
+      "options": {
+        "A": "db.collection.remove({})",
+        "B": "db.collection.deleteAll()",
+        "C": "db.collection.drop()",
+        "D": "db.collection.erase()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 36,
+      "question": "What is the Bias-Variance Tradeoff in Data Mining?",
+      "options": {
+        "A": "Balance between model simplicity and complexity",
+        "B": "Data quality",
+        "C": "Program performance speed",
+        "D": "Memory usage"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 37,
+      "question": "What factors are important when choosing NoSQL?",
+      "options": {
+        "A": "Data type and structure",
+        "B": "Scalability requirements",
+        "C": "Development speed",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 38,
+      "question": "What are Ensemble Methods in Data Mining?",
+      "options": {
+        "A": "Combining multiple models",
+        "B": "Building a single model",
+        "C": "Cutting data",
+        "D": "Visualizing results"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 39,
+      "question": "How do you group and calculate by a specific field in MongoDB?",
+      "options": {
+        "A": "aggregate() with $group",
+        "B": "find() with $sum",
+        "C": "groupBy() function",
+        "D": "calculate() method"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 40,
+      "question": "Where is Data Mining applied in real life?",
+      "options": {
+        "A": "Advertising and marketing",
+        "B": "Healthcare",
+        "C": "Financial services",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 41,
+      "question": "What is the $lookup operator used for in MongoDB?",
+      "options": {
+        "A": "Joining two collections",
+        "B": "Searching data",
+        "C": "Creating an index",
+        "D": "Updating data"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 42,
+      "question": "What is Anomaly Detection in Data Mining?",
+      "options": {
+        "A": "Finding data that doesn't match normal patterns",
+        "B": "Fixing errors",
+        "C": "Testing a model",
+        "D": "Validating data"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 43,
+      "question": "When did NoSQL databases appear?",
+      "options": {
+        "A": "Late 2000s",
+        "B": "1990s",
+        "C": "1980s",
+        "D": "2010s"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 44,
+      "question": "What is a ROC Curve in Data Mining?",
+      "options": {
+        "A": "A graph showing classification model performance",
+        "B": "Regression line",
+        "C": "Data distribution",
+        "D": "Error flow"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 45,
+      "question": "How is conditional update performed in MongoDB?",
+      "options": {
+        "A": "updateOne({condition}, {$set: {update}})",
+        "B": "change({condition}, {update})",
+        "C": "modify({condition}, {update})",
+        "D": "replace({condition}, {update})"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 46,
+      "question": "How does the Decision Tree algorithm work in Data Mining?",
+      "options": {
+        "A": "Divides data into sections based on questions",
+        "B": "Divides data randomly",
+        "C": "Works only with numerical data",
+        "D": "Only for small datasets"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 47,
+      "question": "What is the biggest disadvantage of NoSQL databases?",
+      "options": {
+        "A": "Not good for complex transactions and joins",
+        "B": "Slow",
+        "C": "Not secure",
+        "D": "Difficult to read"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 48,
+      "question": "For what type of problem is the K-Means algorithm used in Data Mining?",
+      "options": {
+        "A": "Clustering",
+        "B": "Classification",
+        "C": "Regression",
+        "D": "Association"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 49,
+      "question": "Which tool is used to export data from MongoDB?",
+      "options": {
+        "A": "mongoexport",
+        "B": "export",
+        "C": "mongo_dump",
+        "D": "db.export()"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 50,
+      "question": "What is the future of Data Mining?",
+      "options": {
+        "A": "Closer integration with AI and Machine Learning",
+        "B": "Real-time analytics",
+        "C": "Working with IoT devices",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    }
+  ]
+}
