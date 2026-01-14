@@ -280,21 +280,148 @@ const SPINNER_ITEMS = [
     { id: 'e8', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
 ];
 
-function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, nextSpin, forceLucky }) {
+function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, nextSpin, forceLucky, soundVolume = 0.8 }) {
     const [spinning, setSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [prize, setPrize] = useState(null);
     const isDev = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    const winAudioRef = useRef(null);
+    const [needsWinSoundTap, setNeedsWinSoundTap] = useState(false);
+    const spinAudioRef = useRef(null);
+    const [needsSpinSoundTap, setNeedsSpinSoundTap] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (winAudioRef.current) return;
+        try {
+            const audio = new Audio('/congratulations-you-are-the-winner.mp3');
+            audio.preload = 'auto';
+            audio.volume = Math.max(0, Math.min(1, soundVolume));
+            winAudioRef.current = audio;
+        } catch { }
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (spinAudioRef.current) return;
+        try {
+            const audio = new Audio('/electric-slot-machine.mp3');
+            audio.preload = 'auto';
+            audio.loop = true;
+            audio.volume = Math.max(0, Math.min(1, soundVolume));
+            spinAudioRef.current = audio;
+        } catch { }
+    }, []);
+
+    useEffect(() => {
+        const audio = winAudioRef.current;
+        if (!audio) return;
+        audio.volume = Math.max(0, Math.min(1, soundVolume));
+    }, [soundVolume]);
+
+    useEffect(() => {
+        const audio = spinAudioRef.current;
+        if (!audio) return;
+        audio.volume = Math.max(0, Math.min(1, soundVolume));
+    }, [soundVolume]);
+
+    const stopSpinSound = () => {
+        const audio = spinAudioRef.current;
+        if (!audio) return;
+        try {
+            audio.pause();
+            audio.currentTime = 0;
+        } catch { }
+        setNeedsSpinSoundTap(false);
+    };
+
+    useEffect(() => {
+        return () => {
+            const audio = spinAudioRef.current;
+            if (!audio) return;
+            try {
+                audio.pause();
+                audio.currentTime = 0;
+            } catch { }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const primeWinSound = () => {
+        const audio = winAudioRef.current;
+        if (!audio) return;
+        try {
+            const previousVolume = Math.max(0, Math.min(1, soundVolume));
+            audio.volume = 0;
+            audio.currentTime = 0;
+            const p = audio.play();
+            if (p && typeof p.then === 'function') {
+                p.then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio.volume = previousVolume;
+                }).catch(() => {
+                    audio.volume = previousVolume;
+                });
+            } else {
+                audio.pause();
+                audio.currentTime = 0;
+                audio.volume = previousVolume;
+            }
+        } catch { }
+    };
+
+
+    const playWinSound = async () => {
+        const audio = winAudioRef.current;
+        if (!audio) return;
+        try {
+            audio.currentTime = 0;
+            await audio.play();
+            setNeedsWinSoundTap(false);
+        } catch {
+            setNeedsWinSoundTap(true);
+        }
+    };
+
+    const playSpinSound = async () => {
+        let audio = spinAudioRef.current;
+        if (!audio && typeof window !== 'undefined') {
+            try {
+                const created = new Audio('/electric-slot-machine.mp3');
+                created.preload = 'auto';
+                created.loop = true;
+                created.volume = Math.max(0, Math.min(1, soundVolume));
+                spinAudioRef.current = created;
+                audio = created;
+            } catch { }
+        }
+        if (!audio) return;
+        try {
+            audio.currentTime = 0;
+            await audio.play();
+            setNeedsSpinSoundTap(false);
+        } catch (e) {
+            console.warn('[spin sound] play blocked/failed', e);
+            setNeedsSpinSoundTap(true);
+        }
+    };
 
     const handleSpin = (type) => {
         if (spinning) return;
         setPrize(null);
+        setNeedsWinSoundTap(false);
+        setNeedsSpinSoundTap(false);
+
+        // Prime audio on user gesture to reduce autoplay blocks later
+        primeWinSound();
 
         // Attempt to start spin
         const success = onSpinStart(type);
         if (!success) return;
 
         setSpinning(true);
+        playSpinSound();
 
         // Determine result based on weighted probability
         let selectedIndex = 0;
@@ -342,11 +469,13 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
         setRotation(totalRotation);
 
         setTimeout(() => {
+            stopSpinSound();
             setSpinning(false);
             const wonItem = SPINNER_ITEMS[selectedIndex];
             setPrize(wonItem);
 
             if (wonItem.type !== 'empty') {
+                playWinSound();
                 confetti({
                     particleCount: 100,
                     spread: 70,
@@ -364,7 +493,10 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="relative max-w-sm w-full mx-4">
                 <button
-                    onClick={onClose}
+                    onClick={() => {
+                        stopSpinSound();
+                        onClose();
+                    }}
                     className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors"
                     disabled={spinning}
                 >
@@ -464,6 +596,14 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                     </div>
 
                     <div className="text-center space-y-3">
+                        {spinning && needsSpinSoundTap && (
+                            <button
+                                onClick={playSpinSound}
+                                className="w-full px-4 py-2 rounded-xl text-xs font-bold tracking-wide bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors"
+                            >
+                                Tap to enable spin sound
+                            </button>
+                        )}
                         {prize && (
                             <div className="animate-in zoom-in duration-300 mb-6">
                                 {prize.type !== 'empty' ? (
@@ -473,6 +613,15 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                                             <prize.icon size={24} />
                                             <span className="font-bold text-lg">{prize.label}</span>
                                         </div>
+
+                                        {needsWinSoundTap && (
+                                            <button
+                                                onClick={playWinSound}
+                                                className="w-full px-4 py-2 rounded-xl text-xs font-bold tracking-wide bg-yellow-50 text-yellow-700 border border-yellow-200 hover:bg-yellow-100 transition-colors"
+                                            >
+                                                Tap to play winner sound
+                                            </button>
+                                        )}
                                     </>
                                 ) : (
                                     <div className="text-center mb-6">
@@ -582,6 +731,18 @@ export default function Home() {
     const [leaderboard, setLeaderboard] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('today'); // Filter state
     const [showSettings, setShowSettings] = useState(false);
+    const [soundVolume, setSoundVolume] = useState(() => {
+        if (typeof window === 'undefined') return 0.8;
+        try {
+            const stored = localStorage.getItem('examApp_soundVolume');
+            if (stored === null || stored === undefined) return 0.8;
+            const parsed = parseFloat(stored);
+            if (Number.isNaN(parsed)) return 0.8;
+            return Math.max(0, Math.min(1, parsed));
+        } catch {
+            return 0.8;
+        }
+    }); // 0..1
     const [showDonateModal, setShowDonateModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('uzum');
     const [cardCopied, setCardCopied] = useState(false);
@@ -603,6 +764,9 @@ export default function Home() {
     // Toast State
     const [toasts, setToasts] = useState([]);
 
+    // Sound (shared volume from Settings)
+    const startAudioRef = useRef(null);
+
     const addToast = (title, message = '', type = 'success') => {
         const id = Date.now();
         setToasts(prev => [...prev, { id, title, message, type }]);
@@ -613,6 +777,37 @@ export default function Home() {
 
     const removeToast = (id) => {
         setToasts(prev => prev.filter(t => t.id !== id));
+    };
+
+    // Init start sound
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (startAudioRef.current) return;
+        try {
+            const audio = new Audio('/start.mp3');
+            audio.preload = 'auto';
+            audio.volume = Math.max(0, Math.min(1, soundVolume));
+            startAudioRef.current = audio;
+        } catch { }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Keep start sound volume in sync
+    useEffect(() => {
+        const audio = startAudioRef.current;
+        if (!audio) return;
+        audio.volume = Math.max(0, Math.min(1, soundVolume));
+    }, [soundVolume]);
+
+    const playStartSound = async () => {
+        const audio = startAudioRef.current;
+        if (!audio) return;
+        try {
+            audio.currentTime = 0;
+            await audio.play();
+        } catch {
+            // Ignore autoplay blocks; start is usually a user click anyway
+        }
     };
 
     // Cheats / Promo Codes
@@ -904,6 +1099,13 @@ export default function Home() {
             clearInterval(boostInterval);
         };
     }, []);
+
+    // Persist sound volume
+    useEffect(() => {
+        try {
+            localStorage.setItem('examApp_soundVolume', String(soundVolume));
+        } catch { }
+    }, [soundVolume]);
 
     const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
     const canSpin = isDevMode || freeSpins > 0;
@@ -1392,6 +1594,7 @@ export default function Home() {
                         translationContent,
                         isResumed: true
                     });
+                    playStartSound();
                     setView('test');
                 } else {
                     setSelectedTestForDifficulty({ ...test, translationContent });
@@ -1475,6 +1678,7 @@ export default function Home() {
                         translationContent,
                         isResumed: true
                     });
+                    playStartSound();
                     setView('test');
                 } else {
                     setPendingTest({ ...test, translationContent });
@@ -1526,6 +1730,7 @@ export default function Home() {
                 translationContent, // Add translation content to resumable state
                 isResumed: true
             });
+            playStartSound();
             setView('test');
             return;
         }
@@ -1587,6 +1792,7 @@ export default function Home() {
         };
 
         setActiveTest(newTestState);
+        playStartSound();
         setView('test');
         setShowDifficultyModal(false);
         setPendingTest(null);
@@ -1901,6 +2107,25 @@ export default function Home() {
                                     </button>
                                 </div>
                             </form>
+
+                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Sound Volume
+                                    <span className="ml-2 text-xs text-gray-400 font-mono">{Math.round(soundVolume * 100)}%</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={Math.round(soundVolume * 100)}
+                                    onChange={(e) => setSoundVolume(Math.max(0, Math.min(1, Number(e.target.value) / 100)))}
+                                    className="w-full accent-blue-600"
+                                />
+                                <div className="mt-2 text-[11px] text-gray-400">
+                                    Applies to celebration + spin win sounds.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -1994,6 +2219,7 @@ export default function Home() {
                         onSpinStart={handleSpinStart}
                         nextSpin={boostInfo?.nextSpin}
                         forceLucky={activatedCheats.includes('haveluckyday') || activatedCheats.includes('godmode')}
+                        soundVolume={soundVolume}
                     />
                 )}
 
@@ -2826,6 +3052,7 @@ export default function Home() {
                             userId={userId}
                             userCountry={userCountry}
                             activatedCheats={activatedCheats}
+                            soundVolume={soundVolume}
                             onBack={() => setView('list')}
                             onProgressUpdate={(progress) => saveCurrentProgress(activeTest.id, progress)}
                             userStars={userStars}
@@ -3806,13 +4033,82 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8 }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
     const [animatedScorePercent, setAnimatedScorePercent] = useState(0);
     const [showLegendaryEffect, setShowLegendaryEffect] = useState(false);
+    const celebrationAudioRef = useRef(null);
+    const [needsSoundTap, setNeedsSoundTap] = useState(false);
+
+    const stopCelebrationSound = () => {
+        const audio = celebrationAudioRef.current;
+        if (!audio) return;
+        try {
+            audio.pause();
+            audio.currentTime = 0;
+        } catch { }
+    };
+
+    const playCelebrationSound = async () => {
+        const audio = celebrationAudioRef.current;
+        if (!audio) return;
+        try {
+            audio.currentTime = 0;
+            await audio.play();
+            setNeedsSoundTap(false);
+        } catch (e) {
+            // Autoplay may be blocked unless user taps/clicks
+            setNeedsSoundTap(true);
+        }
+    };
+
+    // Prepare celebration audio once
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (celebrationAudioRef.current) return;
+        try {
+            const audio = new Audio('/Celebration_Sound_Effect.mp3');
+            audio.preload = 'auto';
+            audio.volume = Math.max(0, Math.min(1, soundVolume));
+            celebrationAudioRef.current = audio;
+        } catch { }
+
+        return () => {
+            stopCelebrationSound();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        const audio = celebrationAudioRef.current;
+        if (!audio) return;
+        audio.volume = Math.max(0, Math.min(1, soundVolume));
+    }, [soundVolume]);
+
+    // Try to play as soon as the congratulations/finished screen shows
+    useEffect(() => {
+        if (!isFinished) {
+            setNeedsSoundTap(false);
+            stopCelebrationSound();
+            return;
+        }
+        playCelebrationSound();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFinished]);
+
+    // Fallback: if autoplay blocked, play on the next user click/tap anywhere
+    useEffect(() => {
+        if (!needsSoundTap || typeof window === 'undefined') return;
+        const handler = () => {
+            playCelebrationSound();
+        };
+        window.addEventListener('click', handler, { once: true });
+        return () => window.removeEventListener('click', handler);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [needsSoundTap]);
 
     useEffect(() => {
         if (isFinished) {
@@ -4284,7 +4580,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 )}
                 {/* Back Button for Finished View */}
                 <button
-                    onClick={onBack}
+                    onClick={() => {
+                        stopCelebrationSound();
+                        onBack();
+                    }}
                     className="mb-6 flex items-center gap-2 text-gray-500 hover:text-gray-700 font-medium transition-colors bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
                 >
                     <ArrowLeft size={16} /> Back to List
@@ -4294,6 +4593,15 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     <div className="p-8 text-center bg-gray-900 text-white flex flex-col items-center">
                         <h2 className="text-3xl font-bold mb-2">Test Completed!</h2>
                         <p className="opacity-80 mb-8">Here is how you performed</p>
+
+                        {needsSoundTap && (
+                            <button
+                                onClick={playCelebrationSound}
+                                className="mb-4 text-xs font-bold tracking-wide px-3 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
+                            >
+                                Tap to play celebration sound
+                            </button>
+                        )}
 
                         {/* Speedometer Gauge */}
                         <div className="relative w-72 h-36 overflow-hidden mb-4 p-4">
@@ -4451,7 +4759,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     </div>
                     <div className="p-6 bg-gray-50 dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800/50 flex justify-center">
                         <button
-                            onClick={onRetake}
+                            onClick={() => {
+                                stopCelebrationSound();
+                                onRetake();
+                            }}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                         >
                             <RefreshCcw size={20} /> Retake Test
