@@ -2214,8 +2214,8 @@ export default function Home() {
                                                     const badgeLabel = isCommunity ? "Community" : "Official";
                                                     const badgeColor = isCommunity ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700";
 
-                                                    // Check if Updated recently (e.g. within 3 days)
-                                                    const isUpdated = test.updatedAt && (new Date() - new Date(test.updatedAt) < 3 * 24 * 60 * 60 * 1000);
+                                                    // Check if Updated recently (within 1 day)
+                                                    const isUpdated = test.updatedAt && (new Date() - new Date(test.updatedAt) < 1 * 24 * 60 * 60 * 1000);
 
                                                     // Check unlock status - also check with common base patterns
                                                     const testIsUnlocked = allPremiumUnlocked || (test.isPremium && (
@@ -3358,10 +3358,15 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-800/50 flex flex-col justify-between group relative overflow-hidden">
+        <div className="bg-white/70 dark:bg-gray-900/40 backdrop-blur-xl p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-white/20 dark:border-white/10 flex flex-col justify-between group relative overflow-hidden">
             <div className="flex absolute top-0 right-0">
                 {isUpdated && (
-                    <div className="bg-emerald-500 text-white text-xs px-2 py-1 font-bold tracking-wide shadow-sm flex items-center gap-1 z-10">
+                    <div
+                        className={clsx(
+                            "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 text-xs px-2 py-1 font-bold flex items-center gap-1 shadow-sm border border-emerald-200/60 dark:border-emerald-700/40 z-10",
+                            (!hasProgress && !isLocked && !isUnlocked) ? "rounded-bl-lg" : ""
+                        )}
+                    >
                         <RefreshCcw size={12} strokeWidth={3} /> UPDATED
                     </div>
                 )}
@@ -3371,7 +3376,7 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                     </div>
                 )}
                 {isLocked && (
-                    <div className={clsx("bg-amber-100 text-amber-700 text-xs px-2 py-1 font-bold flex items-center gap-1", isUpdated ? "" : "rounded-bl-lg")}>
+                    <div className={clsx("bg-amber-100/80 dark:bg-amber-900/25 text-[#b8860b] dark:text-[#ffd700] text-xs px-2 py-1 font-bold flex items-center gap-1 border border-amber-200/60 dark:border-amber-700/40", isUpdated ? "" : "rounded-bl-lg")}>
                         <Lock size={12} /> PREMIUM
                     </div>
                 )}
@@ -3423,11 +3428,7 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                                 ))}
                             </div>
                         )}
-                        {(!test.translations || Object.keys(test.translations).length <= 1) && (
-                            <span className="text-gray-400 text-xs font-medium bg-gray-100 px-2 py-1 rounded">
-                                JSON
-                            </span>
-                        )}
+                        {/* JSON label removed (cleaner card UI) */}
                     </div>
                 </div>
                 <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200 mb-1 group-hover:text-blue-600 transition-colors">
