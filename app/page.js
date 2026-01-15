@@ -1319,14 +1319,21 @@ export default function Home() {
         // Send heartbeat for all views EXCEPT 'test' (because TestRunner handles 'in-test' status)
         // This ensures user stays "Online" even while in History/Upload/Review
         if (view !== 'test' && isNameSet && userName && userId) {
+            const getPresenceStatus = () => {
+                if (typeof document === 'undefined') return 'browsing';
+                const hasFocus = typeof document.hasFocus === 'function' ? document.hasFocus() : true;
+                return (document.hidden || !hasFocus) ? 'afk' : 'browsing';
+            };
+
             const sendHeartbeat = () => {
+                const status = getPresenceStatus();
                 fetch('/api/active', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userId,
                         name: userName,
-                        status: 'browsing',
+                        status,
                         device: getDeviceType(),
                         country: userCountry,
                         stars: userStars, // Send star count
@@ -1335,8 +1342,25 @@ export default function Home() {
                 }).catch(e => console.error(e));
             };
 
+            let interval = null;
+            const restartInterval = () => {
+                if (interval) clearInterval(interval);
+                const status = getPresenceStatus();
+                const ms = status === 'afk' ? 20000 : 10000;
+                interval = setInterval(sendHeartbeat, ms);
+            };
+
+            const handlePresenceChange = () => {
+                sendHeartbeat();
+                restartInterval();
+            };
+
             sendHeartbeat(); // Immediate
-            const interval = setInterval(sendHeartbeat, 10000); // Pulse every 10s
+            restartInterval();
+
+            document.addEventListener('visibilitychange', handlePresenceChange);
+            window.addEventListener('focus', handlePresenceChange);
+            window.addEventListener('blur', handlePresenceChange);
 
             // Cleanup on unmount/close
             const cleanup = () => {
@@ -1348,8 +1372,11 @@ export default function Home() {
             window.addEventListener('beforeunload', cleanup);
 
             return () => {
-                clearInterval(interval);
+                if (interval) clearInterval(interval);
                 window.removeEventListener('beforeunload', cleanup);
+                document.removeEventListener('visibilitychange', handlePresenceChange);
+                window.removeEventListener('focus', handlePresenceChange);
+                window.removeEventListener('blur', handlePresenceChange);
                 // Optional: cleanup(); // Don't allow cleanup on component unmount (navigating within app), only on unload/close. 
                 // Actually, component unmount happens on route change too.
                 // If we navigate to "Test", we want to remove "Browsing" status.
@@ -2583,7 +2610,7 @@ export default function Home() {
                                                             <td className="py-3 px-2">
                                                                 <div className="flex flex-col">
                                                                     {league.name === 'Mythic' ? (
-                                                                        <span className="text-base font-medium font-extrabold flex justify-center">
+                                                                        <span className="text-base font-extrabold flex justify-center">
                                                                             {entry.name.split('').map((char, i) => (
                                                                                 <span key={i} className="mythic-blood relative inline-block mx-[0.5px]">
                                                                                     {char === ' ' ? '\u00A0' : char}
@@ -2779,6 +2806,9 @@ export default function Home() {
                                                                         {user.status === 'browsing' && (
                                                                             <span className="w-2 h-2 rounded-full bg-green-500" title="Browsing"></span>
                                                                         )}
+                                                                        {user.status === 'afk' && (
+                                                                            <span className="w-2 h-2 rounded-full bg-yellow-400" title="AFK"></span>
+                                                                        )}
                                                                     </div>
                                                                 </div>
 
@@ -2799,7 +2829,9 @@ export default function Home() {
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <p className={clsx("text-[10px] mt-0.5", isMe ? "text-blue-400" : "text-gray-400")}>Browsing list...</p>
+                                                                    <p className={clsx("text-[10px] mt-0.5", isMe ? "text-blue-400" : "text-gray-400")}>
+                                                                        {user.status === 'afk' ? 'AFK' : 'Browsing list...'}
+                                                                    </p>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -4407,6 +4439,42 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             }).catch(e => console.error("Active status update failed", e));
         }
     }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints, userStars, resolvedTheme]);
+
+    // Keep in-test presence alive even if the user pauses (no answers for a while).
+    useEffect(() => {
+        if (isFinished) return;
+        if (!userId || !userName || !test?.id) return;
+
+        const ping = () => {
+            const hasFocus = typeof document !== 'undefined' && typeof document.hasFocus === 'function'
+                ? document.hasFocus()
+                : true;
+            const isAfk = typeof document !== 'undefined' ? (document.hidden || !hasFocus) : false;
+            const status = isAfk ? 'afk' : 'in-test';
+
+            fetch('/api/active', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    testId: test.id,
+                    userId: userId,
+                    name: userName,
+                    progress: currentIndex,
+                    total: totalQuestions,
+                    status,
+                    device: getDeviceType(),
+                    country: userCountry,
+                    currentAnswer: answers[currentIndex],
+                    stars: userStars,
+                    theme: resolvedTheme
+                })
+            }).catch(() => { });
+        };
+
+        ping();
+        const interval = setInterval(ping, 15000);
+        return () => clearInterval(interval);
+    }, [isFinished, test?.id, userId, userName, currentIndex, totalQuestions, userCountry, userStars, resolvedTheme]);
 
     // Poll for other active users
     useEffect(() => {

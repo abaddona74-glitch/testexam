@@ -13,11 +13,21 @@ export async function GET(request) {
   const testId = searchParams.get('testId');
   
   const now = Date.now();
-  // Cleanup old sessions (> 5 minutes inactive)
+  // Cleanup stale sessions.
+  // Mobile browsers may keep tabs open in background without reliably firing beforeunload,
+  // so we expire users based on lastUpdated.
+  const BROWSING_TTL_MS = 15 * 1000; // 15 seconds
+  const AFK_TTL_MS = 2 * 60 * 1000; // 2 minutes
+  const IN_TEST_TTL_MS = 3 * 60 * 1000; // 3 minutes
+
   Object.keys(activeSessions).forEach(key => {
-      if (now - activeSessions[key].lastUpdated > 5 * 60 * 1000) {
-          delete activeSessions[key];
-      }
+    const session = activeSessions[key];
+    const ttl = session?.status === 'afk'
+      ? AFK_TTL_MS
+      : (session?.status === 'in-test' || session?.testId) ? IN_TEST_TTL_MS : BROWSING_TTL_MS;
+    if (!session?.lastUpdated || (now - session.lastUpdated > ttl)) {
+      delete activeSessions[key];
+    }
   });
 
   if (!testId) {
