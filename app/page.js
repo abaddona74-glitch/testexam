@@ -839,6 +839,10 @@ export default function Home() {
     const [uploadFolder, setUploadFolder] = useState('');
     const [jsonError, setJsonError] = useState(null);
 
+    // Upload feature flag (server-driven via GET /api/tests)
+    const [testUploadMode, setTestUploadMode] = useState('off');
+    const testUploadsEnabled = testUploadMode !== 'off';
+
     // Persistent state for resuming tests
     const [savedProgress, setSavedProgress] = useState({});
 
@@ -1520,6 +1524,7 @@ export default function Home() {
             const data = await res.json();
             setTests(data);
             if (data.folders) setFolders(data.folders);
+            if (data.uploadMode) setTestUploadMode(data.uploadMode);
         } catch (error) {
             console.error("Failed to fetch tests", error);
         } finally {
@@ -1843,6 +1848,13 @@ export default function Home() {
 
     const handleUploadSubmit = async (e) => {
         e.preventDefault();
+
+        if (!testUploadsEnabled) {
+            setJsonError('Test upload is temporarily disabled.');
+            addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
+            return;
+        }
+
         const fileInput = e.target.elements.fileInput;
         const file = fileInput?.files[0];
 
@@ -1886,6 +1898,14 @@ export default function Home() {
         };
         reader.readAsText(file);
     };
+
+    useEffect(() => {
+        if (showUploadModal && !testUploadsEnabled) {
+            setShowUploadModal(false);
+            addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showUploadModal, testUploadsEnabled]);
 
     useEffect(() => {
         // Disable right-click context menu
@@ -2374,7 +2394,7 @@ export default function Home() {
                     </div>
                 )}
 
-                {showUploadModal && (
+                {showUploadModal && testUploadsEnabled && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 relative">
                             <button onClick={() => setShowUploadModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
@@ -2430,8 +2450,21 @@ export default function Home() {
                                         <List className="text-blue-500" /> Available Tests
                                     </h2>
                                     <button
-                                        onClick={() => { playStartSound(); setUploadFolder(folders[0] || ''); setShowUploadModal(true); }}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                        onClick={() => {
+                                            if (!testUploadsEnabled) {
+                                                addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
+                                                return;
+                                            }
+                                            playStartSound();
+                                            setUploadFolder(folders[0] || '');
+                                            setShowUploadModal(true);
+                                        }}
+                                        disabled={!testUploadsEnabled}
+                                        title={!testUploadsEnabled ? 'Upload is temporarily disabled' : 'Upload a new test'}
+                                        className={clsx(
+                                            "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5",
+                                            !testUploadsEnabled && "opacity-50 cursor-not-allowed hover:bg-blue-600 hover:shadow-md hover:translate-y-0"
+                                        )}
                                     >
                                         <Upload size={16} /> Upload Test
                                     </button>
@@ -2490,7 +2523,20 @@ export default function Home() {
                                                     );
                                                 }) : (
                                                     <div className="col-span-2 text-center py-8 text-gray-400 text-sm italic border-2 border-dashed border-gray-100 dark:border-gray-800/50 rounded-lg">
-                                                        No tests available in this subject. <button onClick={() => { setUploadFolder(category); setShowUploadModal(true); }} className="text-blue-500 hover:underline">Upload one?</button>
+                                                        No tests available in this subject.{" "}
+                                                        {testUploadsEnabled ? (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setUploadFolder(category);
+                                                                    setShowUploadModal(true);
+                                                                }}
+                                                                className="text-blue-500 hover:underline"
+                                                            >
+                                                                Upload one?
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-gray-400">Upload disabled</span>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

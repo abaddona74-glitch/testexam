@@ -3,6 +3,7 @@ import path from 'path';
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Test from '../../../models/Test';
+import { getTestUploadMode, isTestUploadEnabled } from '../../../lib/featureFlags.server';
 
 // In-memory store for uploaded tests (persists only while server is running)
 // For permanent storage, you'd need a database (Postgres, MongoDB, etc.) or Blob storage.
@@ -11,6 +12,8 @@ let uploadedTests = [];
 
 export async function GET() {
   await dbConnect();
+
+  const uploadMode = getTestUploadMode();
 
   const testsDirectory = path.join(process.cwd(), 'tests');
   let defaultTests = [];
@@ -162,11 +165,23 @@ export async function GET() {
   return NextResponse.json({ 
     defaultTests, 
     uploadedTests: [], // Empty as we merged everything
-    folders: foldersArray
+    folders: foldersArray,
+    uploadMode,
+    uploadsEnabled: isTestUploadEnabled()
   });
 }
 
 export async function POST(request) {
+  if (!isTestUploadEnabled()) {
+    return NextResponse.json(
+      {
+        error: "Test upload is temporarily disabled.",
+        uploadMode: getTestUploadMode()
+      },
+      { status: 503 }
+    );
+  }
+
   await dbConnect();
 
   try {
@@ -212,7 +227,6 @@ export async function POST(request) {
         return NextResponse.json({ success: true, test: newTest, type: 'created' });
     }
 
-    return NextResponse.json({ success: true, test: newTest });
   } catch (error) {
     console.error("Upload error", error);
     return NextResponse.json({ error: "Failed to process upload" }, { status: 500 });
