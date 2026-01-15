@@ -1,0 +1,325 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Which query counts how many bookings were made in 'Torino'?",
+      "options": {
+        "A": "db.PermanentBookings.count({ city: \"Torino\" })",
+        "B": "db.PermanentBookings.find(\"Torino\")",
+        "C": "db.PermanentBookings.sum({ city: \"Torino\" })",
+        "D": "db.PermanentBookings.count(\"city: Torino\")"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "Which of the following method is used for printing documents in a formatted way?",
+      "options": {
+        "A": ".pretty()",
+        "B": ".formatted()",
+        "C": ".table()",
+        "D": ".beautify()"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 3,
+      "question": "Which method returns documents sorted by `init_time` in descending order?",
+      "options": {
+        "A": "db.Bookings.sort({ init_time: \"desc\" })",
+        "B": "db.Bookings.sortBy({ init_time: -1 })",
+        "C": "db.Bookings.find().order({ init_time: -1 })",
+        "D": "db.Bookings.find().sort({ init_time: -1 })"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 4,
+      "question": "How to create a new dataframe named df1 which contains only the continent and location columns from the df dataframe.",
+      "options": {
+        "A": "df1 = df['continent', 'location']",
+        "B": "df1 = df[['continent', 'location']]",
+        "C": "df1 = df['continent'], ['location']",
+        "D": "df1 = df[['continent'], ['location']]"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 5,
+      "question": "Which of the following is \"create\" operation on documents in MongoDB?",
+      "options": {
+        "A": "db.collection.create()",
+        "B": "There is not correct answer",
+        "C": "db.collection.new()",
+        "D": "db.collection.append()",
+        "E": "db.collection.insert()"
+      },
+      "correct_answer": "E"
+    },
+    {
+      "id": 6,
+      "question": "Which of the following is not the Datatype of MongoDB?",
+      "options": {
+        "A": "Float",
+        "B": "Date",
+        "C": "String",
+        "D": "Boolean"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 7,
+      "question": "How to sort the dataframe in ascending order of the `total_cases` column?",
+      "options": {
+        "A": "df_sorted = df.sort_values('total_')",
+        "B": "df_sorted = df.sort_by('total_case')",
+        "C": "df_sorted = df.sort_values('total_case')",
+        "D": "df_sorted = df.sort_by('total_case')"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 8,
+      "question": "Which of the following is NO SQL database?",
+      "options": {
+        "A": "MySQL",
+        "B": "MongoDB",
+        "C": "Postman",
+        "D": "PostgreSQL"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "Which of the following is \"read\" operation on MongoDB documents?",
+      "options": {
+        "A": "db.collection.get()",
+        "B": "db.collection.read()",
+        "C": "db.collection.fetch()",
+        "D": "db.collection.find()"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 10,
+      "question": "What will `df.head(3)` return?",
+      "options": {
+        "A": "The last 3 rows",
+        "B": "All rows but the first 3",
+        "C": "The first 3 rows",
+        "D": "The first 3 columns"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 11,
+      "question": "How do you select rows where the column \"age\" is greater than 30?",
+      "options": {
+        "A": "df[df[\"age\"] > 30]",
+        "B": "df.where(age > 30)",
+        "C": "df.select(age > 30)",
+        "D": "df[\"age\" > 30]"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 12,
+      "question": "Which of the following is/are aggregation operations:",
+      "options": {
+        "A": ".distinct()",
+        "B": ".limit()",
+        "C": ".pretty()",
+        "D": ".count()",
+        "E": ".createIndex()"
+      },
+      "correct_answer": "A, D"
+    },
+    {
+      "id": 13,
+      "question": "Which command returns the number of documents where init_fuel is less than 10?",
+      "options": {
+        "A": "db.Bookings.count({ init_fuel <= 10 })",
+        "B": "db.Bookings.find({ init_fuel: { $lt: 10 } }).count()",
+        "C": "db.Bookings.find({ init_fuel: \"<10\" }).count()",
+        "D": "db.Bookings.count({ init_fuel < 10 })"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 14,
+      "question": "What does the following command return? db.Bookings.distinct(\"plate\", { city: \"Torino\" })",
+      "options": {
+        "A": "The total count of plates used in Torino",
+        "B": "The number of cars available in Torino",
+        "C": "Unique license plates booked in Torino",
+        "D": "All bookings made in Torino"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 15,
+      "question": "How to read the `covid.csv` file into a dataframe named `df` and include first column as the index column?",
+      "options": {
+        "A": "df = pd.read_csv('covid.csv', index_col=False)",
+        "B": "df = pd.read_csv('covid.csv', index_col=True)",
+        "C": "df = pd.read_file('covid.csv', index_col=False)",
+        "D": "df = pd.read_file('covid.csv', index_col=True)"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 16,
+      "question": "Which command returns all distinct cities where bookings were made?",
+      "options": {
+        "A": "db.distinct(\"Bookings.city\")",
+        "B": "db.Bookings.distinct(\"city\")",
+        "C": "db.Bookings.get(\"city\").unique()",
+        "D": "db.Bookings.city.distinct()"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 17,
+      "question": "Projection means selecting only the necessary data rather than selecting whole of the data of a document",
+      "options": {
+        "A": "Field",
+        "B": "Cursor",
+        "C": "Query",
+        "D": "Projection"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 18,
+      "question": "Which method returns a single document from a MongoDB collection?",
+      "options": {
+        "A": "db.collection.findOne()",
+        "B": "db.collection.find()",
+        "C": "db.collection.fetchOne()",
+        "D": "db.collection.getOne()"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 19,
+      "question": "What will `df.head()` do?",
+      "options": {
+        "A": "Show all rows but the first 3",
+        "B": "Show the first 5 rows (default)",
+        "C": "Show the last 5 rows",
+        "D": "Show column names"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 20,
+      "question": "Which of the following is the correct import statement for pandas?",
+      "options": {
+        "A": "import pandas as pd",
+        "B": "require pandas as pd",
+        "C": "import pandas",
+        "D": "include pandas"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 21,
+      "question": "What is the correct syntax to return only `city` and `init_time` fields, excluding `_id`?",
+      "options": {
+        "A": "db.Bookings.find({}, { city: 1, init_time: 1, _id: 0 })",
+        "B": "db.Bookings.select({ city, init_time })",
+        "C": "db.Bookings.projection({ city: true, init_time: true })",
+        "D": "db.Bookings.find({ city: 1, init_time: 1 })"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 22,
+      "question": "How do you read a CSV file into a DataFrame?",
+      "options": {
+        "A": "pd.read_csv(\"file.csv\")",
+        "B": "pd.load_csv(\"file.csv\")",
+        "C": "pd.read_file(\"file.csv\")",
+        "D": "pd.readCSV(\"file.csv\")"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 23,
+      "question": "How to read the `covid.csv` file into a dataframe named `df` and include first column as the index column? (Alternative version)",
+      "options": {
+        "A": "df = pd.read_file('covid.csv', index_col=0)",
+        "B": "df = pd.read_csv('covid.csv', index_col=0)",
+        "C": "df = pd.read_file('covid.csv', index_col=0)",
+        "D": "df = pd.read_csv('covid.csv', index_col=0)"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 24,
+      "question": "In MongoDB, a 'collection' is most similar to what in a relational database?",
+      "options": {
+        "A": "Column",
+        "B": "Schema",
+        "C": "Row",
+        "D": "Table"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 25,
+      "question": "How to sort the dataframe in descending order of the `total_cases` column?",
+      "options": {
+        "A": "df_sorted_desc = df.sort_by('total')",
+        "B": "df_sorted_desc = df.sort_values('total', ascending=False)",
+        "C": "df_sorted_desc = df.sort_values('total_cases', ascending=False)",
+        "D": "df_sorted_desc = df.sort_by('total_cases', ascending=False)"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 26,
+      "question": "Which method is used to remove missing values from a DataFrame?",
+      "options": {
+        "A": "drop_na()",
+        "B": "remove_na()",
+        "C": "dropna()",
+        "D": "clean()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 27,
+      "question": "How to read the `covid.csv` file into a dataframe named `df` and include first column as the index column? (Third version with index_col=[0])",
+      "options": {
+        "A": "df = pd.read_csv('covid.csv', index_col=False)",
+        "B": "df = pd.read_csv('covid.csv', index_col=True)",
+        "C": "df = pd.read_csv('covid.csv', index_col=[0])",
+        "D": "df = pd.read_file('covid.csv', index_col=[0])"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 28,
+      "question": "What does this query do? db.Bookings.find({\"driving.distance\": -1})",
+      "options": {
+        "A": "Finds bookings where the city is \"-1\"",
+        "B": "Finds bookings with negative fuel",
+        "C": "Finds bookings with missing driving data",
+        "D": "Finds bookings where distance traveled is 0"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 29,
+      "question": "How can you exclude the `_id` field when projecting data in a query?",
+      "options": {
+        "A": "{ _id: true }",
+        "B": "{ _id: 0 }",
+        "C": "{ _id: null }",
+        "D": "{ _id: 1 }"
+      },
+      "correct_answer": "B"
+    }
+  ]
+}
