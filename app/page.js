@@ -18,27 +18,40 @@ const DIFFICULTIES = [
 function getLeague(score, total, difficulty, duration = 0, questions = [], answers = {}) {
     const percentage = (score / total) * 100;
 
-    // Mythic: Impossible Mode + 30 Consecutive Correct Answers
-    // User requirement: "30 questions consecutive stack"
-    let maxStreak = 0;
+    // --- MYTHIC LOGIC (Impossible Mode) ---
+    // If questions < 30: Need 100% Streak (Correct == Total)
+    // If questions >= 30: Need Streak of 30 consecutive correct answers
+    let qualifiesForMythic = false;
+
     if (difficulty === 'impossible') {
-        // Fallback: If score is 100% and total questions >= 30, streak is satisfied regardless of answers data availability
-        if (percentage === 100 && total >= 30) {
-            maxStreak = total;
-        } else if (questions && questions.length > 0 && answers) {
-            let currentStreak = 0;
-            questions.forEach((q, idx) => {
-                if (answers[idx] === q.correct_answer) {
-                    currentStreak++;
-                    if (currentStreak > maxStreak) maxStreak = currentStreak;
-                } else {
-                    currentStreak = 0;
-                }
-            });
+        if (total < 30) {
+            // Short test: Requires Perfection (100% score) - which implies full streak
+            if (percentage === 100) qualifiesForMythic = true;
+        } else {
+            // Long test: Requires 30 consecutive correct answers
+            let maxStreak = 0;
+            // Best effort streak calculation (requires answers data)
+            if (questions && questions.length > 0 && answers) {
+                let currentStreak = 0;
+                questions.forEach((q, idx) => {
+                    if (answers[idx] === q.correct_answer) {
+                        currentStreak++;
+                        if (currentStreak > maxStreak) maxStreak = currentStreak;
+                    } else {
+                        currentStreak = 0;
+                    }
+                });
+            } else {
+                // Fallback if detailed data missing but Score is high enough to mathematically prove streak?
+                // Hard to prove without data. Assume if Score == Total then Streak == Total >= 30.
+                if (percentage === 100) maxStreak = total; 
+            }
+            
+            if (maxStreak >= 30) qualifiesForMythic = true;
         }
     }
 
-    if (difficulty === 'impossible' && maxStreak >= 30) {
+    if (qualifiesForMythic) {
         return {
             name: 'Mythic',
             badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-red-800 via-red-600 to-red-800 border-red-600 shadow-[0_0_15px_rgba(255,0,0,0.6)] font-extrabold',
@@ -48,8 +61,20 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
         };
     }
 
-    // Legendary: Insane Mode + 100% Score
-    if (difficulty === 'insane' && percentage === 100) {
+    // --- LEGENDARY LOGIC (Insane Mode) ---
+    // If questions < 50: Need 100% Score
+    // If questions >= 50: Need >= 95% Score (Mercy rule for fatigue)
+    let qualifiesForLegendary = false;
+
+    if (difficulty === 'insane') {
+        if (total < 50) {
+            if (percentage === 100) qualifiesForLegendary = true;
+        } else {
+            if (percentage >= 95) qualifiesForLegendary = true;
+        }
+    }
+
+    if (qualifiesForLegendary) {
         return {
             name: 'Legendary',
             badgeClass: 'legendary-border-tail border-transparent legendary-rgb-text font-bold',
@@ -2702,8 +2727,22 @@ export default function Home() {
                                                             <td className="py-3 text-sm text-gray-400 px-2">{timeAgo(entry.date)}</td>
                                                             <td className="py-3 text-sm text-gray-500 font-mono px-2">{formatDuration(entry.duration)}</td>
                                                             <td className="py-3 text-right px-2">
-                                                                <span className="font-bold text-lg text-gray-700">{formatScore(entry.score)}</span>
-                                                                <span className="text-gray-400 text-xs ml-1">/ {entry.total}</span>
+                                                                <span className={clsx(
+                                                                    "font-bold text-lg",
+                                                                    (() => {
+                                                                        const pct = Math.round((entry.score / entry.total) * 100);
+                                                                        if (pct >= 90) return "text-emerald-700 dark:text-emerald-400"; // Dark Green
+                                                                        if (pct >= 75) return "text-green-500 dark:text-green-400";     // Light Green
+                                                                        if (pct >= 60) return "text-yellow-500 dark:text-yellow-400";    // Yellow/Orange
+                                                                        if (pct >= 40) return "text-red-400 dark:text-red-400";          // Light Red
+                                                                        return "text-red-700 dark:text-red-600";                         // Dark Red
+                                                                    })()
+                                                                )}>
+                                                                    {Math.round((entry.score / entry.total) * 100)}%
+                                                                </span>
+                                                                <span className="text-gray-400 text-xs ml-1 block">
+                                                                    ({formatScore(entry.score)}/{entry.total})
+                                                                </span>
                                                             </td>
                                                         </tr>
                                                     );

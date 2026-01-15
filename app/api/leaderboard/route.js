@@ -35,6 +35,13 @@ export async function GET(request) {
           { $match: dateQuery },
           {
               $addFields: {
+                  percentage: {
+                       $cond: [
+                           { $eq: ["$total", 0] },
+                           0,
+                           { $multiply: [{ $divide: ["$score", "$total"] }, 100] }
+                       ]
+                  },
                   difficultyRank: {
                       $switch: {
                           branches: [
@@ -49,7 +56,7 @@ export async function GET(request) {
                   }
               }
           },
-          { $sort: { score: -1, difficultyRank: -1, duration: 1 } },
+          { $sort: { percentage: -1, difficultyRank: -1, score: -1, duration: 1 } },
           { $skip: skip },
           { $limit: limit }
       ]);
