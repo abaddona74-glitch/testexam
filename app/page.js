@@ -2446,9 +2446,9 @@ export default function Home() {
                 )}
 
                 {view === 'list' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        {/* Main Grid Content */}
-                        <div className={clsx("transition-all duration-300 space-y-8", sidebarExpanded ? "lg:col-span-9" : "lg:col-span-12")}>
+                    <div className="flex flex-col lg:flex-row gap-6 items-start">
+                        {/* Main Content */}
+                        <div className="transition-all duration-500 ease-in-out space-y-8 flex-1 w-full min-w-0">
                             <section>
                                 <div className="flex justify-between items-end mb-6">
                                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
@@ -2772,8 +2772,8 @@ export default function Home() {
                             </button>
                         </div>
 
-                        <div className={clsx("lg:col-span-3 transition-all duration-300 relative", sidebarExpanded ? "w-full opacity-100" : "w-0 opacity-0 overflow-hidden lg:col-span-0 hidden")}>
-                            <div className="sticky top-28 space-y-6">
+                        <div className={clsx("transition-all duration-500 ease-in-out relative shrink-0", sidebarExpanded ? "w-full lg:w-80 opacity-100" : "w-0 opacity-0 overflow-hidden")}>
+                            <div className="sticky top-28 space-y-6 lg:w-80">
                                 {/* Active Users Widget */}
                                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 p-6">
                                     <div className="flex items-center gap-2 mb-4">
