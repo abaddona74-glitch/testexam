@@ -1649,6 +1649,831 @@
         "D": "Only works for small projects"
       },
       "correct_answer": "A"
+    },
+        {
+      "id": 151,
+      "question": "What is a con of DevOps?",
+      "options": {
+        "A": "Dual code focus adds pressure, heavily relies on automation",
+        "B": "No automation needed, single focus only",
+        "C": "Too simple for complex projects",
+        "D": "No integration with development"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 152,
+      "question": "How do XP practices of refactoring and pair programming contribute?",
+      "options": {
+        "A": "Improve code quality and team collaboration",
+        "B": "Decrease code quality and isolate team members",
+        "C": "Only speed up development without quality",
+        "D": "Only create documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 153,
+      "question": "What are key differences between Kanban and Scrum?",
+      "options": {
+        "A": "Kanban: continuous flow, no fixed sprints; Scrum: time-boxed sprints",
+        "B": "Kanban: fixed sprints; Scrum: continuous flow",
+        "C": "Both are exactly the same",
+        "D": "Kanban: only for managers; Scrum: only for developers"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 154,
+      "question": "When would Kanban be more suitable than Scrum?",
+      "options": {
+        "A": "For support teams with unpredictable tasks",
+        "B": "For projects with fixed, rigid deadlines only",
+        "C": "For large projects requiring many roles",
+        "D": "For projects with no visualization needs"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 155,
+      "question": "Can geographical separation in agile teams be an advantage?",
+      "options": {
+        "A": "Yes, with proper tools and practices for communication",
+        "B": "No, never an advantage",
+        "C": "Only if team never communicates",
+        "D": "Only if all members are in same timezone"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 156,
+      "question": "What tools can facilitate communication in geographically separated teams?",
+      "options": {
+        "A": "Slack, Zoom, Microsoft Teams, GitHub",
+        "B": "Only face-to-face meetings",
+        "C": "Only paper mail",
+        "D": "Only telephone"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 157,
+      "question": "What is a Generic Process Model?",
+      "options": {
+        "A": "Encompasses framework activities: communication, planning, modeling, construction, deployment",
+        "B": "A specific model for only one type of project",
+        "C": "Only includes coding activities",
+        "D": "No framework activities defined"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 158,
+      "question": "What does process flow describe?",
+      "options": {
+        "A": "How framework activities are organized with respect to sequence and time",
+        "B": "Only the budget flow",
+        "C": "Only team member movements",
+        "D": "Only documentation flow"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 159,
+      "question": "What is a linear process flow?",
+      "options": {
+        "A": "Executes framework activities in sequence (like Waterfall)",
+        "B": "Executes activities in random order",
+        "C": "Only executes one activity",
+        "D": "No sequence at all"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 160,
+      "question": "What is an iterative process flow?",
+      "options": {
+        "A": "Repeats one or more activities before proceeding to next",
+        "B": "Never repeats any activities",
+        "C": "Only linear flow",
+        "D": "Only parallel flow"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 161,
+      "question": "What is an evolutionary process flow?",
+      "options": {
+        "A": "Executes activities in circular manner, each circuit leads to more complete software",
+        "B": "Only executes once",
+        "C": "No iteration involved",
+        "D": "Only for documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 162,
+      "question": "What is a parallel process flow?",
+      "options": {
+        "A": "Executes one or more activities in parallel with others",
+        "B": "Only sequential execution",
+        "C": "Only one activity at a time",
+        "D": "No activities executed"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 163,
+      "question": "Example of linear process flow project?",
+      "options": {
+        "A": "Developing a university student portal",
+        "B": "Developing a fitness tracking app",
+        "C": "Developing an AI-powered chatbot",
+        "D": "Building healthcare management system"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 164,
+      "question": "Example of iterative process flow project?",
+      "options": {
+        "A": "Developing a fitness tracking app",
+        "B": "Developing a university student portal",
+        "C": "Space mission control system",
+        "D": "Legacy system migration"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 165,
+      "question": "Example of evolutionary process flow project?",
+      "options": {
+        "A": "Developing an AI-powered chatbot",
+        "B": "Simple calculator app",
+        "C": "Static website",
+        "D": "Document writing"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 166,
+      "question": "Example of parallel process flow project?",
+      "options": {
+        "A": "Building large-scale healthcare management system",
+        "B": "Writing a single document",
+        "C": "Individual programming assignment",
+        "D": "Simple mobile app"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 167,
+      "question": "What influences what actions are appropriate for a framework activity?",
+      "options": {
+        "A": "Nature of problem, characteristics of people, stakeholders",
+        "B": "Only the programming language",
+        "C": "Only the budget",
+        "D": "Only office location"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 168,
+      "question": "For a small project, communication might involve:",
+      "options": {
+        "A": "Just a phone call or email with stakeholder",
+        "B": "Six different formal actions",
+        "C": "No communication needed",
+        "D": "Only written contracts"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 169,
+      "question": "For a complex project, communication might include how many actions?",
+      "options": {
+        "A": "Six actions: inception, elicitation, elaboration, negotiation, specification, validation",
+        "B": "Only one action",
+        "C": "No actions needed",
+        "D": "Only documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 170,
+      "question": "What is a task set?",
+      "options": {
+        "A": "Defines actual work to accomplish objectives of a software engineering action",
+        "B": "Only a list of tools",
+        "C": "Only team member names",
+        "D": "Only budget numbers"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 171,
+      "question": "Example task set for requirements gathering in small project?",
+      "options": {
+        "A": "Make stakeholder list, invite to meeting, discuss requirements, prioritize",
+        "B": "Write all code first, then gather requirements",
+        "C": "No requirements gathering needed",
+        "D": "Only interview each stakeholder separately with formal techniques"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 172,
+      "question": "What does a software process NOT guarantee?",
+      "options": {
+        "A": "Timely delivery, meeting customer needs, long-term quality",
+        "B": "That work will be done",
+        "C": "That team will be formed",
+        "D": "That tools will be available"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 173,
+      "question": "What must a software process be coupled with?",
+      "options": {
+        "A": "Solid software engineering practices (CMMI, ISO 9001)",
+        "B": "Only expensive tools",
+        "C": "Only large team",
+        "D": "Only marketing plan"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 174,
+      "question": "What are Prescriptive Process Models sometimes called?",
+      "options": {
+        "A": "Traditional process models",
+        "B": "Agile models",
+        "C": "Modern models only",
+        "D": "Experimental models"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 175,
+      "question": "What do Prescriptive Process Models define?",
+      "options": {
+        "A": "Structured steps and predictable workflows",
+        "B": "Chaotic steps with no predictability",
+        "C": "Only team roles",
+        "D": "Only budget plans"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 176,
+      "question": "What is a challenge of Prescriptive Models?",
+      "options": {
+        "A": "Less suited for rapidly changing requirements",
+        "B": "Too flexible for stable requirements",
+        "C": "No structure at all",
+        "D": "Only for small projects"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 177,
+      "question": "What is a limitation of the Waterfall Model?",
+      "options": {
+        "A": "Real projects rarely follow sequential workflow it proposes",
+        "B": "Too flexible for any project",
+        "C": "No planning needed",
+        "D": "Only for agile projects"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 178,
+      "question": "What is another limitation of Waterfall?",
+      "options": {
+        "A": "Customer must state all requirements explicitly at beginning",
+        "B": "Customer involvement too high",
+        "C": "Too many iterations",
+        "D": "No documentation possible"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 179,
+      "question": "When is prototyping ideal?",
+      "options": {
+        "A": "When requirements are unclear or incomplete",
+        "B": "When requirements are perfectly clear",
+        "C": "When no customer exists",
+        "D": "When budget is unlimited"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 180,
+      "question": "What does the prototyping model allow?",
+      "options": {
+        "A": "Developers and stakeholders to refine software through iterative feedback",
+        "B": "No feedback from stakeholders",
+        "C": "Only final delivery",
+        "D": "Only documentation creation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 181,
+      "question": "What is Quick Design in prototyping?",
+      "options": {
+        "A": "Simple, preliminary design focusing on visible aspects like UI",
+        "B": "Complete detailed design",
+        "C": "No design needed",
+        "D": "Only backend design"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 182,
+      "question": "What is the Evolutionary Process Model also known as?",
+      "options": {
+        "A": "Spiral Model",
+        "B": "Waterfall Model",
+        "C": "V-Model",
+        "D": "Agile Model"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 183,
+      "question": "What does the Evolutionary Model emphasize?",
+      "options": {
+        "A": "Incremental development through iterative cycles",
+        "B": "Big bang delivery only",
+        "C": "No iteration",
+        "D": "Only planning phase"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 184,
+      "question": "What is suitable for Evolutionary Model?",
+      "options": {
+        "A": "Projects with evolving requirements or tight deadlines",
+        "B": "Projects with fixed, unchanging requirements",
+        "C": "Projects with no deadlines",
+        "D": "Projects with no customer"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 185,
+      "question": "Key distinction of Evolutionary Model from Prototyping?",
+      "options": {
+        "A": "Explicitly integrates risk analysis in each iteration",
+        "B": "No risk analysis at all",
+        "C": "Only focuses on UI design",
+        "D": "No iteration involved"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 186,
+      "question": "Example of Evolutionary Model use?",
+      "options": {
+        "A": "Space mission control system with risk analysis",
+        "B": "Simple blog site",
+        "C": "Static business card website",
+        "D": "Hello World program"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 187,
+      "question": "Example of Prototyping Model use?",
+      "options": {
+        "A": "Mobile app startup focusing on UI/UX refinement",
+        "B": "NASA space mission",
+        "C": "Banking transaction system",
+        "D": "Nuclear reactor control"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 188,
+      "question": "What does Unified Process (UP) combine?",
+      "options": {
+        "A": "Elements of traditional models with agile principles",
+        "B": "Only traditional elements",
+        "C": "Only agile elements",
+        "D": "No elements from any model"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 189,
+      "question": "What does UP focus on?",
+      "options": {
+        "A": "Iterative and incremental development, architectural planning",
+        "B": "Only linear development",
+        "C": "Only documentation",
+        "D": "Only testing"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 190,
+      "question": "What modeling language does UP use?",
+      "options": {
+        "A": "UML (Unified Modeling Language)",
+        "B": "HTML",
+        "C": "Java",
+        "D": "SQL"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 191,
+      "question": "What are phases of UP?",
+      "options": {
+        "A": "Inception, Elaboration, Construction, Transition, Production",
+        "B": "Only coding phase",
+        "C": "Only testing phase",
+        "D": "Only deployment phase"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 192,
+      "question": "What happens in Inception phase?",
+      "options": {
+        "A": "Define basic requirements, identify risks, create preliminary plan",
+        "B": "Write all code",
+        "C": "Deploy to production",
+        "D": "Only testing"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 193,
+      "question": "What happens in Elaboration phase?",
+      "options": {
+        "A": "Refine requirements, establish architectural baseline",
+        "B": "Close project",
+        "C": "Hire team members",
+        "D": "Buy hardware"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 194,
+      "question": "What happens in Construction phase?",
+      "options": {
+        "A": "Develop and integrate components for current increment",
+        "B": "Only plan next project",
+        "C": "Only write documentation",
+        "D": "Only test other projects"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 195,
+      "question": "How does UP differ from Evolutionary Model in iteration?",
+      "options": {
+        "A": "UP: structured phases with overlapping activities; Evolutionary: continuous iterations",
+        "B": "UP: no iteration; Evolutionary: structured phases",
+        "C": "Both are exactly the same",
+        "D": "UP: only one iteration; Evolutionary: many phases"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 196,
+      "question": "How does UP use UML compared to Evolutionary Model?",
+      "options": {
+        "A": "UP relies heavily on UML; Evolutionary does not emphasize UML",
+        "B": "UP never uses UML; Evolutionary uses UML heavily",
+        "C": "Both use UML equally",
+        "D": "Neither uses UML"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 197,
+      "question": "What is architectural focus difference between UP and Evolutionary?",
+      "options": {
+        "A": "UP establishes strong architectural baseline early; Evolutionary evolves architecture incrementally",
+        "B": "UP has no architecture; Evolutionary has fixed architecture",
+        "C": "Both have same architectural approach",
+        "D": "UP ignores architecture; Evolutionary focuses only on architecture"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 198,
+      "question": "How do UP and Evolutionary differ in risk management?",
+      "options": {
+        "A": "UP identifies risks early in inception/elaboration; Evolutionary incorporates risk analysis in each iteration",
+        "B": "UP never manages risks; Evolutionary only at end",
+        "C": "Both manage risks the same way",
+        "D": "UP only during construction; Evolutionary only during planning"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 199,
+      "question": "Example of UP project?",
+      "options": {
+        "A": "Healthcare management system with defined phases",
+        "B": "Simple to-do list app",
+        "C": "Personal blog",
+        "D": "Quick prototype for concept validation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 200,
+      "question": "Example of Evolutionary project?",
+      "options": {
+        "A": "Fitness tracking app with basic features then advanced",
+        "B": "University student portal with all features upfront",
+        "C": "Legacy system replacement with fixed requirements",
+        "D": "Document management system with no changes"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 201,
+      "question": "What is a pro of Waterfall model?",
+      "options": {
+        "A": "Easy to understand and plan, works for well-understood small projects",
+        "B": "Highly flexible for changing requirements",
+        "C": "Continuous customer involvement",
+        "D": "No documentation needed"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 202,
+      "question": "What is a con of Waterfall?",
+      "options": {
+        "A": "Does not accommodate change well, testing occurs late",
+        "B": "Too much customer involvement",
+        "C": "Too many iterations",
+        "D": "No clear stages"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 203,
+      "question": "What is a pro of Prototyping?",
+      "options": {
+        "A": "Reduced impact of requirement changes, customer involved early",
+        "B": "No customer involvement",
+        "C": "Work never lost, easy to plan",
+        "D": "No prototypes thrown away"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 204,
+      "question": "What is a con of Prototyping?",
+      "options": {
+        "A": "Customer involvement may cause delays, temptation to 'ship' prototype",
+        "B": "No customer involvement at all",
+        "C": "Too easy to plan and manage",
+        "D": "No prototypes created"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 205,
+      "question": "What is a pro of Spiral model?",
+      "options": {
+        "A": "Continuous customer involvement, development risks managed",
+        "B": "No customer involvement, risks ignored",
+        "C": "Suitable only for small projects",
+        "D": "Easy to manage always"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 206,
+      "question": "What is a con of Spiral model?",
+      "options": {
+        "A": "Risk analysis failures can doom project, requires expert team",
+        "B": "No risk analysis needed, any team can use",
+        "C": "Too simple for complex projects",
+        "D": "No iteration possible"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 207,
+      "question": "What is a pro of Unified Process?",
+      "options": {
+        "A": "Quality documentation emphasized, continuous customer involvement",
+        "B": "No documentation, no customer involvement",
+        "C": "Easy integration always",
+        "D": "No expert team needed"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 208,
+      "question": "What is a con of Unified Process?",
+      "options": {
+        "A": "Use cases not always precise, tricky software increment integration",
+        "B": "Use cases always perfect, integration easy",
+        "C": "No overlapping phases",
+        "D": "Any team can use successfully"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 209,
+      "question": "What is Process and Product Duality?",
+      "options": {
+        "A": "Both interdependent: weak process leads to poor product",
+        "B": "Process and product completely independent",
+        "C": "Only product matters",
+        "D": "Only process matters"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 210,
+      "question": "How do different process flows address project challenges?",
+      "options": {
+        "A": "Linear for stable requirements, iterative for evolving, evolutionary for continuous feedback",
+        "B": "All work the same for any project",
+        "C": "Only linear works for all projects",
+        "D": "Only evolutionary works for all projects"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 211,
+      "question": "How to resolve conflicting requirements from multiple stakeholders?",
+      "options": {
+        "A": "Use prototyping to demonstrate options, gather feedback, refine based on agreement",
+        "B": "Ignore some stakeholders",
+        "C": "Let developers decide arbitrarily",
+        "D": "Choose the loudest stakeholder's requirements"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 212,
+      "question": "Example of conflicting requirements resolution?",
+      "options": {
+        "A": "Fitness app: manual vs automatic tracking demonstrated via prototype",
+        "B": "Ignore both requirements",
+        "C": "Build both without consultation",
+        "D": "Cancel project"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 213,
+      "question": "What are advantages of combining process models?",
+      "options": {
+        "A": "Balances structured planning with adaptability",
+        "B": "Always simplifies management",
+        "C": "Never increases complexity",
+        "D": "Guarantees success"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 214,
+      "question": "What are disadvantages of combining process models?",
+      "options": {
+        "A": "Increases complexity in management and coordination",
+        "B": "Always reduces complexity",
+        "C": "Makes project too simple",
+        "D": "Eliminates all risks"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 215,
+      "question": "Example of combined process models?",
+      "options": {
+        "A": "Waterfall for initial planning and Spiral for iterative risk handling in healthcare",
+        "B": "Only one model ever used",
+        "C": "Random model selection",
+        "D": "No combination possible"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 216,
+      "question": "What is the Recommended Process Model perspective on linear models?",
+      "options": {
+        "A": "Risky to use without ample feedback",
+        "B": "Always safe to use",
+        "C": "Only linear models should be used",
+        "D": "No risks with linear models"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 217,
+      "question": "Is upfront requirements gathering always possible or desirable?",
+      "options": {
+        "A": "Never possible nor desirable to plan big upfront requirements gathering",
+        "B": "Always possible and desirable",
+        "C": "Only for small projects",
+        "D": "Only for agile projects"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 218,
+      "question": "May upfront requirements gathering reduce costs or prevent time slippage?",
+      "options": {
+        "A": "May not reduce costs or prevent time slippage",
+        "B": "Always reduces costs and prevents slippage",
+        "C": "Only increases costs",
+        "D": "Only causes slippage"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 219,
+      "question": "What is integral to software development according to Recommended Process Model?",
+      "options": {
+        "A": "Appropriate project management",
+        "B": "Only coding skills",
+        "C": "Only expensive tools",
+        "D": "Only large team"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 220,
+      "question": "How should documents evolve with software?",
+      "options": {
+        "A": "Documents should evolve with software and not delay construction",
+        "B": "Documents should be created only at end",
+        "C": "No documents needed",
+        "D": "Documents should be created before any work"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 221,
+      "question": "When should stakeholders be involved?",
+      "options": {
+        "A": "Early and frequently in development process",
+        "B": "Only at project beginning",
+        "C": "Only at project end",
+        "D": "Never involved"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 222,
+      "question": "When should testers become involved?",
+      "options": {
+        "A": "Prior to software construction",
+        "B": "Only after software is complete",
+        "C": "Only during deployment",
+        "D": "Never involved"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 223,
+      "question": "What are benefits of Incremental Models over linear models?",
+      "options": {
+        "A": "Better for evolving requirements, early customer feedback",
+        "B": "Worse for evolving requirements",
+        "C": "No customer feedback possible",
+        "D": "Only for fixed requirements"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 224,
+      "question": "What are challenges with Incremental Models?",
+      "options": {
+        "A": "Risk of throwaway prototypes, stakeholders may push excessive changes",
+        "B": "No prototypes created",
+        "C": "Stakeholders never want changes",
+        "D": "Always efficient planning"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 225,
+      "question": "How should prototypes be designed to minimize wasted effort?",
+      "options": {
+        "A": "With reuse in mind",
+        "B": "As throwaway only",
+        "C": "Without any planning",
+        "D": "Only for demonstration"
+      },
+      "correct_answer": "A"
     }
   ]
 }
