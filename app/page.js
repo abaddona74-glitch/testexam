@@ -1670,20 +1670,14 @@ export default function Home() {
             if (data.success) {
                 const expiryDate = data.expiryDate;
 
-                // Update State
-                setUnlockedTests(prev => {
-                    const newSet = new Set(prev);
-                    newSet.add(targetTestForUnlock.id);
-                    return newSet;
-                });
+                // Update State - Unlock EVERYTHING
+                setAllPremiumUnlocked(true);
 
                 // Persist to LocalStorage
                 try {
-                    const storedPremiumUnlocks = JSON.parse(localStorage.getItem('examApp_premiumUnlocks') || '{}');
-                    storedPremiumUnlocks[targetTestForUnlock.id] = expiryDate;
-                    localStorage.setItem('examApp_premiumUnlocks', JSON.stringify(storedPremiumUnlocks));
+                    localStorage.setItem('examApp_allPremiumUnlocked', JSON.stringify({ expiry: expiryDate }));
                     
-                    addToast('Premium Unlocked!', `Access granted for ${targetTestForUnlock.name}`, 'success');
+                    addToast('Premium Unlocked!', `Full Access Granted! Valid until ${new Date(expiryDate).toLocaleDateString()}`, 'success');
                 } catch (err) {
                     console.error("Failed to save unlock", err);
                 }
