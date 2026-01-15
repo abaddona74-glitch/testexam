@@ -842,6 +842,8 @@ export default function Home() {
     // Upload feature flag (server-driven via GET /api/tests)
     const [testUploadMode, setTestUploadMode] = useState('off');
     const testUploadsEnabled = testUploadMode !== 'off';
+    const isGodmode = activatedCheats.includes('godmode');
+    const canUploadTests = testUploadsEnabled || isGodmode;
 
     // Persistent state for resuming tests
     const [savedProgress, setSavedProgress] = useState({});
@@ -1849,7 +1851,7 @@ export default function Home() {
     const handleUploadSubmit = async (e) => {
         e.preventDefault();
 
-        if (!testUploadsEnabled) {
+        if (!canUploadTests) {
             setJsonError('Test upload is temporarily disabled.');
             addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
             return;
@@ -1880,7 +1882,8 @@ export default function Home() {
                     body: JSON.stringify({
                         name,
                         content: json,
-                        folder: uploadFolder
+                        folder: uploadFolder,
+                        godmode: isGodmode
                     })
                 });
 
@@ -1900,12 +1903,12 @@ export default function Home() {
     };
 
     useEffect(() => {
-        if (showUploadModal && !testUploadsEnabled) {
+        if (showUploadModal && !canUploadTests) {
             setShowUploadModal(false);
             addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showUploadModal, testUploadsEnabled]);
+    }, [showUploadModal, canUploadTests]);
 
     useEffect(() => {
         // Disable right-click context menu
@@ -2152,6 +2155,14 @@ export default function Home() {
                                 </div>
                             </form>
 
+                            <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                Upload privilege:{" "}
+                                <span className={clsx(canUploadTests ? "text-green-600" : "text-gray-400")}>
+                                    {canUploadTests ? "Enabled" : "Disabled"}
+                                </span>
+                                {isGodmode && <span className="ml-2 text-purple-600">(godmode)</span>}
+                            </div>
+
                             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Sound Volume
@@ -2394,7 +2405,7 @@ export default function Home() {
                     </div>
                 )}
 
-                {showUploadModal && testUploadsEnabled && (
+                {showUploadModal && canUploadTests && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 relative">
                             <button onClick={() => setShowUploadModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
@@ -2451,7 +2462,7 @@ export default function Home() {
                                     </h2>
                                     <button
                                         onClick={() => {
-                                            if (!testUploadsEnabled) {
+                                            if (!canUploadTests) {
                                                 addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
                                                 return;
                                             }
@@ -2459,11 +2470,11 @@ export default function Home() {
                                             setUploadFolder(folders[0] || '');
                                             setShowUploadModal(true);
                                         }}
-                                        disabled={!testUploadsEnabled}
-                                        title={!testUploadsEnabled ? 'Upload is temporarily disabled' : 'Upload a new test'}
+                                        disabled={!canUploadTests}
+                                        title={!canUploadTests ? 'Upload is temporarily disabled' : 'Upload a new test'}
                                         className={clsx(
                                             "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5",
-                                            !testUploadsEnabled && "opacity-50 cursor-not-allowed hover:bg-blue-600 hover:shadow-md hover:translate-y-0"
+                                            !canUploadTests && "opacity-50 cursor-not-allowed hover:bg-blue-600 hover:shadow-md hover:translate-y-0"
                                         )}
                                     >
                                         <Upload size={16} /> Upload Test
@@ -2524,7 +2535,7 @@ export default function Home() {
                                                 }) : (
                                                     <div className="col-span-2 text-center py-8 text-gray-400 text-sm italic border-2 border-dashed border-gray-100 dark:border-gray-800/50 rounded-lg">
                                                         No tests available in this subject.{" "}
-                                                        {testUploadsEnabled ? (
+                                                        {canUploadTests ? (
                                                             <button
                                                                 onClick={() => {
                                                                     setUploadFolder(category);

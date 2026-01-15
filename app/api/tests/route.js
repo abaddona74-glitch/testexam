@@ -3,7 +3,7 @@ import path from 'path';
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Test from '../../../models/Test';
-import { getTestUploadMode, isTestUploadEnabled } from '../../../lib/featureFlags.server';
+import { getTestUploadMode, isTestUploadEnabled, isGodmodeUploadEnabled } from '../../../lib/featureFlags.server';
 
 // In-memory store for uploaded tests (persists only while server is running)
 // For permanent storage, you'd need a database (Postgres, MongoDB, etc.) or Blob storage.
@@ -172,21 +172,25 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  if (!isTestUploadEnabled()) {
-    return NextResponse.json(
-      {
-        error: "Test upload is temporarily disabled.",
-        uploadMode: getTestUploadMode()
-      },
-      { status: 503 }
-    );
-  }
-
   await dbConnect();
 
   try {
     const body = await request.json();
-    const { name, content, folder } = body;
+    const { name, content, folder, godmode } = body;
+
+    const uploadsEnabled = isTestUploadEnabled();
+    const godmodeOverrideAllowed = isGodmodeUploadEnabled();
+    const godmodeOverrideRequested = godmode === true;
+
+    if (!uploadsEnabled && !(godmodeOverrideAllowed && godmodeOverrideRequested)) {
+      return NextResponse.json(
+        {
+          error: "Test upload is temporarily disabled.",
+          uploadMode: getTestUploadMode()
+        },
+        { status: 503 }
+      );
+    }
 
     if (!name || !content) {
         return NextResponse.json({ error: "Name and content are required" }, { status: 400 });
