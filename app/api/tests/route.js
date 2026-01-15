@@ -33,6 +33,8 @@ export async function GET() {
 
           for (const filename of jsonFiles) {
             const filePath = path.join(subjectPath, filename);
+            const fileStat = await fs.stat(filePath);
+            const fileUpdatedAt = fileStat?.mtime;
             const fileContents = await fs.readFile(filePath, 'utf8');
             try {
               const json = JSON.parse(fileContents);
@@ -69,10 +71,12 @@ export async function GET() {
                       category: entry.name,
                       type: 'default',
                       isPremium: baseName.toLowerCase().includes('premium'),
-                      variants: {}
+                    variants: {},
+                    variantsUpdatedAt: {}
                   });
               }
               groupedFiles.get(baseName).variants[lang] = json;
+                groupedFiles.get(baseName).variantsUpdatedAt[lang] = fileUpdatedAt;
 
             } catch (e) {
               console.error(`Error parsing ${entry.name}/${filename}`, e);
@@ -85,6 +89,14 @@ export async function GET() {
               const langs = Object.keys(variants);
               // Prefer 'en', then 'uz', then whatever
               const primaryLang = langs.includes('en') ? 'en' : langs[0];
+
+              // Compute "last updated" across all language variants
+              const groupUpdatedAt = Object.values(group.variantsUpdatedAt || {})
+                .filter(Boolean)
+                .reduce((latest, current) => {
+                  if (!latest) return current;
+                  return new Date(current) > new Date(latest) ? current : latest;
+                }, null);
               
               defaultTests.push({
                   id: group.id,
@@ -93,7 +105,8 @@ export async function GET() {
                   type: group.type,
                   isPremium: group.isPremium,
                   content: variants[primaryLang],
-                  translations: variants // Pass all variants to frontend
+                  translations: variants, // Pass all variants to frontend
+                  updatedAt: groupUpdatedAt
               });
           }
 
@@ -103,6 +116,8 @@ export async function GET() {
       } else if (entry.isFile() && entry.name.endsWith('.json')) {
         // Handle Root Files
         const filePath = path.join(testsDirectory, entry.name);
+        const fileStat = await fs.stat(filePath);
+        const fileUpdatedAt = fileStat?.mtime;
         const fileContents = await fs.readFile(filePath, 'utf8');
         try {
             const json = JSON.parse(fileContents);
@@ -111,7 +126,8 @@ export async function GET() {
                 name: entry.name.replace('.json', ''),
                 category: 'General',
                 type: 'default',
-                content: json
+            content: json,
+            updatedAt: fileUpdatedAt
             });
         } catch (e) {
             console.error(`Error parsing ${entry.name}`, e);
