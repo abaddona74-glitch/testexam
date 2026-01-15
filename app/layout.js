@@ -52,10 +52,6 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: "ZyngArPTJJcHAhrTF2lIphBONCjoARI7PJaxv4e69xw", // Validate real code
-    yandex: "YOUR_YANDEX_VERIFICATION_CODE", // User needs to add this
-  },
 };
 
 import { ThemeProvider } from "@/components/theme-provider";
