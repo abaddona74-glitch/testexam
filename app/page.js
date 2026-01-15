@@ -2548,7 +2548,7 @@ export default function Home() {
                                                             isUpdated={isUpdated}
                                                             hasProgress={!!savedProgress[test.id]}
                                                             isLocked={test.isPremium && !testIsUnlocked}
-                                                            isUnlocked={testIsUnlocked}
+                                                            isUnlocked={test.isPremium && testIsUnlocked}
                                                         />
                                                     );
                                                 }) : (
@@ -2590,10 +2590,10 @@ export default function Home() {
                                                         activeUsers={globalActiveUsers}
                                                         onStart={(t) => startTest(t || test)}
                                                         badge="Community"
-                                                        badgeColor="bg-green-100 text-green-700"
+                                                        badgeColor="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                                                         hasProgress={!!savedProgress[test.id]}
-                                                        isLocked={test.isPremium && !allPremiumUnlocked && !unlockedTests.has(test.id)}
-                                                        isUnlocked={allPremiumUnlocked || (test.isPremium && unlockedTests.has(test.id))}
+                                                        isLocked={false} // Community tests are never locked
+                                                        isUnlocked={false}
                                                     />
                                                 ))}
                                             </div>
@@ -2938,10 +2938,10 @@ export default function Home() {
                                 </div>
 
                                 {/* Exam Schedule Widget */}
-                                <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 overflow-hidden">
-                                    <div className="p-4 border-b border-gray-800">
-                                        <h3 className="font-bold text-white flex items-center gap-2">
-                                            <Calendar className="text-emerald-400" size={18} /> Exam Schedule
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 overflow-hidden">
+                                    <div className="p-4 border-b border-gray-100 dark:border-gray-800/50">
+                                        <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                            <Calendar className="text-emerald-500 dark:text-emerald-400" size={18} /> Exam Schedule
                                         </h3>
                                     </div>
                                     <div className="p-4 space-y-3">
@@ -3013,24 +3013,24 @@ export default function Home() {
                                                     <div className={clsx(
                                                         "flex-1 flex gap-3 items-center p-3 rounded-xl border transition-all",
                                                         isFinished 
-                                                            ? "bg-[#111824]/50 border-gray-700/50 opacity-70" 
+                                                            ? "bg-gray-50 dark:bg-[#111824]/50 border-gray-100 dark:border-gray-700/50 opacity-70" 
                                                             : isNext
-                                                                ? "bg-[#111824] border-blue-500/50 shadow-lg shadow-blue-500/10"
-                                                                : "bg-[#111824] border-gray-700/50"
+                                                                ? "bg-white dark:bg-[#111824] border-blue-500 shadow-md ring-1 ring-blue-500/20"
+                                                                : "bg-white dark:bg-[#111824] border-gray-100 dark:border-gray-700/50 shadow-sm"
                                                     )}>
                                                         {/* Date Box */}
                                                         <div className={clsx(
-                                                            "flex flex-col items-center justify-center rounded-lg p-2 w-14 h-14 shrink-0",
-                                                            isFinished ? "bg-gray-700" : "bg-[#1f2937]"
+                                                            "flex flex-col items-center justify-center rounded-lg p-2 w-14 h-14 shrink-0 transition-colors",
+                                                            isFinished ? "bg-gray-200 dark:bg-gray-700" : "bg-gray-100 dark:bg-[#1f2937]"
                                                         )}>
-                                                            <span className="text-[10px] font-bold text-red-400 uppercase">{item.month}</span>
-                                                            <span className="text-xl font-black text-white leading-none">{item.day}</span>
+                                                            <span className="text-[10px] font-bold text-red-500 dark:text-red-400 uppercase">{item.month}</span>
+                                                            <span className="text-xl font-black text-gray-800 dark:text-white leading-none">{item.day}</span>
                                                         </div>
 
                                                         {/* Info */}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex justify-between items-start gap-2">
-                                                                <h4 className="text-sm font-bold text-white truncate">{item.name}</h4>
+                                                                <h4 className="text-sm font-bold text-gray-800 dark:text-white truncate">{item.name}</h4>
                                                                 
                                                                 {/* Status Badge */}
                                                                 {isFinished ? (
