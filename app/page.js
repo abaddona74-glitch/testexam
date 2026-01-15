@@ -2760,7 +2760,7 @@ export default function Home() {
 
                         {/* Sidebar - Online Users & Schedule */}
                         {/* Sidebar Toggle Handle */}
-                        <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[60]">
+                        <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[60] hidden lg:block">
                             <button
                                 onClick={() => setSidebarExpanded(!sidebarExpanded)}
                                 className={clsx(

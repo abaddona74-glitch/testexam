@@ -1,0 +1,1655 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "What is software according to the provided materials?",
+      "options": {
+        "A": "A physical product that wears out over time",
+        "B": "A product created by software engineers that includes programs, data structures, and documents",
+        "C": "Only the executable code that runs on hardware",
+        "D": "A manufacturing product with assembly requirements"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "question": "Which statement best describes the nature of software projects?",
+      "options": {
+        "A": "Software is manufactured like hardware products",
+        "B": "Software requires physical assembly and production lines",
+        "C": "Software is developed/engineered, not manufactured",
+        "D": "Software development costs are primarily in manufacturing"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 3,
+      "question": "What happens to software over time regarding failures?",
+      "options": {
+        "A": "It wears out physically like hardware",
+        "B": "The failure rate decreases as it becomes more stable",
+        "C": "The failure rate increases with changes and modifications",
+        "D": "It becomes more reliable without any maintenance"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 4,
+      "question": "Which of the following is NOT a software application domain mentioned?",
+      "options": {
+        "A": "System Software",
+        "B": "Embedded Software",
+        "C": "Manufacturing Software",
+        "D": "AI Software"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 5,
+      "question": "What is the primary characteristic of System Software?",
+      "options": {
+        "A": "Stand-alone programs for specific business needs",
+        "B": "Number-crunching programs for scientific applications",
+        "C": "Resides within products/systems to control features",
+        "D": "Includes operating systems, device drivers, and development tools"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 6,
+      "question": "Which software domain includes 'number-crunching' programs for fields like astronomy and meteorology?",
+      "options": {
+        "A": "System Software",
+        "B": "Application Software",
+        "C": "Engineering/Scientific Software",
+        "D": "Embedded Software"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 7,
+      "question": "Where does embedded software reside?",
+      "options": {
+        "A": "On web servers in the cloud",
+        "B": "Within products or systems to control features and functions",
+        "C": "On standalone desktop computers",
+        "D": "In scientific research laboratories"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 8,
+      "question": "What is product-line software?",
+      "options": {
+        "A": "Software developed for a single customer",
+        "B": "Reusable components with specific capabilities for different customers",
+        "C": "Software that controls manufacturing processes",
+        "D": "Web-based applications only"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "Which type of software uses heuristics to solve complex problems?",
+      "options": {
+        "A": "System Software",
+        "B": "Application Software",
+        "C": "AI Software",
+        "D": "Embedded Software"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 10,
+      "question": "What is described as 'the bedrock that supports software engineering'?",
+      "options": {
+        "A": "Process",
+        "B": "Methods",
+        "C": "Tools",
+        "D": "A quality focus"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 11,
+      "question": "In software engineering layers, what does the 'Process' layer do?",
+      "options": {
+        "A": "Provides technical how-to's for building software",
+        "B": "Holds the technology layers together and enables rational development",
+        "C": "Provides automated support for methods",
+        "D": "Focuses only on testing activities"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 12,
+      "question": "What do 'Methods' encompass in software engineering layers?",
+      "options": {
+        "A": "Only coding and programming techniques",
+        "B": "Communication, requirements analysis, design modeling, and testing",
+        "C": "Hardware selection and procurement",
+        "D": "Only project management activities"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 13,
+      "question": "What does CASE stand for in software engineering tools?",
+      "options": {
+        "A": "Computer-Aided Software Engineering",
+        "B": "Computer-Assisted System Engineering",
+        "C": "Collaborative Agile Software Environment",
+        "D": "Continuous Automated System Evaluation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 14,
+      "question": "How is a 'process' defined in software engineering?",
+      "options": {
+        "A": "A rigid prescription for how to build computer software",
+        "B": "A collection of activities, actions, and tasks performed to create work products",
+        "C": "Only the coding phase of software development",
+        "D": "The testing methodology used in a project"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 15,
+      "question": "What is the difference between an 'activity' and a 'task' in software process?",
+      "options": {
+        "A": "An activity is small and well-defined, while a task is broad",
+        "B": "An activity strives for a broad objective, while a task focuses on a small objective",
+        "C": "Activities are only for managers, tasks are for developers",
+        "D": "There is no difference between them"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 16,
+      "question": "What is the intent of a software process?",
+      "options": {
+        "A": "To create extensive documentation",
+        "B": "To deliver software in a timely manner with sufficient quality",
+        "C": "To eliminate all communication with stakeholders",
+        "D": "To use the most expensive tools available"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 17,
+      "question": "What does a process framework establish?",
+      "options": {
+        "A": "Detailed coding standards for all projects",
+        "B": "The foundation for a complete software engineering process",
+        "C": "Specific hardware requirements",
+        "D": "Marketing strategies for software products"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 18,
+      "question": "Which of these is NOT one of the five generic framework activities?",
+      "options": {
+        "A": "Communication",
+        "B": "Construction",
+        "C": "Quality Assurance",
+        "D": "Deployment"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 19,
+      "question": "What is the purpose of the Communication activity?",
+      "options": {
+        "A": "To write code for the software",
+        "B": "To test the finished product",
+        "C": "To understand stakeholders' objectives and gather requirements",
+        "D": "To deploy software to production"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 20,
+      "question": "What does the Planning activity create?",
+      "options": {
+        "A": "The actual software code",
+        "B": "A 'map' or software project plan to guide the team",
+        "C": "User interface designs",
+        "D": "Marketing materials"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 21,
+      "question": "What is included in a software project plan?",
+      "options": {
+        "A": "Only the budget information",
+        "B": "Technical tasks, risks, resources, work products, and schedule",
+        "C": "Only the names of team members",
+        "D": "Marketing and sales strategies"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 22,
+      "question": "What is the purpose of Modeling in software engineering?",
+      "options": {
+        "A": "To create physical prototypes of hardware",
+        "B": "To understand software requirements and design through models",
+        "C": "To manage the project budget",
+        "D": "To hire new team members"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 23,
+      "question": "Which modeling language is mentioned as an example for creating diagrams?",
+      "options": {
+        "A": "HTML",
+        "B": "CSS",
+        "C": "UML (Unified Modeling Language)",
+        "D": "SQL"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 24,
+      "question": "What does the Construction activity involve?",
+      "options": {
+        "A": "Only writing documentation",
+        "B": "Code generation and testing to uncover errors",
+        "C": "Only gathering requirements",
+        "D": "Only deploying to production"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 25,
+      "question": "What happens during the Deployment activity?",
+      "options": {
+        "A": "Software is delivered to the customer for evaluation and feedback",
+        "B": "Requirements are gathered from stakeholders",
+        "C": "Code is written and tested",
+        "D": "Models are created and reviewed"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 26,
+      "question": "How are framework activities typically applied in many software projects?",
+      "options": {
+        "A": "Only once in a linear sequence",
+        "B": "Iteratively as the project progresses",
+        "C": "Only at the beginning of the project",
+        "D": "Only at the end of the project"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 27,
+      "question": "What is produced in each iteration of an iterative process?",
+      "options": {
+        "A": "Complete documentation only",
+        "B": "A software increment with a subset of features",
+        "C": "Marketing plans",
+        "D": "Hardware prototypes"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 28,
+      "question": "What are umbrella activities in software engineering?",
+      "options": {
+        "A": "Activities performed only during rainy seasons",
+        "B": "Activities applied throughout a project to manage progress, quality, change, and risk",
+        "C": "Activities performed only by managers",
+        "D": "Activities related to hardware procurement"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 29,
+      "question": "Which of the following is an umbrella activity?",
+      "options": {
+        "A": "Coding",
+        "B": "Requirements gathering",
+        "C": "Software quality assurance",
+        "D": "UI design"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 30,
+      "question": "What is the purpose of software project tracking and control?",
+      "options": {
+        "A": "To assess progress against the project plan and maintain schedule",
+        "B": "To write code faster",
+        "C": "To create marketing materials",
+        "D": "To purchase hardware"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 31,
+      "question": "What does risk management involve?",
+      "options": {
+        "A": "Assessing risks that may affect project outcome or product quality",
+        "B": "Managing financial investments",
+        "C": "Creating user interfaces",
+        "D": "Writing test cases only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 32,
+      "question": "What is the purpose of technical reviews?",
+      "options": {
+        "A": "To assess work products and remove errors before propagation",
+        "B": "To review employee salaries",
+        "C": "To evaluate office space",
+        "D": "To plan company parties"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 33,
+      "question": "What does software configuration management do?",
+      "options": {
+        "A": "Manages the effects of change throughout the software process",
+        "B": "Configures hardware devices",
+        "C": "Manages employee benefits",
+        "D": "Creates marketing campaigns"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 34,
+      "question": "Why might processes differ between projects?",
+      "options": {
+        "A": "Because of differences in flow, degree of definition, stakeholder involvement, and team autonomy",
+        "B": "Because all projects are exactly the same",
+        "C": "Because software is always developed the same way",
+        "D": "Because tools never change"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 35,
+      "question": "According to David Hooker's principles, what is the first principle?",
+      "options": {
+        "A": "Keep It Simple, Stupid (KISS)",
+        "B": "The Reason It All Exists - software provides value to users",
+        "C": "Maintain the Vision",
+        "D": "Plan Ahead for Reuse"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 36,
+      "question": "What does the KISS principle stand for?",
+      "options": {
+        "A": "Keep It Simple, Stupid",
+        "B": "Keep It Sophisticated, Smart",
+        "C": "Knowledge Is Software Success",
+        "D": "Key Integrated System Solution"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 37,
+      "question": "What is the main idea behind the KISS principle?",
+      "options": {
+        "A": "Make everything as complex as possible",
+        "B": "All design should be as simple as possible, but no simpler",
+        "C": "Always use the most advanced technology",
+        "D": "Create extensive documentation for everything"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 38,
+      "question": "What does the 'Maintain the Vision' principle emphasize?",
+      "options": {
+        "A": "Changing vision frequently based on feedback",
+        "B": "A clear vision is crucial for project success",
+        "C": "Vision documents are unnecessary",
+        "D": "Only developers should know the vision"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 39,
+      "question": "What does the 'What You Produce, Others Will Consume' principle mean?",
+      "options": {
+        "A": "Only think about your own work",
+        "B": "Create specifications, designs, and code with others in mind",
+        "C": "Produce as much code as possible quickly",
+        "D": "Never document your work"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 40,
+      "question": "What does the 'Be Open to the Future' principle recommend?",
+      "options": {
+        "A": "Design systems that limit future flexibility",
+        "B": "Design systems to adapt to change from the start",
+        "C": "Ignore future changes and focus only on current needs",
+        "D": "Never update software once released"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 41,
+      "question": "What is a warning about the 'Be Open to the Future' principle?",
+      "options": {
+        "A": "It should never be followed",
+        "B": "Designing for the general problem can require performance compromises",
+        "C": "It always makes software cheaper to develop",
+        "D": "It eliminates all risks"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 42,
+      "question": "What does the 'Plan Ahead for Reuse' principle focus on?",
+      "options": {
+        "A": "Reuse saves time and effort but is challenging",
+        "B": "Reuse happens automatically",
+        "C": "Reuse is always cheaper than custom development",
+        "D": "Never plan for reuse"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 43,
+      "question": "What is a warning about reuse mentioned in the materials?",
+      "options": {
+        "A": "It always costs 25% to 200% more than creating software for a specific purpose",
+        "B": "It's always cheaper than custom development",
+        "C": "It requires no additional planning",
+        "D": "It guarantees success"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 44,
+      "question": "What is the seventh principle according to David Hooker?",
+      "options": {
+        "A": "Think!",
+        "B": "Work Faster",
+        "C": "Write More Code",
+        "D": "Avoid Planning"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 45,
+      "question": "What does SDLC stand for?",
+      "options": {
+        "A": "Software Design Life Cycle",
+        "B": "Software Development Life Cycle",
+        "C": "System Development Life Cycle",
+        "D": "Software Deployment Life Cycle"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 46,
+      "question": "What is the purpose of SDLC?",
+      "options": {
+        "A": "To provide a structured framework for software development",
+        "B": "To eliminate all documentation",
+        "C": "To make software development slower",
+        "D": "To focus only on coding"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 47,
+      "question": "How does SDLC help in quality assurance?",
+      "options": {
+        "A": "Ensures software meets customer expectations and standards",
+        "B": "Eliminates all testing",
+        "C": "Focuses only on speed of development",
+        "D": "Ignores customer requirements"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 48,
+      "question": "What is the main benefit of SDLC for project management?",
+      "options": {
+        "A": "Provides a roadmap for planning, scheduling, and tracking",
+        "B": "Eliminates the need for project managers",
+        "C": "Makes projects more chaotic",
+        "D": "Focuses only on technical aspects"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 49,
+      "question": "How does SDLC help in risk management?",
+      "options": {
+        "A": "Identifies potential risks early in development",
+        "B": "Ignores all risks",
+        "C": "Only identifies risks at the end",
+        "D": "Increases project risks"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 50,
+      "question": "What are the two main types of SDLC models mentioned?",
+      "options": {
+        "A": "Fast and Slow models",
+        "B": "Traditional and Agile models",
+        "C": "Simple and Complex models",
+        "D": "Old and New models"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 51,
+      "question": "What are characteristics of traditional SDLC models?",
+      "options": {
+        "A": "Linear and sequential phases with emphasis on documentation",
+        "B": "Flexible and adaptive with minimal documentation",
+        "C": "Only used for small projects",
+        "D": "Focus only on coding"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 52,
+      "question": "Which of these is a traditional SDLC model?",
+      "options": {
+        "A": "Scrum",
+        "B": "Kanban",
+        "C": "Waterfall Model",
+        "D": "Extreme Programming"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 53,
+      "question": "What is the Waterfall Model?",
+      "options": {
+        "A": "An iterative and incremental model",
+        "B": "A linear and sequential model where each phase must complete before the next begins",
+        "C": "A model with continuous feedback loops",
+        "D": "A model that ignores documentation"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 54,
+      "question": "What is the first phase in the Waterfall Model?",
+      "options": {
+        "A": "Implementation",
+        "B": "Testing",
+        "C": "Requirement Analysis",
+        "D": "Maintenance"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 55,
+      "question": "Which phase comes after System Design in Waterfall?",
+      "options": {
+        "A": "Requirement Analysis",
+        "B": "Testing",
+        "C": "Implementation",
+        "D": "Maintenance"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 56,
+      "question": "What is an advantage of the Waterfall Model?",
+      "options": {
+        "A": "High flexibility to accommodate changes",
+        "B": "Easy to understand and manage due to linear nature",
+        "C": "Continuous customer involvement",
+        "D": "Minimal documentation required"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 57,
+      "question": "What is a disadvantage of the Waterfall Model?",
+      "options": {
+        "A": "Too flexible",
+        "B": "Difficult to accommodate changes once project is underway",
+        "C": "Too much customer involvement",
+        "D": "Lack of clear stages"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 58,
+      "question": "When does testing occur in the Waterfall Model?",
+      "options": {
+        "A": "Continuously throughout the project",
+        "B": "Only after implementation is complete",
+        "C": "Before requirements gathering",
+        "D": "Only during maintenance"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 59,
+      "question": "What is the V-Model?",
+      "options": {
+        "A": "An extension of Waterfall that emphasizes verification and validation",
+        "B": "A completely different model from Waterfall",
+        "C": "An agile methodology",
+        "D": "A model without testing phases"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 60,
+      "question": "What is emphasized in the V-Model?",
+      "options": {
+        "A": "Testing early in the development process",
+        "B": "Eliminating all testing",
+        "C": "Only testing at the end",
+        "D": "Ignoring customer feedback"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 61,
+      "question": "What is a disadvantage of the V-Model?",
+      "options": {
+        "A": "Too much flexibility",
+        "B": "Still inflexible to changes",
+        "C": "No clear relationships between activities",
+        "D": "Too much customer involvement"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 62,
+      "question": "What is the Iterative Model?",
+      "options": {
+        "A": "A model that develops software through repeated cycles and smaller portions",
+        "B": "A strictly linear model",
+        "C": "A model without planning",
+        "D": "A model that delivers everything at once"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 63,
+      "question": "What is the first step in the Iterative Model?",
+      "options": {
+        "A": "Final deployment",
+        "B": "Initial planning to identify requirements",
+        "C": "Writing all code at once",
+        "D": "Testing the final product"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 64,
+      "question": "What is an advantage of the Iterative Model?",
+      "options": {
+        "A": "Flexibility to adapt to changes",
+        "B": "Rigid structure",
+        "C": "No customer feedback needed",
+        "D": "Less planning required"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 65,
+      "question": "What is a disadvantage of the Iterative Model?",
+      "options": {
+        "A": "Too simple",
+        "B": "Can be resource-intensive due to repeated cycles",
+        "C": "No testing possible",
+        "D": "Too much documentation"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 66,
+      "question": "What are Agile methodologies based on?",
+      "options": {
+        "A": "Rigid, fixed plans",
+        "B": "Iterative development where requirements evolve through collaboration",
+        "C": "No customer involvement",
+        "D": "Extensive upfront documentation"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 67,
+      "question": "What is one of the Agile Manifesto principles?",
+      "options": {
+        "A": "Processes and tools over individuals and interactions",
+        "B": "Individuals and interactions over processes and tools",
+        "C": "Comprehensive documentation over working software",
+        "D": "Following a plan over responding to change"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 68,
+      "question": "What is another Agile Manifesto principle?",
+      "options": {
+        "A": "Contract negotiation over customer collaboration",
+        "B": "Customer collaboration over contract negotiation",
+        "C": "Documentation over working software",
+        "D": "Processes over people"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 69,
+      "question": "What are characteristics of Agile development?",
+      "options": {
+        "A": "Iterative and incremental development with high customer involvement",
+        "B": "Linear development with no customer involvement",
+        "C": "Fixed requirements throughout",
+        "D": "No planning required"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 70,
+      "question": "Which of these is an Agile framework?",
+      "options": {
+        "A": "Waterfall",
+        "B": "V-Model",
+        "C": "Scrum",
+        "D": "All of the above"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 71,
+      "question": "What is Scrum?",
+      "options": {
+        "A": "A traditional linear model",
+        "B": "An Agile framework for managing complex projects with short iterations",
+        "C": "A programming language",
+        "D": "A testing tool"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 72,
+      "question": "What are the roles in Scrum?",
+      "options": {
+        "A": "Project Manager, Developer, Tester",
+        "B": "Product Owner, Scrum Master, Development Team",
+        "C": "CEO, Manager, Employee",
+        "D": "Analyst, Designer, Programmer"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 73,
+      "question": "What does the Product Owner do in Scrum?",
+      "options": {
+        "A": "Writes code for the project",
+        "B": "Represents end-users' interests and prioritizes features",
+        "C": "Manages the company finances",
+        "D": "Tests the software only"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 74,
+      "question": "What does the Scrum Master do?",
+      "options": {
+        "A": "Facilitates the Scrum process and ensures team follows Agile practices",
+        "B": "Owns the product and sets priorities",
+        "C": "Writes all the code",
+        "D": "Manages the company budget"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 75,
+      "question": "What does the Development Team do in Scrum?",
+      "options": {
+        "A": "Only writes documentation",
+        "B": "Self-organizes to accomplish work planned for each Sprint",
+        "C": "Manages the product backlog",
+        "D": "Only attends meetings"
+      },
+      "correct_answer": "B"
+    },
+        {
+      "id": 76,
+      "question": "What is a Sprint in Scrum?",
+      "options": {
+        "A": "A long development phase lasting 6 months",
+        "B": "A time-boxed period (typically 2-4 weeks) for focused work",
+        "C": "A documentation phase only",
+        "D": "A testing phase only"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 77,
+      "question": "What is the Product Backlog?",
+      "options": {
+        "A": "A list of completed features",
+        "B": "A list of prioritized features desired by the customer",
+        "C": "A list of bugs only",
+        "D": "A list of team members"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 78,
+      "question": "What is the Sprint Backlog?",
+      "options": {
+        "A": "All features ever requested",
+        "B": "Selected items from product backlog to be completed in the sprint",
+        "C": "A list of failed sprints",
+        "D": "A list of vacation days"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 79,
+      "question": "What is a Daily Scrum?",
+      "options": {
+        "A": "A 15-minute team meeting to review progress",
+        "B": "A monthly review meeting",
+        "C": "A yearly planning session",
+        "D": "A documentation writing session"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 80,
+      "question": "What is a Sprint Review?",
+      "options": {
+        "A": "Demonstration of new functionality at sprint end",
+        "B": "Planning for the next year",
+        "C": "Budget review meeting",
+        "D": "Team building activity"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 81,
+      "question": "What tools might be used for Project Management in Scrum?",
+      "options": {
+        "A": "Trello or Jira",
+        "B": "Microsoft Word only",
+        "C": "Adobe Photoshop",
+        "D": "Windows Calculator"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 82,
+      "question": "What version control system is mentioned for Scrum projects?",
+      "options": {
+        "A": "Git and GitHub",
+        "B": "Microsoft Excel",
+        "C": "Google Docs",
+        "D": "Dropbox"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 83,
+      "question": "What communication tools are suggested for Scrum teams?",
+      "options": {
+        "A": "Slack or Microsoft Teams",
+        "B": "Smoke signals",
+        "C": "Paper letters only",
+        "D": "Fax machines"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 84,
+      "question": "What happens during Sprint Planning?",
+      "options": {
+        "A": "Team selects items from Product Backlog for the sprint",
+        "B": "Team takes a vacation",
+        "C": "Product Owner writes all the code",
+        "D": "Scrum Master tests the software"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 85,
+      "question": "What are the three questions typically asked in Daily Stand-up meetings?",
+      "options": {
+        "A": "What did I do yesterday? What will I do today? Any blockers?",
+        "B": "What's for lunch? When is vacation? Who's the manager?",
+        "C": "What's the budget? What's the deadline? Who's the customer?",
+        "D": "How much code? How many bugs? What's the salary?"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 86,
+      "question": "What is the purpose of a Sprint Review?",
+      "options": {
+        "A": "Demonstrate completed features to stakeholders",
+        "B": "Plan company budget",
+        "C": "Hire new employees",
+        "D": "Renew software licenses"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 87,
+      "question": "What is a Sprint Retrospective?",
+      "options": {
+        "A": "Meeting to reflect on sprint and improve processes",
+        "B": "Celebration party only",
+        "C": "Budget planning meeting",
+        "D": "Customer sales meeting"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 88,
+      "question": "What is discussed in a Sprint Retrospective?",
+      "options": {
+        "A": "What went well, what didn't, and how to improve",
+        "B": "Only positive things",
+        "C": "Only negative things",
+        "D": "Company stock prices"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 89,
+      "question": "What is an advantage of using Scrum?",
+      "options": {
+        "A": "Team can adapt to changes based on user feedback",
+        "B": "Completely rigid structure",
+        "C": "No customer involvement needed",
+        "D": "Extensive documentation required"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 90,
+      "question": "What is another advantage of Scrum?",
+      "options": {
+        "A": "Stakeholders have visibility into progress during reviews",
+        "B": "No visibility into progress",
+        "C": "All work is hidden until the end",
+        "D": "No meetings required"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 91,
+      "question": "What is Kanban?",
+      "options": {
+        "A": "A linear development methodology",
+        "B": "An Agile methodology focusing on visualizing workflow and limiting work in progress",
+        "C": "A programming language",
+        "D": "A testing framework"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 92,
+      "question": "What are key concepts of Kanban?",
+      "options": {
+        "A": "Visual Kanban Board, WIP Limits, Continuous Delivery",
+        "B": "Long development cycles, No visualization, Unlimited work",
+        "C": "Only coding, No planning",
+        "D": "Only testing, No development"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 93,
+      "question": "What is a Kanban Board used for?",
+      "options": {
+        "A": "Visualizing workflow with columns and task cards",
+        "B": "Writing code",
+        "C": "Managing finances",
+        "D": "Creating presentations"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 94,
+      "question": "What does WIP stand for in Kanban?",
+      "options": {
+        "A": "Work-In-Progress",
+        "B": "Work-Is-Perfect",
+        "C": "Work-In-Planning",
+        "D": "Work-Is-Pending"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 95,
+      "question": "Why are WIP limits important in Kanban?",
+      "options": {
+        "A": "They encourage finishing ongoing tasks before starting new ones",
+        "B": "They allow unlimited work simultaneously",
+        "C": "They prevent any work from being done",
+        "D": "They only apply to managers"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 96,
+      "question": "What are the key principles of Extreme Programming (XP)?",
+      "options": {
+        "A": "Communication, Simplicity, Feedback, Courage, Respect",
+        "B": "Secrecy, Complexity, Delay, Fear, Disrespect",
+        "C": "Only coding, No talking",
+        "D": "Documentation, Planning, Budgeting, Marketing, Sales"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 97,
+      "question": "What does the 'Simplicity' principle in XP mean?",
+      "options": {
+        "A": "Develop the simplest solution that works",
+        "B": "Make everything as complex as possible",
+        "C": "Ignore customer requirements",
+        "D": "Use the most advanced technology always"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 98,
+      "question": "What does the 'Feedback' principle in XP emphasize?",
+      "options": {
+        "A": "Obtain rapid feedback from system, team, and customer",
+        "B": "Avoid all feedback",
+        "C": "Only get feedback at project end",
+        "D": "Ignore customer feedback"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 99,
+      "question": "What is a benefit of Extreme Programming?",
+      "options": {
+        "A": "High-quality software through testing and refactoring",
+        "B": "Low-quality software quickly",
+        "C": "No testing required",
+        "D": "No customer involvement"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 100,
+      "question": "What is another benefit of XP?",
+      "options": {
+        "A": "Flexibility to adapt to changing customer needs",
+        "B": "Rigid structure that never changes",
+        "C": "Slow response to changes",
+        "D": "Fixed requirements only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 101,
+      "question": "What is Test-Driven Development (TDD) in XP?",
+      "options": {
+        "A": "Write tests after coding is complete",
+        "B": "Write automated tests before writing the code",
+        "C": "No testing required",
+        "D": "Only manual testing"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 102,
+      "question": "What is Pair Programming in XP?",
+      "options": {
+        "A": "Two developers work together at one workstation",
+        "B": "Programmers work alone always",
+        "C": "Managers write code",
+        "D": "Testing only, no coding"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 103,
+      "question": "What is Continuous Integration in XP?",
+      "options": {
+        "A": "Integrate code changes frequently into main branch",
+        "B": "Integrate code only at project end",
+        "C": "Never integrate code",
+        "D": "Only integrate documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 104,
+      "question": "What is Refactoring in XP?",
+      "options": {
+        "A": "Continuously improve codebase without changing external behavior",
+        "B": "Rewrite entire system from scratch",
+        "C": "Only add new features",
+        "D": "Ignore code quality"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 105,
+      "question": "What are Small Releases in XP?",
+      "options": {
+        "A": "Deliver software in small, frequent iterations",
+        "B": "Deliver everything at once at the end",
+        "C": "Never release software",
+        "D": "Only release documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 106,
+      "question": "What is an On-site Customer in XP?",
+      "options": {
+        "A": "Customer available full-time to provide immediate feedback",
+        "B": "Customer never involved",
+        "C": "Customer only at project start",
+        "D": "Customer only at project end"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 107,
+      "question": "What is Collective Code Ownership in XP?",
+      "options": {
+        "A": "Any team member can improve any part of the code",
+        "B": "Only one person can touch the code",
+        "C": "Managers own all code",
+        "D": "Code has no owner"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 108,
+      "question": "What are the phases in Agile development?",
+      "options": {
+        "A": "Concept, Inception, Construction, Release, Maintenance, Retirement",
+        "B": "Only coding phase",
+        "C": "Only testing phase",
+        "D": "Only planning phase"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 109,
+      "question": "What is an advantage of Agile methodologies?",
+      "options": {
+        "A": "Customer satisfaction through frequent delivery",
+        "B": "Customer frustration through infrequent delivery",
+        "C": "No customer involvement",
+        "D": "Fixed requirements only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 110,
+      "question": "What is another advantage of Agile?",
+      "options": {
+        "A": "Flexibility to adapt to changing requirements",
+        "B": "Rigidity in following initial plan",
+        "C": "No changes allowed",
+        "D": "Slow response to market"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 111,
+      "question": "What is a disadvantage of Agile?",
+      "options": {
+        "A": "Less predictability in final outcomes",
+        "B": "Too much predictability",
+        "C": "No customer satisfaction",
+        "D": "Too much documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 112,
+      "question": "What is another disadvantage of Agile?",
+      "options": {
+        "A": "Requires experienced team members",
+        "B": "Works with completely inexperienced teams",
+        "C": "No team collaboration needed",
+        "D": "Individual work only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 113,
+      "question": "What is Scope Creep risk in Agile?",
+      "options": {
+        "A": "Continuous changes may lead to uncontrolled scope expansion",
+        "B": "Scope always remains fixed",
+        "C": "Scope decreases over time",
+        "D": "No scope definition needed"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 114,
+      "question": "How does Traditional development differ from Agile in structure?",
+      "options": {
+        "A": "Traditional: Linear; Agile: Iterative",
+        "B": "Traditional: Iterative; Agile: Linear",
+        "C": "Both are exactly the same",
+        "D": "Traditional: No structure; Agile: Structured"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 115,
+      "question": "How does customer involvement differ between Traditional and Agile?",
+      "options": {
+        "A": "Traditional: Limited; Agile: Continuous",
+        "B": "Traditional: Continuous; Agile: Limited",
+        "C": "Both have no customer involvement",
+        "D": "Both have equal involvement"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 116,
+      "question": "How does documentation differ between Traditional and Agile?",
+      "options": {
+        "A": "Traditional: Extensive; Agile: Minimal necessary",
+        "B": "Traditional: Minimal; Agile: Extensive",
+        "C": "Both have no documentation",
+        "D": "Both have equal documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 117,
+      "question": "What is a case study comparison between Waterfall and Agile?",
+      "options": {
+        "A": "Waterfall: Late discovery of issues; Agile: Improved user satisfaction",
+        "B": "Waterfall: Early discovery; Agile: Late discovery",
+        "C": "Both have same results",
+        "D": "Waterfall: No testing; Agile: All testing"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 118,
+      "question": "When choosing an SDLC model, what should be considered for project complexity?",
+      "options": {
+        "A": "High complexity may benefit from Agile's flexibility",
+        "B": "Complexity doesn't matter",
+        "C": "Always use Waterfall for complex projects",
+        "D": "Always use Agile for simple projects"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 119,
+      "question": "What should be considered regarding customer requirements when choosing a model?",
+      "options": {
+        "A": "Well-defined: Traditional; Evolving: Agile",
+        "B": "Well-defined: Agile; Evolving: Traditional",
+        "C": "Requirements don't matter",
+        "D": "Always use the same model"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 120,
+      "question": "What should be considered regarding team expertise?",
+      "options": {
+        "A": "Experienced teams can handle Agile effectively",
+        "B": "Only inexperienced teams should use Agile",
+        "C": "Team expertise doesn't matter",
+        "D": "Always use Traditional regardless of expertise"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 121,
+      "question": "What should be considered regarding time to market?",
+      "options": {
+        "A": "Short timelines favor Agile for quicker delivery",
+        "B": "Short timelines favor Waterfall",
+        "C": "Time doesn't matter",
+        "D": "Always take as long as possible"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 122,
+      "question": "What factors influence model selection?",
+      "options": {
+        "A": "Project size, risk assessment, regulatory compliance",
+        "B": "Only the project manager's preference",
+        "C": "Only the programming language",
+        "D": "Only the office location"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 123,
+      "question": "What is a best practice when selecting an SDLC model?",
+      "options": {
+        "A": "Assess project requirements thoroughly",
+        "B": "Choose randomly",
+        "C": "Always use the newest model",
+        "D": "Ignore stakeholder input"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 124,
+      "question": "What is another best practice?",
+      "options": {
+        "A": "Engage stakeholders early",
+        "B": "Avoid stakeholders completely",
+        "C": "Only engage at project end",
+        "D": "Only engage middle management"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 125,
+      "question": "What is DevOps?",
+      "options": {
+        "A": "A framework integrating development and operations using Agile principles",
+        "B": "A programming language",
+        "C": "A testing tool only",
+        "D": "A documentation standard"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 126,
+      "question": "What are key stages of DevOps?",
+      "options": {
+        "A": "Continuous Development, Testing, Integration, Deployment, Monitoring",
+        "B": "Only development, no operations",
+        "C": "Only operations, no development",
+        "D": "Random stages with no connection"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 127,
+      "question": "What is Continuous Development in DevOps?",
+      "options": {
+        "A": "Deliverables broken into sprints, each delivered to QA",
+        "B": "Develop everything at once",
+        "C": "No development, only operations",
+        "D": "Development only at project start"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 128,
+      "question": "What is Continuous Testing in DevOps?",
+      "options": {
+        "A": "Automated testing of multiple code increments simultaneously",
+        "B": "No testing required",
+        "C": "Only manual testing at project end",
+        "D": "Testing only by customers"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 129,
+      "question": "What is Continuous Integration in DevOps?",
+      "options": {
+        "A": "New functionality added to existing codebase and runtime environment",
+        "B": "Integration only at project end",
+        "C": "No integration needed",
+        "D": "Only integrate documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 130,
+      "question": "What is Continuous Deployment in DevOps?",
+      "options": {
+        "A": "Tested software deployed to production environments",
+        "B": "Never deploy to production",
+        "C": "Deploy only once per year",
+        "D": "Deploy without testing"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 131,
+      "question": "What is Continuous Monitoring in DevOps?",
+      "options": {
+        "A": "Operations teams monitor software performance post-deployment",
+        "B": "No monitoring needed",
+        "C": "Monitor only during development",
+        "D": "Monitor only hardware, not software"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 132,
+      "question": "What are benefits of DevOps?",
+      "options": {
+        "A": "Faster responses to customer demands, enhanced brand loyalty",
+        "B": "Slower responses, reduced competitiveness",
+        "C": "No benefits",
+        "D": "Only benefits for developers, not operations"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 133,
+      "question": "What is similar between DevOps and other Agile frameworks?",
+      "options": {
+        "A": "Collaboration focus and incremental delivery",
+        "B": "No collaboration and big-bang delivery",
+        "C": "Only documentation focus",
+        "D": "Only testing focus"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 134,
+      "question": "How is DevOps different from other Agile frameworks?",
+      "options": {
+        "A": "Includes both development and operations, not just development",
+        "B": "Only focuses on development",
+        "C": "Only focuses on operations",
+        "D": "No automation emphasis"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 135,
+      "question": "What is a good scenario for using DevOps?",
+      "options": {
+        "A": "Projects with frequent updates like e-commerce sites",
+        "B": "Small static websites with no changes",
+        "C": "Projects with no operations team",
+        "D": "Projects with manual processes only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 136,
+      "question": "What is a bad scenario for using DevOps?",
+      "options": {
+        "A": "Small projects or startups with limited resources",
+        "B": "Large scalable systems",
+        "C": "Projects needing fast updates",
+        "D": "Projects with high uptime needs"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 137,
+      "question": "What tools are used for Planning in DevOps?",
+      "options": {
+        "A": "Jira, Trello",
+        "B": "Microsoft Paint, Calculator",
+        "C": "Only email",
+        "D": "Paper and pen only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 138,
+      "question": "What tools are used for Development in DevOps?",
+      "options": {
+        "A": "Git, GitHub, GitLab",
+        "B": "Microsoft Word, Excel",
+        "C": "Only physical notebooks",
+        "D": "Only whiteboards"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 139,
+      "question": "What tools are used for Build in DevOps?",
+      "options": {
+        "A": "Maven, Gradle",
+        "B": "Adobe Photoshop",
+        "C": "Google Search",
+        "D": "Windows Notepad"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 140,
+      "question": "What tools are used for Testing in DevOps?",
+      "options": {
+        "A": "Selenium, JUnit, Postman",
+        "B": "Microsoft PowerPoint",
+        "C": "YouTube",
+        "D": "Facebook"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 141,
+      "question": "What tools are used for Integration in DevOps?",
+      "options": {
+        "A": "Jenkins, CircleCI",
+        "B": "Instagram, Twitter",
+        "C": "Google Maps",
+        "D": "Windows Media Player"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 142,
+      "question": "What tools are used for Deployment in DevOps?",
+      "options": {
+        "A": "Docker, Kubernetes, AWS",
+        "B": "Netflix, Spotify",
+        "C": "Microsoft Solitaire",
+        "D": "Google Chrome only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 143,
+      "question": "What tools are used for Monitoring in DevOps?",
+      "options": {
+        "A": "Nagios, Prometheus, New Relic",
+        "B": "TikTok, Snapchat",
+        "C": "Microsoft Paint",
+        "D": "Google Drive only"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 144,
+      "question": "What is a pro of Scrum methodology?",
+      "options": {
+        "A": "Product owner defines priorities, team makes independent decisions",
+        "B": "No priorities defined, team has no autonomy",
+        "C": "Heavy documentation required",
+        "D": "No customer involvement"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 145,
+      "question": "What is a con of Scrum?",
+      "options": {
+        "A": "Challenging to manage cost changes, unsuitable for large teams",
+        "B": "Too simple for any project",
+        "C": "No meetings required",
+        "D": "Too much documentation"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 146,
+      "question": "What is a pro of XP?",
+      "options": {
+        "A": "Focuses on customer involvement, creates rational schedules",
+        "B": "Ignores customers, creates chaotic schedules",
+        "C": "No testing required",
+        "D": "No planning needed"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 147,
+      "question": "What is a con of XP?",
+      "options": {
+        "A": "Risk of shipping incomplete prototypes, frequent costly meetings",
+        "B": "No risks, all meetings are free",
+        "C": "Too much documentation",
+        "D": "No customer involvement"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 148,
+      "question": "What is a pro of Kanban?",
+      "options": {
+        "A": "Lower cost and time needs, enables early delivery",
+        "B": "Higher cost and longer time, delays delivery",
+        "C": "No visualization possible",
+        "D": "Requires extensive training"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 149,
+      "question": "What is a con of Kanban?",
+      "options": {
+        "A": "Depends on collaboration, weak analysis harms projects",
+        "B": "No collaboration needed, strong analysis always",
+        "C": "Too rigid structure",
+        "D": "Too many meetings"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 150,
+      "question": "What is a pro of DevOps?",
+      "options": {
+        "A": "Speeds deployment, integrates developers and operations",
+        "B": "Slows deployment, separates developers and operations",
+        "C": "No automation possible",
+        "D": "Only works for small projects"
+      },
+      "correct_answer": "A"
+    }
+  ]
+}
+  
