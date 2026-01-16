@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 const DIFFICULTIES = [
     { id: 'easy', name: 'Easy', hints: 3, icon: Lightbulb, color: 'text-green-500', bg: 'bg-green-100', border: 'border-green-200', timeLimit: null },
@@ -1949,9 +1950,19 @@ export default function Home() {
     }, []);
 
     if (loading && view === 'list') {
-        return <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
-             <img src="/loading.gif" alt="Loading..." className="w-24 h-24 object-contain" />
-        </div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
+                <Image 
+                    src="/loading.gif" 
+                    alt="Loading..." 
+                    width={96} 
+                    height={96} 
+                    className="object-contain"
+                    priority
+                    unoptimized
+                />
+            </div>
+        );
     }
 
     if (!isNameSet) {
