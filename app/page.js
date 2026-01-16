@@ -16,6 +16,21 @@ const DIFFICULTIES = [
     { id: 'impossible', name: 'Impossible', hints: 0, icon: Ghost, color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', timeLimit: 8 }
 ];
 
+const EXAM_SCHEDULE = [
+    { isHeader: true, title: "Call 1" },
+    { name: "Digitalization", day: "13", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
+    { name: "Data Mining", day: "15", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
+    { name: "Software Project Management", day: "17", month: "Jan", time: "12:00", room: "Lab-403", teacher: "Usmanov M." },
+    { name: "Software for Sustainable Development", day: "20", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Jamshid Y." },
+    { name: "Mobile Apps (Native and web)", day: "22", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Salokhiddinov M." },
+    { isHeader: true, title: "Call 2" },
+    { name: "Digitalization", day: "23", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Abdurasul B." },
+    { name: "Data Mining", day: "26", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Abdurasul B." },
+    { name: "Software Project Management", day: "27", month: "Jan", time: "12:00", room: "Lab-403/407", teacher: "Usmanov M." },
+    { name: "Software for Sustainable Development", day: "30", month: "Jan", time: "09:00", room: "Lab-403/407", teacher: "Jamshid Y." },
+    { name: "Mobile Apps (Native and web)", day: "31", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Salokhiddinov M." },
+];
+
 function getLeague(score, total, difficulty, duration = 0, questions = [], answers = {}) {
     const percentage = (score / total) * 100;
 
@@ -2562,6 +2577,36 @@ export default function Home() {
                                         const hasTestsB = testsB.length > 0;
                                         if (hasTestsA && !hasTestsB) return -1;
                                         if (!hasTestsA && hasTestsB) return 1;
+
+                                        // Sort by Exam Schedule Priority (Closest Date >= Today first)
+                                        const getPriority = (catName) => {
+                                            const now = new Date();
+                                            now.setHours(0,0,0,0);
+                                            const months = {Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11};
+                                            const year = now.getFullYear();
+
+                                            const exams = EXAM_SCHEDULE.filter(e => !e.isHeader && e.name === catName);
+                                            if (!exams.length) return Infinity; // No schedule = lowest priority
+
+                                            let minDiff = Infinity;
+                                            exams.forEach(e => {
+                                                const examDate = new Date(year, months[e.month], parseInt(e.day));
+                                                // Only consider upcoming or today's exams
+                                                if (examDate >= now) {
+                                                    const diff = examDate.getTime() - now.getTime();
+                                                    if (diff < minDiff) minDiff = diff;
+                                                }
+                                            });
+                                            return minDiff;
+                                        };
+
+                                        const pA = getPriority(catA);
+                                        const pB = getPriority(catB);
+
+                                        if (pA !== pB) {
+                                            return pA - pB;
+                                        }
+
                                         return catA.localeCompare(catB);
                                     }).map(([category, categoryTests]) => (
                                         <div key={category} className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-6 border border-gray-100 dark:border-gray-800/30">
@@ -2995,20 +3040,7 @@ export default function Home() {
                                         </h3>
                                     </div>
                                     <div className="p-4 space-y-3">
-                                        {[
-                                            { isHeader: true, title: "Call 1" },
-                                            { name: "Digitalization", day: "13", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
-                                            { name: "Data Mining", day: "15", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
-                                            { name: "Software Project Management", day: "17", month: "Jan", time: "12:00", room: "Lab-403", teacher: "Usmanov M." },
-                                            { name: "Software for Sustainable Dev", day: "20", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Jamshid Y." },
-                                            { name: "Mobile Apps (Native & Web)", day: "22", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Salokhiddinov M." },
-                                            { isHeader: true, title: "Call 2" },
-                                            { name: "Digitalization", day: "23", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Abdurasul B." },
-                                            { name: "Data Mining", day: "26", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Abdurasul B." },
-                                            { name: "Software Project Management", day: "27", month: "Jan", time: "12:00", room: "Lab-403/407", teacher: "Usmanov M." },
-                                            { name: "Software for Sustainable Dev", day: "30", month: "Jan", time: "09:00", room: "Lab-403/407", teacher: "Jamshid Y." },
-                                            { name: "Mobile Apps (Native & Web)", day: "31", month: "Jan", time: "10:00", room: "Lab-403/407", teacher: "Salokhiddinov M." },
-                                        ].map((item, idx, arr) => {
+                                        {EXAM_SCHEDULE.map((item, idx, arr) => {
                                             if (item.isHeader) {
                                                 return (
                                                     <div key={idx} className="bg-red-500/10 border border-red-500/30 rounded-lg py-2 text-center">
