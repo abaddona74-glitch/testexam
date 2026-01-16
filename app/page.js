@@ -1948,6 +1948,12 @@ export default function Home() {
         };
     }, []);
 
+    if (loading && view === 'list') {
+        return <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
+             <img src="/loading.gif" alt="Loading..." className="w-24 h-24 object-contain" />
+        </div>;
+    }
+
     if (!isNameSet) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 px-4">
@@ -1978,12 +1984,6 @@ export default function Home() {
                 </div>
             </div>
         );
-    }
-
-    if (loading && view === 'list') {
-        return <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
-            <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
-        </div>;
     }
 
     return (
