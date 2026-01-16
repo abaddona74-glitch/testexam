@@ -4665,7 +4665,30 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
     const handleAnswer = (optionId) => {
         playClickSound?.();
-        setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
+        
+        // Multi-select logic check
+        const isMulti = question?.correct_answer?.includes(',');
+
+        if (isMulti) {
+            setAnswers(prev => {
+                const currentStr = prev[currentIndex] || "";
+                let currentIds = currentStr ? currentStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+                if (currentIds.includes(optionId)) {
+                    currentIds = currentIds.filter(id => id !== optionId);
+                } else {
+                    currentIds.push(optionId);
+                }
+                
+                // Sort alphabetically to be safe and clean
+                currentIds.sort();
+                
+                const newAnswer = currentIds.join(', ');
+                return { ...prev, [currentIndex]: newAnswer };
+            });
+        } else {
+            setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
+        }
     };
 
     const handleNext = () => {
@@ -5315,10 +5338,23 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                             />
                         ) : (
                             question.shuffledOptions.map((option, idx) => {
-                                const isSelected = answers[currentIndex] === option.id;
+                                // Multi logic
+                                const isMulti = question.correct_answer && question.correct_answer.includes(',');
+                                const answerStr = answers[currentIndex] || '';
+                                const userSelectedIds = isMulti 
+                                    ? answerStr.split(',').map(s => s.trim()) 
+                                    : [answerStr];
+                                    
+                                const isSelected = userSelectedIds.includes(option.id);
+
                                 const isEliminated = (revealedHints[currentIndex] || []).includes(option.id);
                                 const translatedOptionText = translatedQuestion?.options?.[option.id];
-                                const isCorrect = option.id === question.correct_answer;
+                                
+                                // Godmode logic
+                                const correctIds = isMulti
+                                    ? question.correct_answer.split(',').map(s => s.trim())
+                                    : [question.correct_answer];
+                                const isCorrect = correctIds.includes(option.id);
                                 const isGodMode = activatedCheats?.includes('godmode');
 
                                 return (
@@ -5338,10 +5374,17 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                         )}
                                     >
                                         <div className={clsx(
-                                            "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border transiton-colors",
+                                            "w-8 h-8 flex items-center justify-center font-bold text-sm border transiton-colors",
+                                            isMulti ? "rounded-md" : "rounded-full",
                                             isSelected ? "bg-blue-600 border-blue-600 text-white" : "bg-white dark:bg-gray-800 border-gray-200 text-gray-400"
                                         )}>
-                                            {String.fromCharCode(65 + idx)}
+                                             {isMulti && isSelected ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                            ) : (
+                                                String.fromCharCode(65 + idx)
+                                            )}
                                         </div>
                                         <span className="font-medium">
                                             <TranslatableText
