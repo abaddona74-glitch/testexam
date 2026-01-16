@@ -1100,7 +1100,6 @@ export default function Home() {
 
         // 4. Set up intervals
         const interval = setInterval(fetchGlobalActiveUsers, 5000);
-        const leaderboardInterval = setInterval(fetchLeaderboard, 5000); // Auto-refresh leaderboard
         const spinInterval = setInterval(loadSpins, 60000);
         const boostInterval = setInterval(updateBoosts, 1000); // Update boost timer every second
 
@@ -1121,7 +1120,6 @@ export default function Home() {
 
         return () => {
             clearInterval(interval);
-            clearInterval(leaderboardInterval);
             clearInterval(spinInterval);
             clearInterval(boostInterval);
         };
@@ -1583,6 +1581,8 @@ export default function Home() {
 
     useEffect(() => {
         fetchLeaderboard();
+        const interval = setInterval(fetchLeaderboard, 5000);
+        return () => clearInterval(interval);
     }, [filterPeriod, leaderboardPage, leaderboardLimit]);
 
     const handlePromoSubmit = (e) => {
