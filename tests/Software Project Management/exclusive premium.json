@@ -24,17 +24,23 @@
       "id": 3,
       "question": "What is a major challenge faced by global software development (GSD) teams?",
       "options": {
-        "A": "Coordinating and communicating effectively across geographical distances"
+        "A": "Coordinating and communicating effectively across geographical distances",
+        "B": "Managing time zone differences",
+        "C": "Cultural and language barriers",
+        "D": "All of the above"
       },
-      "correct_answer": "A"
+      "correct_answer": "D"
     },
     {
       "id": 4,
       "question": "What is the main benefit of using GitHub Codespaces?",
       "options": {
-        "A": "It allows developers to write code directly in a browser based VS Code environment"
+        "A": "It allows developers to write code directly in a browser based VS Code environment",
+        "B": "It provides pre-configured development environments",
+        "C": "It reduces setup time for new developers",
+        "D": "All of the above"
       },
-      "correct_answer": "A"
+      "correct_answer": "D"
     },
     {
       "id": 5,
@@ -42,7 +48,8 @@
       "options": {
         "A": "Early and frequent customer feedback",
         "B": "Better adaptability to evolving requirements",
-        "C": "Prioritizing lightweight documentation"
+        "C": "Prioritizing lightweight documentation",
+        "D": "Predictable fixed scope and timeline"
       },
       "correct_answer": "A, B, C"
     },
@@ -50,7 +57,10 @@
       "id": 6,
       "question": "According to the IEEE definition, what is the core concept of software engineering?",
       "options": {
-        "A": "Developing software with a systematic, disciplined, quantifiable approach"
+        "A": "Developing software with a systematic, disciplined, quantifiable approach",
+        "B": "Writing code as quickly as possible",
+        "C": "Focusing only on programming without documentation",
+        "D": "Using the latest technologies regardless of project needs"
       },
       "correct_answer": "A"
     },
@@ -60,7 +70,8 @@
       "options": {
         "A": "Communicating with team members who worked on the conflicting changes",
         "B": "Reviewing changes in the conflict file to decide which lines to keep",
-        "C": "Using GitHub's online editor to manually resolve conflicts"
+        "C": "Using GitHub's online editor to manually resolve conflicts",
+        "D": "Deleting the entire file and starting over"
       },
       "correct_answer": "A, B, C"
     },
@@ -68,7 +79,10 @@
       "id": 8,
       "question": "What does the term \"process flow\" describe in a software process?",
       "options": {
-        "A": "The sequence and timing of framework activities"
+        "A": "The sequence and timing of framework activities",
+        "B": "The speed of development",
+        "C": "The number of bugs in the system",
+        "D": "The cost of software development"
       },
       "correct_answer": "A"
     },
@@ -76,7 +90,10 @@
       "id": 9,
       "question": "Why is the waterfall model often criticized for modern software development?",
       "options": {
-        "A": "It does not allow for iterative feedback during development"
+        "A": "It does not allow for iterative feedback during development",
+        "B": "It is too flexible and lacks structure",
+        "C": "It requires too much customer involvement",
+        "D": "It is too expensive to implement"
       },
       "correct_answer": "A"
     },
@@ -85,7 +102,9 @@
       "question": "Which approaches can be used to resolve conflicting requirements from multiple stakeholders during the communication phase? (Select all that apply)",
       "options": {
         "A": "Conducting facilitated negotiation meetings",
-        "B": "Refining requirements through iterative feedback"
+        "B": "Refining requirements through iterative feedback",
+        "C": "Ignoring some stakeholders' inputs",
+        "D": "Using voting to decide which requirements to implement"
       },
       "correct_answer": "A, B"
     },
@@ -93,7 +112,10 @@
       "id": 11,
       "question": "According to the IEEE definition, what is the core concept of software engineering?",
       "options": {
-        "A": "Developing software with a systematic, disciplined, quantifiable approach"
+        "A": "Developing software with a systematic, disciplined, quantifiable approach",
+        "B": "Creating software without any planning",
+        "C": "Focusing only on writing code",
+        "D": "Avoiding documentation to save time"
       },
       "correct_answer": "A"
     },
@@ -101,7 +123,10 @@
       "id": 12,
       "question": "What is a common reason for merge conflicts in GitHub?",
       "options": {
-        "A": "Multiple people make changes to the same line of a file on different branches"
+        "A": "Multiple people make changes to the same line of a file on different branches",
+        "B": "Using different programming languages",
+        "C": "Having too many comments in code",
+        "D": "Using descriptive variable names"
       },
       "correct_answer": "A"
     },
@@ -109,7 +134,10 @@
       "id": 13,
       "question": "Which statement correctly describes a Project Board and a Workflow in GitHub?",
       "options": {
-        "A": "Project Board is a list of tasks or features in a repository, while a Workflow is a set of automated steps triggered by specific events like pushes or pulls"
+        "A": "Project Board is a list of tasks or features in a repository, while a Workflow is a set of automated steps triggered by specific events like pushes or pulls",
+        "B": "Project Board is for storing code, while Workflow is for documentation",
+        "C": "Both are the same thing in GitHub",
+        "D": "Project Board is for backups, Workflow is for deployment only"
       },
       "correct_answer": "A"
     },
@@ -119,7 +147,8 @@
       "options": {
         "A": "Scrum → Time-boxed iterations (sprints) with defined roles and meetings",
         "B": "Extreme Programming (XP) → Heavy focus on pair programming, test-driven development, and user stories",
-        "C": "Kanban → Visualizes workflow using a board and limits work in progress"
+        "C": "Kanban → Visualizes workflow using a board and limits work in progress",
+        "D": "Waterfall → Sequential phases with no going back"
       },
       "correct_answer": "A, B, C"
     },
@@ -127,7 +156,10 @@
       "id": 15,
       "question": "What is a major challenge faced by global software development (GSD) teams?",
       "options": {
-        "A": "Coordinating and communicating effectively across geographical distances"
+        "A": "Coordinating and communicating effectively across geographical distances",
+        "B": "Having too many team members in one location",
+        "C": "Using the same programming language",
+        "D": "Working only during business hours"
       },
       "correct_answer": "A"
     },
@@ -137,7 +169,8 @@
       "options": {
         "A": "Automating workflows such as testing and deployments",
         "B": "Creating and publishing reusable workflows for other repositories",
-        "C": "Integrating Continuous Integration (CI) into repositories"
+        "C": "Integrating Continuous Integration (CI) into repositories",
+        "D": "Replacing the need for version control"
       },
       "correct_answer": "A, B, C"
     },
@@ -148,15 +181,19 @@
         "A": "Communication → Understanding stakeholders' requirements",
         "B": "Planning → Creating a project schedule and allocating resources",
         "C": "Deployment → Delivering the software to the customer",
-        "D": "Construction → Coding and testing the solution"
+        "D": "Construction → Coding and testing the solution",
+        "E": "Maintenance → Fixing bugs and adding new features after deployment"
       },
-      "correct_answer": "A, B, C, D"
+      "correct_answer": "A, B, C, D, E"
     },
     {
       "id": 18,
       "question": "What is the main purpose of Continuous Integration (CI) in GitHub Actions?",
       "options": {
-        "A": "To ensure that code changes are tested automatically before being merged"
+        "A": "To ensure that code changes are tested automatically before being merged",
+        "B": "To store code in the cloud",
+        "C": "To create documentation automatically",
+        "D": "To manage project budgets"
       },
       "correct_answer": "A"
     }
