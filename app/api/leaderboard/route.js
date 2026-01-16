@@ -12,9 +12,14 @@ export async function GET(request) {
       const skip = (page - 1) * limit;
 
       let dateQuery = {};
-      const now = new Date();
-      // Set to beginning of today (00:00:00)
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      // O'zbekiston vaqti bo'yicha "Bugun"ning boshlanishini aniqlash (UTC+5)
+      // 1. Hozirgi sanani O'zbekiston vaqti bilan string formatda olamiz (YYYY-MM-DD)
+      const uzDateString = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" });
+      
+      // 2. Ushbu sana 00:00:00 da O'zbekiston vaqt mintaqasida qaysi UTC vaqtiga to'g'ri kelishini aniqlaymiz
+      // Masalan: "2026-01-16T00:00:00+05:00"
+      const todayStart = new Date(`${uzDateString}T00:00:00+05:00`);
 
       if (period === 'today') {
           dateQuery = { date: { $gte: todayStart } };
