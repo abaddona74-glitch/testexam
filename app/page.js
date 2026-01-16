@@ -4536,9 +4536,15 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         if ((hintsLeft <= 0 && extraHints <= 0 && !infiniteHints) || isFinished) return;
 
         const currentRevealed = revealedHints[currentIndex] || [];
+        
+        // Multi-choice correct answer parsing
+        const correctIds = question.correct_answer.includes(',') 
+            ? question.correct_answer.split(',').map(s => s.trim())
+            : [question.correct_answer];
+
         // Only consider options that are WRONG and NOT YET REVEALED
         const incorrectOptions = question.shuffledOptions.filter(o =>
-            o.id !== question.correct_answer &&
+            !correctIds.includes(o.id) &&
             !currentRevealed.includes(o.id)
         );
 
@@ -4554,12 +4560,26 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             [currentIndex]: newRevealed
         }));
 
-        // Auto-select if only correct answer remains
-        if (question.shuffledOptions.length - newRevealed.length === 1) {
-            // Eliminate lag by checking against current state, but update immediately
-            if (!answers[currentIndex]) {
-                handleAnswer(question.correct_answer);
-            }
+        // Auto-select if ONLY correct answers remain
+        // Check if we have eliminated ALL incorrect options
+        const totalIncorrectCount = question.shuffledOptions.length - correctIds.length;
+        
+        if (newRevealed.length >= totalIncorrectCount) {
+             // Auto-fill logic checks
+             if (question.correct_answer.includes(',')) {
+                 // For multi: verify we haven't already answered fully? 
+                 // Just set the answer to the normalized correct string if empty
+                 if (!answers[currentIndex]) {
+                    const sortedCorrect = correctIds.sort().join(', ');
+                    setAnswers(prev => ({ ...prev, [currentIndex]: sortedCorrect }));
+                 }
+             } else {
+                 // Single choice
+                 if (!answers[currentIndex]) {
+                     // Can safely call handleAnswer for single ID
+                     handleAnswer(question.correct_answer);
+                 }
+             }
         }
 
         if (infiniteHints) return; // Don't consume hints
@@ -4784,7 +4804,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 const ua = answers[idx];
                 const ca = q.correct_answer;
 
-                if (ua === ca) {
+                // Normalize helper
+                const norm = (s) => s ? s.split(',').map(x => x.trim()).sort().join(',') : '';
+
+                if (norm(ua) === norm(ca)) {
                     score++;
                 } else if (ca && ca.includes(',')) {
                     // Partial Credit for Multi/Matching
@@ -4794,14 +4817,21 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     // Filter out empty or invalid "NO_MATCH"
                     const validUserIds = userIds.filter(id => id && id !== 'NO_MATCH');
 
-                    // Count matches
-                    const matchCount = validUserIds.reduce((acc, id) => {
-                        return correctIds.includes(id) ? acc + 1 : acc;
-                    }, 0);
-
-                    // Add fraction (e.g. 1/4 = 0.25)
+                    // Count CORRECT matches (User selected specific correct option)
+                    const correctMatches = validUserIds.filter(id => correctIds.includes(id)).length;
+                    
+                    // Count WRONG selections (User selected an incorrect option)
+                    // Usually in partial credit, wrong answers might penalize or just not count.
+                    // User request: "1/3 per correct answer".
+                    // Standard logic: Score = Correctly Selected / Total Correct Options.
+                    // Does selecting a WRONG answer subtract? 
+                    // Usually simple partial credit is just (Right / TotalRights).
+                    // If I select A, B (Correct: A, B, C) -> 2/3.
+                    // If I select A, B, D (Correct: A, B, C) -> 2/3 (D ignores) or penalty?
+                    // Let's stick to simple ratio of covered correct answers.
+                    
                     if (correctIds.length > 0) {
-                        score += (matchCount / correctIds.length);
+                        score += (correctMatches / correctIds.length);
                     }
                 }
             });
@@ -4882,7 +4912,27 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     };
 
     if (isFinished) {
-        const score = test.questions.reduce((acc, q, idx) => acc + (answers[idx] === q.correct_answer ? 1 : 0), 0);
+        // Calculate score with partial credit logic for display
+        const score = test.questions.reduce((acc, q, idx) => {
+            const ua = answers[idx];
+            const ca = q.correct_answer;
+            const norm = (s) => s ? s.split(',').map(x => x.trim()).sort().join(',') : '';
+
+            if (norm(ua) === norm(ca)) {
+                return acc + 1;
+            } else if (ca && ca.includes(',')) {
+                const correctIds = ca.split(',').map(s => s.trim());
+                const userIds = (ua || '').split(',').map(s => s.trim());
+                const validUserIds = userIds.filter(id => id && id !== 'NO_MATCH');
+                const correctMatches = validUserIds.filter(id => correctIds.includes(id)).length;
+                
+                if (correctIds.length > 0) {
+                    return acc + (correctMatches / correctIds.length);
+                }
+            }
+            return acc;
+        }, 0);
+
         const percentage = Math.round((score / totalQuestions) * 100);
 
         let starMultiplier = 1;
@@ -5127,16 +5177,63 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                                 <div className="text-sm space-y-2 mt-3 p-3 bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-800/50">
                                                     <div className={clsx("flex flex-col gap-1", isCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
                                                         <span className="font-bold text-xs uppercase tracking-wider opacity-70">Your Answer</span>
-                                                        <span className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-gray-100 dark:border-gray-700/50">
-                                                            {formatAnswer(userAnswer)}
-                                                        </span>
+                                                        {isMulti ? (
+                                                            <div className="flex flex-col gap-2 mt-1">
+                                                                {(userAnswer || "").split(',').filter(Boolean).map((idRaw, i) => {
+                                                                    const id = idRaw.trim();
+                                                                    if (id === "NO_MATCH") return <span key={i} className="text-gray-500 italic">No Selection</span>;
+
+                                                                    const correctIds = q.correct_answer.split(',').map(s => s.trim());
+                                                                    const isItemCorrect = correctIds.includes(id);
+                                                                    const opt = q.shuffledOptions.find(o => o.id === id);
+                                                                    const text = opt ? (opt.text.includes('→') ? `${opt.text}` : opt.text) : id;
+                                                                    
+                                                                    return (
+                                                                        <div key={i} className={clsx(
+                                                                            "px-3 py-2 rounded-md border flex items-start gap-2 text-sm",
+                                                                            isItemCorrect 
+                                                                                ? "bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800" 
+                                                                                : "bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
+                                                                        )}>
+                                                                            <div className="mt-0.5 shrink-0">
+                                                                                {isItemCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                                                                            </div>
+                                                                            <span><span className="font-bold">[{id}]</span> {text}</span>
+                                                                        </div>
+                                                                    )
+                                                                })}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-gray-100 dark:border-gray-700/50">
+                                                                {formatAnswer(userAnswer)}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     {!isCorrect && (
                                                         <div className="flex flex-col gap-1 text-green-700 dark:text-green-400 mobile-mt-2">
                                                             <span className="font-bold text-xs uppercase tracking-wider opacity-70">Correct Answer</span>
-                                                            <span className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-green-100 dark:border-green-900/30 bg-green-50/10">
-                                                                {formatAnswer(q.correct_answer)}
-                                                            </span>
+                                                            {isMulti ? (
+                                                                <div className="flex flex-col gap-2 mt-1">
+                                                                    {q.correct_answer.split(',').map((idRaw, i) => {
+                                                                        const id = idRaw.trim();
+                                                                        const opt = q.shuffledOptions.find(o => o.id === id);
+                                                                        const text = opt ? (opt.text.includes('→') ? `${opt.text}` : opt.text) : id;
+                                                                        
+                                                                        return (
+                                                                            <div key={i} className="px-3 py-2 rounded-md border flex items-start gap-2 text-sm bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                                                                                <div className="mt-0.5 shrink-0">
+                                                                                    <CheckCircle2 size={16} />
+                                                                                </div>
+                                                                                <span><span className="font-bold">[{id}]</span> {text}</span>
+                                                                            </div>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-green-100 dark:border-green-900/30 bg-green-50/10">
+                                                                    {formatAnswer(q.correct_answer)}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
