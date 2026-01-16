@@ -3995,6 +3995,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     });
 
     const [matches, setMatches] = useState({}); // { leftText: rightText }
+    const [draggedText, setDraggedText] = useState(null);
 
     // Track how many hints have been applied to auto-place correct matches
     const [hintsApplied, setHintsApplied] = useState(0);
@@ -4125,16 +4126,17 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                 <span>Match the items on the left with the correct category on the right.</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
-                {/* Left Side (Drop Zones / Targets) */}
-                <div className="space-y-3">
-                    {pairs.map((p, i) => {
-                        const godModeColor = isGodMode ? MATCH_COLORS[i % MATCH_COLORS.length] : null;
-                        return (
+            <div className="space-y-3 select-none">
+                {pairs.map((p, i) => {
+                    const godModeColor = isGodMode ? MATCH_COLORS[i % MATCH_COLORS.length] : null;
+                    const filled = matches[p.left];
+
+                    return (
+                        <div key={p.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                            {/* Left Side */}
                             <div 
-                                key={p.id} 
                                 className={clsx(
-                                    "flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 rounded-xl transition-all",
+                                    "flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 rounded-xl transition-all h-full",
                                     godModeColor 
                                         ? `${godModeColor.border} ${godModeColor.bg}` 
                                         : "border-gray-100 dark:border-gray-700"
@@ -4148,58 +4150,61 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                     <ArrowRight size={16} />
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
 
-                {/* Right Side (Slots & Interaction) */}
-                <div className="space-y-3">
-                    {pairs.map((p, i) => {
-                        const filled = matches[p.left];
-                        const godModeColor = isGodMode ? MATCH_COLORS[i % MATCH_COLORS.length] : null;
-                        return (
+                            {/* Right Side */}
                             <div
-                                key={`slot-${p.left}`}
                                 className={clsx(
-                                    "p-3 rounded-xl border-2 border-dashed flex items-center justify-between min-h-[52px] cursor-pointer transition-all",
+                                    "p-3 rounded-xl border-2 border-dashed flex items-center justify-between min-h-[52px] transition-all h-full",
                                     godModeColor
                                         ? `${godModeColor.border} ${godModeColor.bg}`
                                         : filled
                                             ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                            : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:border-blue-300"
+                                            : (draggedText ? "border-blue-400 bg-blue-50/50 animate-pulse scale-[1.02]" : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50")
                                 )}
-                                onClick={() => {
-                                    // If filled, remove. 
-                                    if (filled) {
-                                        setMatches(curr => {
-                                            const next = { ...curr };
-                                            delete next[p.left];
-                                            return next;
-                                        });
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    if (draggedText) {
+                                        handleMatch(p.left, draggedText);
+                                        setDraggedText(null);
                                     }
                                 }}
                             >
                                 {filled ? (
-                                    <span className={clsx(
-                                        "font-semibold",
-                                        godModeColor ? godModeColor.text : "text-blue-700 dark:text-blue-300"
-                                    )}>{filled}</span>
+                                    <div className="flex items-center justify-between w-full">
+                                        <span className={clsx(
+                                            "font-semibold",
+                                            godModeColor ? godModeColor.text : "text-blue-700 dark:text-blue-300"
+                                        )}>{filled}</span>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setMatches(curr => {
+                                                    const next = { ...curr };
+                                                    delete next[p.left];
+                                                    return next;
+                                                });
+                                            }}
+                                            className="p-1 hover:bg-red-100 rounded-full text-blue-400 hover:text-red-500 transition-colors"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
                                 ) : (
                                     <span className={clsx(
                                         "text-sm italic",
                                         godModeColor ? godModeColor.text : "text-gray-400"
-                                    )}>Select match...</span>
+                                    )}>Drop item here...</span>
                                 )}
-                                {filled && <X size={14} className={clsx(godModeColor ? godModeColor.text : "text-blue-400", "hover:text-red-500")} />}
                             </div>
-                        );
-                    })}
-                </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Pool of Options */}
             <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Available Options</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Available Options (Drag and Drop)</p>
                 <div className="flex flex-wrap gap-2">
                     {rightPool.map((text, idx) => {
                         // Check if used
@@ -4211,8 +4216,14 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                         const godModeColor = pairIndex >= 0 ? MATCH_COLORS[pairIndex % MATCH_COLORS.length] : null;
 
                         return (
-                            <button
+                            <div
                                 key={idx}
+                                draggable
+                                onDragStart={(e) => {
+                                    setDraggedText(text);
+                                    e.dataTransfer.setData('text/plain', text);
+                                    e.dataTransfer.effectAllowed = "move";
+                                }}
                                 onClick={() => {
                                     // Find first empty slot
                                     const firstEmptyLeft = pairs.find(p => !matches[p.left]);
@@ -4221,14 +4232,14 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                     }
                                 }}
                                 className={clsx(
-                                    "px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all font-medium text-sm active:scale-95 border-2",
+                                    "px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all font-medium text-sm border-2 cursor-grab active:cursor-grabbing hover:cursor-pointer select-none",
                                     godModeColor
                                         ? `${godModeColor.border} ${godModeColor.bg} ${godModeColor.text}`
                                         : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-400 text-gray-700 dark:text-gray-300"
                                 )}
                             >
                                 {text}
-                            </button>
+                            </div>
                         );
                     })}
                     {rightPool.every(t => Object.values(matches).includes(t)) && (
@@ -5024,7 +5035,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
                             {test.questions.map((q, idx) => {
                                 const userAnswer = answers[idx];
-                                const isCorrect = userAnswer === q.correct_answer;
+                                // Normalize for comparison (ignore whitespace around commas)
+                                const norm = (s) => s ? s.split(',').map(x => x.trim()).sort().join(',') : '';
+                                const isCorrect = norm(userAnswer) === norm(q.correct_answer);
+                                
                                 // Multi-Answer / Matching Logic check
                                 const isMulti = q.correct_answer && q.correct_answer.includes(',');
 
@@ -5037,9 +5051,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                     }
                                     // Multi handling
                                     return ansStr.split(',').map(id => {
-                                        const opt = q.shuffledOptions.find(o => o.id === id.trim());
+                                        const trimmedId = id.trim();
+                                        const opt = q.shuffledOptions.find(o => o.id === trimmedId);
                                         // For matching, option text is "Left -> Right"
-                                        return opt ? `[${id}] ${opt.text}` : id;
+                                        return opt ? `[${trimmedId}] ${opt.text}` : id;
                                     }).join('  |  ');
                                 };
 
