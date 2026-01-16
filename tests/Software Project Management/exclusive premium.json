@@ -1,0 +1,164 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Match the roles in Scrum with their responsibilities:",
+      "options": {
+        "A": "Product Owner → Manages the product backlog and prioritizes features",
+        "B": "Scrum Master → Facilitates meetings and removes obstacles for the team",
+        "C": "Development Team → Develops software increments and implements backlog items"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 2,
+      "question": "Match the principles with their descriptions:",
+      "options": {
+        "A": "KISS (Keep It Simple, Stupid) → Simple designs are easier to maintain and debug",
+        "B": "Think! → Clear, deliberate thought before action",
+        "C": "Plan Ahead for Reuse → Develop reusable components to save time later"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 3,
+      "question": "What is a major challenge faced by global software development (GSD) teams?",
+      "options": {
+        "A": "Coordinating and communicating effectively across geographical distances"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 4,
+      "question": "What is the main benefit of using GitHub Codespaces?",
+      "options": {
+        "A": "It allows developers to write code directly in a browser based VS Code environment"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 5,
+      "question": "What are the key benefits of using incremental models like Scrum or Kanban? (Select all that apply)",
+      "options": {
+        "A": "Early and frequent customer feedback",
+        "B": "Better adaptability to evolving requirements",
+        "C": "Prioritizing lightweight documentation"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 6,
+      "question": "According to the IEEE definition, what is the core concept of software engineering?",
+      "options": {
+        "A": "Developing software with a systematic, disciplined, quantifiable approach"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 7,
+      "question": "Which practices help in resolving merge conflicts effectively? (Select all that apply)",
+      "options": {
+        "A": "Communicating with team members who worked on the conflicting changes",
+        "B": "Reviewing changes in the conflict file to decide which lines to keep",
+        "C": "Using GitHub's online editor to manually resolve conflicts"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 8,
+      "question": "What does the term \"process flow\" describe in a software process?",
+      "options": {
+        "A": "The sequence and timing of framework activities"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 9,
+      "question": "Why is the waterfall model often criticized for modern software development?",
+      "options": {
+        "A": "It does not allow for iterative feedback during development"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 10,
+      "question": "Which approaches can be used to resolve conflicting requirements from multiple stakeholders during the communication phase? (Select all that apply)",
+      "options": {
+        "A": "Conducting facilitated negotiation meetings",
+        "B": "Refining requirements through iterative feedback"
+      },
+      "correct_answer": "A, B"
+    },
+    {
+      "id": 11,
+      "question": "According to the IEEE definition, what is the core concept of software engineering?",
+      "options": {
+        "A": "Developing software with a systematic, disciplined, quantifiable approach"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 12,
+      "question": "What is a common reason for merge conflicts in GitHub?",
+      "options": {
+        "A": "Multiple people make changes to the same line of a file on different branches"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 13,
+      "question": "Which statement correctly describes a Project Board and a Workflow in GitHub?",
+      "options": {
+        "A": "Project Board is a list of tasks or features in a repository, while a Workflow is a set of automated steps triggered by specific events like pushes or pulls"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 14,
+      "question": "Match the agile frameworks with their key characteristics:",
+      "options": {
+        "A": "Scrum → Time-boxed iterations (sprints) with defined roles and meetings",
+        "B": "Extreme Programming (XP) → Heavy focus on pair programming, test-driven development, and user stories",
+        "C": "Kanban → Visualizes workflow using a board and limits work in progress"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 15,
+      "question": "What is a major challenge faced by global software development (GSD) teams?",
+      "options": {
+        "A": "Coordinating and communicating effectively across geographical distances"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 16,
+      "question": "What are the benefits of using GitHub Actions? (Select all that apply)",
+      "options": {
+        "A": "Automating workflows such as testing and deployments",
+        "B": "Creating and publishing reusable workflows for other repositories",
+        "C": "Integrating Continuous Integration (CI) into repositories"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 17,
+      "question": "Match the framework activity with its description:",
+      "options": {
+        "A": "Communication → Understanding stakeholders' requirements",
+        "B": "Planning → Creating a project schedule and allocating resources",
+        "C": "Deployment → Delivering the software to the customer",
+        "D": "Construction → Coding and testing the solution"
+      },
+      "correct_answer": "A, B, C, D"
+    },
+    {
+      "id": 18,
+      "question": "What is the main purpose of Continuous Integration (CI) in GitHub Actions?",
+      "options": {
+        "A": "To ensure that code changes are tested automatically before being merged"
+      },
+      "correct_answer": "A"
+    }
+  ]
+}
