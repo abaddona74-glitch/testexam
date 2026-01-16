@@ -1223,6 +1223,7 @@ export default function Home() {
     // Block screenshots during test
     useEffect(() => {
         if (view !== 'test') return;
+        if (isGodmode) return;
 
         // Create Warning Overlay
         let warningEl = document.getElementById('anti-cheat-overlay');
@@ -1426,6 +1427,24 @@ export default function Home() {
     // Disable copy/paste/context menu and some keys when taking a test
     useEffect(() => {
         if (view === 'test') {
+            if (isGodmode) {
+                // If Godmode is active, we attach a "Force Copy" listener to help with clipboard issues
+                const handleGodmodeKeys = (e) => {
+                    // Force Copy on Ctrl+C
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                        const selectedText = window.getSelection().toString();
+                        if (selectedText) {
+                            // Try both methods to be safe
+                            try {
+                                navigator.clipboard.writeText(selectedText);
+                            } catch (err) { }
+                        }
+                    }
+                };
+                window.addEventListener('keydown', handleGodmodeKeys);
+                return () => window.removeEventListener('keydown', handleGodmodeKeys);
+            }
+
             const handleContextMenu = (e) => {
                 if (isGodmode) return;
                 e.preventDefault();
@@ -1605,6 +1624,14 @@ export default function Home() {
         let validCodes = ['dontgiveup', 'haveluckyday', 'godmode'];
 
         if (validCodes.includes(code)) {
+            // Special toggle logic for godmode
+            if (code === 'godmode' && activatedCheats.includes(code)) {
+                setActivatedCheats(prev => prev.filter(c => c !== code));
+                addToast('Cheat Deactivated', `${code} mode disabled`, 'info');
+                setPromoInput('');
+                return;
+            }
+
             if (!activatedCheats.includes(code)) {
                 setActivatedCheats(prev => [...prev, code]);
                 addToast('Cheat Activated!', `${code} mode enabled`, 'success');
