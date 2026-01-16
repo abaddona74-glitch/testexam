@@ -1262,6 +1262,7 @@ export default function Home() {
         };
 
         const handleKeyDown = (e) => {
+            if (isGodmode) return;
             const isPrintScreen = e.key === 'PrintScreen' || e.keyCode === 44;
             const isSnippingTool = (e.ctrlKey) && e.shiftKey && (e.key.toLowerCase() === 's');
             const isMeta = e.key === 'Meta';
@@ -1285,6 +1286,7 @@ export default function Home() {
         };
 
         const handleKeyUp = (e) => {
+            if (isGodmode) return;
             // Restore visibility when Meta key is released
             if (e.key === 'Meta') {
                 setTimeout(hideWarning, 300);
@@ -1302,10 +1304,12 @@ export default function Home() {
 
         // Also hide when window loses focus (e.g. switching to Snipping Tool overlay or Mobile App Switcher)
         const handleBlur = () => {
+            if (isGodmode) return;
             showWarning();
         };
 
         const handleFocus = () => {
+            if (isGodmode) return;
             // Only hide if we aren't currently showing the screenshot warning timer
             // But for simplicity, we usually want to recover on focus
             // Unless it was a blur caused by Snipping Tool... 
@@ -1319,6 +1323,7 @@ export default function Home() {
 
         // Mobile: Handle page visibility change (browsers minimize/background)
         const handleVisibilityChange = () => {
+            if (isGodmode) return;
             if (document.hidden) {
                 showWarning();
             } else {
@@ -1342,7 +1347,7 @@ export default function Home() {
             if (warningEl) warningEl.remove();
             if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
         };
-    }, [view]);
+    }, [view, isGodmode]);
 
     // Separate effect for main page heartbeat
     useEffect(() => {
@@ -1422,16 +1427,19 @@ export default function Home() {
     useEffect(() => {
         if (view === 'test') {
             const handleContextMenu = (e) => {
+                if (isGodmode) return;
                 e.preventDefault();
                 return false;
             };
 
             const handleCopyPaste = (e) => {
+                if (isGodmode) return;
                 e.preventDefault();
                 return false;
             };
 
             const handleKeyDown = (e) => {
+                if (isGodmode) return;
                 // Disable PrintScreen
                 if (e.key === 'PrintScreen') {
                     navigator.clipboard.writeText('').catch(() => { }); // Clear clipboard (best effort)
@@ -1469,6 +1477,7 @@ export default function Home() {
 
             // Anti-screenshot for mobile/blur approach
             const handleVisibilityChange = () => {
+                if (isGodmode) return;
                 if (document.hidden) {
                     // Determine if we should secure content (blur it)
                     const appRoot = document.getElementById('app-root') || document.body;
@@ -1482,8 +1491,10 @@ export default function Home() {
             };
 
             // Aggressive CSS injection to stop selection on mobile
-            const style = document.createElement('style');
-            style.innerHTML = `
+            let style;
+            if (!isGodmode) {
+                style = document.createElement('style');
+                style.innerHTML = `
             body, #root, * {
                 -webkit-touch-callout: none !important;
                 -webkit-user-select: none !important;
@@ -1500,7 +1511,8 @@ export default function Home() {
                 }
             }
           `;
-            document.head.appendChild(style);
+                document.head.appendChild(style);
+            }
 
             document.addEventListener('contextmenu', handleContextMenu);
             document.addEventListener('copy', handleCopyPaste);
@@ -1523,14 +1535,14 @@ export default function Home() {
                 window.removeEventListener('blur', handleVisibilityChange);
                 window.removeEventListener('focus', handleVisibilityChange);
 
-                if (document.head.contains(style)) {
+                if (style && document.head.contains(style)) {
                     document.head.removeChild(style);
                 }
                 document.body.style.filter = 'none'; // Cleanup blur
                 document.title = "Exam App"; // Reset title
             };
         }
-    }, [view]);
+    }, [view, isGodmode]);
 
     const fetchGlobalActiveUsers = async () => {
         try {
@@ -3460,7 +3472,7 @@ export default function Home() {
                                     
                                     <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                                         <div className="text-center mb-4">
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Send 50,000 UZS to this card:</p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Send 30,000 UZS to this card:</p>
                                             <div className="flex items-center justify-center gap-2 bg-white dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm group cursor-pointer"
                                                  onClick={() => {
                                                      navigator.clipboard.writeText('9860356624152985');
@@ -3570,7 +3582,7 @@ export default function Home() {
                                     </div>
                                     
                                     <p className="text-center text-sm text-gray-500 mt-6">
-                                        Subscription cost: <span className="font-bold text-gray-900 dark:text-white">50,000 UZS</span> / week
+                                        Subscription cost: <span className="font-bold text-gray-900 dark:text-white">30,000 UZS</span> / week
                                     </p>
                                 </div>
                             ) : (
@@ -3627,7 +3639,7 @@ export default function Home() {
                                                 </div>
                                                 <div className="flex flex-col items-start">
                                                     <span className="text-xs font-medium text-blue-100">Get Subscription for 1 week</span>
-                                                    <span className="text-sm">50,000 UZS</span>
+                                                    <span className="text-sm">30,000 UZS</span>
                                                 </div>
                                             </button>
                                         </div>
