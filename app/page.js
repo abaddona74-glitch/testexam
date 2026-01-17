@@ -1592,7 +1592,8 @@ export default function Home() {
     const fetchTests = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/tests');
+            const showHidden = activatedCheats.includes('showhidden');
+            const res = await fetch(`/api/tests?showHidden=${showHidden}`);
             const data = await res.json();
             setTests(data);
             if (data.folders) setFolders(data.folders);
@@ -1603,6 +1604,10 @@ export default function Home() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchTests();
+    }, [activatedCheats]);
 
     const [leaderboardPage, setLeaderboardPage] = useState(1);
     const [leaderboardLimit, setLeaderboardLimit] = useState(10);
@@ -1636,11 +1641,11 @@ export default function Home() {
         e.preventDefault();
         const code = promoInput.toLowerCase().trim();
 
-        let validCodes = ['dontgiveup', 'haveluckyday', 'godmode'];
+        let validCodes = ['dontgiveup', 'haveluckyday', 'godmode', 'showhidden'];
 
         if (validCodes.includes(code)) {
-            // Special toggle logic for godmode
-            if (code === 'godmode' && activatedCheats.includes(code)) {
+            // Special toggle logic for godmode or showhidden
+            if ((code === 'godmode' || code === 'showhidden') && activatedCheats.includes(code)) {
                 setActivatedCheats(prev => prev.filter(c => c !== code));
                 addToast('Cheat Deactivated', `${code} mode disabled`, 'info');
                 setPromoInput('');

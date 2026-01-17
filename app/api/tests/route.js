@@ -10,8 +10,11 @@ import { getTestUploadMode, isTestUploadEnabled, isGodmodeUploadEnabled } from '
 // NOW USING MONGODB
 let uploadedTests = [];
 
-export async function GET() {
+export async function GET(request) {
   await dbConnect();
+
+  const { searchParams } = new URL(request.url);
+  const showHidden = searchParams.get('showHidden') === 'true';
 
   const uploadMode = getTestUploadMode();
 
@@ -30,7 +33,11 @@ export async function GET() {
         const subjectPath = path.join(testsDirectory, entry.name);
         try {
           const subjectFiles = await fs.readdir(subjectPath);
-          const jsonFiles = subjectFiles.filter(file => file.endsWith('.json'));
+          const jsonFiles = subjectFiles.filter(file => {
+             if (!file.endsWith('.json')) return false;
+             if (file.toLowerCase().includes('hidden')) return showHidden;
+             return true;
+          });
 
           const groupedFiles = new Map();
 

@@ -1,0 +1,196 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "What is the main benefit of using GitHub Codespaces?",
+      "options": {
+        "A": "It integrates AI for code suggestions",
+        "B": "It manages repository settings and permissions",
+        "C": "It allows developers to write code directly in a browser-based VS Code environment",
+        "D": "It is used for creating pull requests",
+        "E": "It automates workflow processes like testing and deployment"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 2,
+      "question": "What are the benefits of using GitHub Actions? (Select all that apply)",
+      "options": {
+        "A": "Automating workflows such as testing and deployments",
+        "B": "Writing code directly in the GitHub web editor",
+        "C": "Integrating Continuous Integration (CI) into repositories",
+        "D": "Hosting live interactive meetings",
+        "E": "Creating and publishing reusable workflows for other repositories"
+      },
+      "correct_answer": "A, C, E"
+    },
+    {
+      "id": 3,
+      "question": "According to the IEEE definition, what is the core concept of software engineering?",
+      "options": {
+        "A": "Developing software with a systematic, disciplined, quantifiable approach",
+        "B": "Creating software without any formal methods",
+        "C": "Prioritizing aesthetics over functionality",
+        "D": "Designing systems without user involvement",
+        "E": "Focusing on reducing hardware defects",
+        "F": "Writing code as fast as possible"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 4,
+      "question": "What is the primary purpose of early testing in the spiral model?",
+      "options": {
+        "A": "To assess risks and refine prototypes",
+        "B": "To finalize requirements before development begins",
+        "C": "To ensure all documentation is completed",
+        "D": "To eliminate the need for risk management",
+        "E": "To avoid involving stakeholders early"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 5,
+      "question": "What are the primary disadvantages of the waterfall model?",
+      "options": {
+        "A": "Testing occurs late in the process",
+        "B": "It depends on the early availability of detailed requirements",
+        "C": "It does not accommodate changing requirements effectively",
+        "D": "It requires iterative development cycles",
+        "E": "It lacks customer involvement during initial stages"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 6,
+      "question": "What is a major challenge faced by global software development (GSD) teams?",
+      "options": {
+        "A": "Avoiding the use of social media tools",
+        "B": "Eliminating stakeholder involvement",
+        "C": "Operating with a single centralized team in one location",
+        "D": "Having no impact from cultural differences",
+        "E": "Coordinating and communicating effectively across geographical distances"
+      },
+      "correct_answer": "E"
+    },
+    {
+      "id": 7,
+      "question": "Match the stages of the DevOps process with their descriptions:",
+      "options": {
+        "A": "Continuous Integration → Merging new code with the existing codebase and verifying compatibility",
+        "B": "Continuous Testing → Using automated tools to validate code functionality and identify defects",
+        "C": "Continuous Deployment → Delivering tested software to production environments",
+        "D": "Refactoring code → Improving code structure without changing behavior"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 8,
+      "question": "Match the GitHub tools or concepts with their benefits:",
+      "options": {
+        "A": "Markdown → Lightweight text formatting for documentation and README files",
+        "B": "GitHub Pages → Hosting static websites directly from a repository",
+        "C": "GitHub Copilot → AI-powered code suggestions to speed up development",
+        "D": "Reusable Workflows → Simplify workflow management by sharing workflows across repositories",
+        "E": "Branching → Avoiding merge conflicts",
+        "F": "Local development → Running tests locally"
+      },
+      "correct_answer": "A, B, C, D"
+    },
+    {
+      "id": 9,
+      "question": "Match the agile practices with their definitions:",
+      "options": {
+        "A": "Pair Programming → Two developers work together at one computer to write and review code in real-time",
+        "B": "Refactoring → Improving the internal structure of code without changing its external behavior",
+        "C": "Continuous Integration → Frequently integrating new code to detect and resolve compatibility issues early",
+        "D": "Test-Driven Development → Writing unit tests before coding begins",
+        "E": "Big Bang Delivery → Delivering all features at once"
+      },
+      "correct_answer": "A, B, C, D, E"
+    },
+    {
+      "id": 10,
+      "question": "Complete the sentence about software engineering framework activities: The software engineering process includes five key framework activities: ______ is the initial stage where requirements are gathered, ______ helps guide the project with plans and schedules, and ______ focuses on creating models to better understand requirements and design.",
+      "options": {
+        "A": "Requirements gathering → Communication",
+        "B": "Project guidance with plans and schedules → Planning",
+        "C": "Creating models to understand requirements and design → Modeling"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 11,
+      "question": "What is the primary distinction of the spiral model compared to other process models?",
+      "options": {
+        "A": "It relies heavily on UML for architectural design",
+        "B": "It emphasizes iterative development without risk assessment",
+        "C": "It incorporates risk analysis at each iteration",
+        "D": "It follows a strict linear sequence of activities",
+        "E": "It minimizes customer involvement during early stages"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 12,
+      "question": "What is the key advantage of combining different process models for a project?",
+      "options": {
+        "A": "It balances structured planning with iterative flexibility",
+        "B": "It avoids stakeholder involvement completely",
+        "C": "It reduces management overhead entirely",
+        "D": "It eliminates the need for risk analysis",
+        "E": "It focuses only on speed without considering quality",
+        "F": "It makes all phases strictly sequential"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 13,
+      "question": "Which principles are emphasized by agile development? (Select all that apply)",
+      "options": {
+        "A": "Extensive upfront planning over flexibility",
+        "B": "Individuals and interactions over processes and tools",
+        "C": "Comprehensive documentation over working software",
+        "D": "Collaboration with customers over contract negotiation",
+        "E": "Responding to change over following a plan",
+        "F": "Strict adherence to traditional processes"
+      },
+      "correct_answer": "B, D, E"
+    },
+    {
+      "id": 14,
+      "question": "What is a key characteristic of an agile software team?",
+      "options": {
+        "A": "Strict adherence to traditional processes",
+        "B": "A reliance on centralized management for decision-making",
+        "C": "Minimal interaction with stakeholders during development",
+        "D": "Self-organization with the ability to adapt team structure as needed",
+        "E": "Fixed roles and responsibilities for all team members"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 15,
+      "question": "What are the key benefits of using incremental models like Scrum or Kanban? (Select all that apply)",
+      "options": {
+        "A": "Early and frequent customer feedback",
+        "B": "Better adaptability to evolving requirements",
+        "C": "Prioritizing lightweight documentation",
+        "D": "Eliminating the need for risk assessment",
+        "E": "Completely avoiding the need for planning"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 16,
+      "question": "Match the framework activity with its description:",
+      "options": {
+        "A": "Communication → Understanding stakeholders' requirements",
+        "B": "Planning → Creating a project schedule and allocating resources",
+        "C": "Deployment → Delivering the software to the customer",
+        "D": "Construction → Coding and testing the solution"
+      },
+      "correct_answer": "A, B, C, D"
+    }
+  ]
+}
