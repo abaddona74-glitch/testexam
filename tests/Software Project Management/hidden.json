@@ -191,6 +191,41 @@
         "D": "Construction → Coding and testing the solution"
       },
       "correct_answer": "A, B, C, D"
+    },
+    {
+      "id": 17,
+      "question": "Which software development model is most suitable for banking systems?",
+      "options": {
+        "A": "Waterfall Model - because banking requires strict compliance and documentation",
+        "B": "Spiral Model - because banking software has high security risks",
+        "C": "Unified Process - because banking systems are large and require UML modeling",
+        "D": "Agile/Scrum - because banking needs frequent updates and customer feedback",
+        "E": "Both A and B"
+      },
+      "correct_answer": "E"
+    },
+    {
+      "id": 18,
+      "question": "Match the Scrum events with their purposes:",
+      "options": {
+        "A": "Sprint Planning → Plan the work for the upcoming sprint",
+        "B": "Daily Scrum → Daily synchronization and obstacle identification",
+        "C": "Sprint Review → Demonstrate completed work to stakeholders",
+        "D": "Sprint Retrospective → Reflect on the process and identify improvements"
+      },
+      "correct_answer": "A, B, C, D"
+    },
+    {
+      "id": 19,
+      "question": "What is the relationship between UML and software development models?",
+      "options": {
+        "A": "UML is commonly used in Unified Process for modeling",
+        "B": "Waterfall model can use UML for design documentation",
+        "C": "Agile models rarely use extensive UML diagrams",
+        "D": "Spiral model may use UML for risk analysis artifacts",
+        "E": "All of the above are true"
+      },
+      "correct_answer": "E"
     }
   ]
 }
