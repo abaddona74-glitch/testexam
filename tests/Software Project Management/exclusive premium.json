@@ -109,7 +109,7 @@
       "correct_answer": "A, B"
     },
     {
-      "id": 12,
+      "id": 11,
       "question": "What is a common reason for merge conflicts in GitHub?",
       "options": {
         "A": "Multiple people make changes to the same line of a file on different branches",
@@ -120,7 +120,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 13,
+      "id": 12,
       "question": "Which statement correctly describes a Project Board and a Workflow in GitHub?",
       "options": {
         "A": "Project Board is a list of tasks or features in a repository, while a Workflow is a set of automated steps triggered by specific events like pushes or pulls",
@@ -131,7 +131,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 14,
+      "id": 13,
       "question": "Match the agile frameworks with their key characteristics:",
       "options": {
         "A": "Scrum → Time-boxed iterations (sprints) with defined roles and meetings",
@@ -142,7 +142,7 @@
       "correct_answer": "A, B, C"
     },
     {
-      "id": 16,
+      "id": 14,
       "question": "What are the benefits of using GitHub Actions? (Select all that apply)",
       "options": {
         "A": "Automating workflows such as testing and deployments",
@@ -153,7 +153,7 @@
       "correct_answer": "A, B, C"
     },
     {
-      "id": 17,
+      "id": 15,
       "question": "Match the framework activity with its description:",
       "options": {
         "A": "Communication → Understanding stakeholders' requirements",
@@ -165,7 +165,7 @@
       "correct_answer": "A, B, C, D, E"
     },
     {
-      "id": 18,
+      "id": 16,
       "question": "What is the main purpose of Continuous Integration (CI) in GitHub Actions?",
       "options": {
         "A": "To ensure that code changes are tested automatically before being merged",
@@ -176,7 +176,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 21,
+      "id": 17,
       "question": "What is the primary purpose of early testing in the spiral model?",
       "options": {
         "A": "To assess risks and refine prototypes",
@@ -188,7 +188,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 22,
+      "id": 18,
       "question": "What are the primary disadvantages of the waterfall model? (Select all that apply)",
       "options": {
         "A": "Testing occurs late in the process",
@@ -200,7 +200,7 @@
       "correct_answer": "A, B, C"
     },
     {
-      "id": 24,
+      "id": 19,
       "question": "Match the stages of the DevOps process with their descriptions:",
       "options": {
         "A": "Continuous Integration → Merging new code with the existing codebase and verifying compatibility",
@@ -211,7 +211,7 @@
       "correct_answer": "A, B, C"
     },
     {
-      "id": 25,
+      "id": 20,
       "question": "Match the GitHub tools or concepts with their benefits:",
       "options": {
         "A": "Markdown → Lightweight text formatting for documentation and README files",
@@ -224,7 +224,7 @@
       "correct_answer": "A, B, C, D"
     },
     {
-      "id": 26,
+      "id": 21,
       "question": "Match the agile practices with their definitions:",
       "options": {
         "A": "Pair Programming → Two developers work together at one computer to write and review code in real-time",
@@ -232,6 +232,16 @@
         "C": "Continuous Integration → Frequently integrating new code to detect and resolve compatibility issues early",
         "D": "Test-Driven Development → Writing unit tests before coding begins",
         "E": "Big Bang Delivery → Delivering all features at once"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 22,
+      "question": "Complete the sentence about software engineering framework activities: The software engineering process includes five key framework activities: ______ is the initial stage where requirements are gathered, ______ helps guide the project with plans and schedules, and ______ focuses on creating models to better understand requirements and design.",
+      "options": {
+        "A": "Requirements gathering → Communication",
+        "B": "Project guidance with plans and schedules  → Planning",
+        "C": "Creating models to understand requirements and design  → Modeling"
       },
       "correct_answer": "A, B, C"
     }
