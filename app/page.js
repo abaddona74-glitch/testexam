@@ -4000,28 +4000,35 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
 
     const isGodMode = activatedCheats?.includes('godmode');
 
-    // Let's parse the options first.
-    const pairs = useMemo(() => {
+     // Parse correct answer IDs
+    const correctIds = useMemo(() => {
+        return (question.correct_answer || "").split(',').map(s => s.trim());
+    }, [question]);
+
+    // Let's parse all potential options first.
+    const allPairs = useMemo(() => {
         return question.shuffledOptions.map(opt => {
             const parts = opt.text.split('→').map(s => s.trim());
             return {
                 id: opt.id,
                 left: parts[0],
-                right: parts[1], // This is the Correct Right for this Left (defined in option text)
+                right: parts[1], // This is the Correct Right for this Left
             };
         });
     }, [question]);
 
-    // Initialize local state for the Drag/Drop interaction
-    // We need:
-    // 1. List of Left items (fixed order or shuffled?) -> Fixed Usually
-    // 2. List of Right items (shuffled pool)
-    // 3. Current associations: { [leftSideText]: rightSideText }
+    // Filter to get only the slots we need to fill (Left Side)
+    const activePairs = useMemo(() => {
+        // Only create slots for options that exist in the correct answer key
+        return allPairs.filter(p => correctIds.includes(p.id));
+    }, [allPairs, correctIds]);
 
-    const [leftItems] = useState(pairs.map(p => p.left));
-    // Provide Right items pool shuffled
+    // Initialize local state for the Drag/Drop interaction
+    // Left items are now based on activePairs only.
+    
+    // Provide Right items pool shuffled - BUT include ALL options (distractors too)
     const [rightPool, setRightPool] = useState(() => {
-        const rights = pairs.map(p => p.right);
+        const rights = allPairs.map(p => p.right);
         // Shuffle
         return rights.sort(() => Math.random() - 0.5);
     });
@@ -4046,7 +4053,8 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                 let applied = 0;
 
                 // Find unmatched pairs and auto-place correct matches
-                for (const pair of pairs) {
+                // We only care about activePairs slots
+                for (const pair of activePairs) {
                     // Skip if already matched correctly
                     if (newMatches[pair.left] === pair.right) continue;
 
@@ -4067,7 +4075,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
 
             setHintsApplied(newHintCount);
         }
-    }, [revealedHints, currentIndex, pairs, hintsApplied]);
+    }, [revealedHints, currentIndex, activePairs, hintsApplied]);
 
     const handleMatch = (left, right) => {
         setMatches(prev => {
@@ -4086,38 +4094,12 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
         });
     };
 
-    // When matches change, we need to verify if the user is "Done".
-    // Or we provide a "Submit" button?
-    // Current UI doesn't have a "Submit" button separate from next. 
-    // Usually clicking an option calls `handleAnswer`.
-    // Here we need to construct the answer string "A, B, C..." if matches are correct?
-    // No, we should construct a string that REPRESENTS the user's choice.
-    // BUT standard system expects a string.
-    // If correct_answer is "A, B, C, D", it means "Option A is valid, Option B is valid...".
-    // This looks like simple Multi-Select if we just look at "correct_answer".
-    // BUT user implicitly wants MATCHING game because of "->".
-    // If user matches Payme -> FinTech, that corresponds to Option A (Payme->Fintech).
-    // So if user matches ALL pairs correctly, they have effectively selected options A, B, C, D, E.
-    // So we invoke `handleAnswer("A, B, C, D...")` when ALL are matched?
-    // Or better: We handle validation internally here?
-    // The engine checks `answers[idx] === correct`.
-    // So we must produce a string equal to `question.correct_answer` ("A, B, C, D") ONLY if user matches everything 100% correct.
-    // If they match wrong, we produce "WRONG".
-
-    // Let's look at `correct_answer`: "A, B, C"
-    // So we need to match the IDs of the pairs the user successfully recreated.
-    // For each `left` item, user picked `right`.
-    // Find the pair in `pairs` where `p.left === left` AND `p.right === right`.
-    // If found, that is a valid Option ID (e.g. "A").
-    // Collect all valid Option IDs found.
-    // If the set of collected IDs matches the set in `correct_answer`, then we send `correct_answer`.
-
     useEffect(() => {
         const userMatchedIDs = [];
         let allMatched = true;
 
-        // Check every Left Item
-        pairs.forEach(p => {
+        // Check every Left Item (Active Slots Only)
+        activePairs.forEach(p => {
             const userRight = matches[p.left];
             if (!userRight) {
                 allMatched = false;
@@ -4127,29 +4109,17 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             // Did user match correctly?
             if (userRight === p.right) {
                 userMatchedIDs.push(p.id);
-            } else {
-                // User matched wrong.
-                // We don't push valid ID.
             }
         });
 
         // If user has filled ALL slots
-        if (Object.keys(matches).length === pairs.length) {
-            // Construct answer string.
-            // Original correct_answer is "A, B, C, D" (comma space sep).
-            // We should reconstruct format.
-            // If user got A and B right, but C wrong, result is "A, B". 
-            // If correct is "A, B, C", then user is wrong.
-            // Our standard engine checks strict equality `userAnswer === correctAnswer`.
-            // So we just sort and join.
+        if (Object.keys(matches).length === activePairs.length) {
+            // Construct answer string based on matches found.
+            // Since we only exposed activePairs slots, logical max is getting all activePairs correct.
             const derivedAnswer = userMatchedIDs.sort().join(', ');
-            // Ensure we send truthy string even if no correct matches, to avoid "Skip" modal
             handleAnswer(derivedAnswer === "" ? "NO_MATCH" : derivedAnswer);
         }
-    }, [matches, pairs]);
-
-    // We also need to support "Multi-Select" logic from JSON which has "A, B, C".
-    // Actually, "Matching" implies ALL must be correct effectively.
+    }, [matches, activePairs]);
 
     return (
         <div className="space-y-4">
@@ -4159,7 +4129,10 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             </div>
 
             <div className="space-y-3 select-none">
-                {pairs.map((p, i) => {
+                {activePairs.map((p, i) => {
+                    // Is this pair correct in God Mode? Yes, activePairs are by definition correct slots.
+                    // But we might want color consistency from original index?
+                    // Let's just use index in activePairs for color.
                     const godModeColor = isGodMode ? MATCH_COLORS[i % MATCH_COLORS.length] : null;
                     const filled = matches[p.left];
 
@@ -4244,7 +4217,8 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                         if (isUsed) return null; // Hide used options
 
                         // In godmode, find which pair this right text belongs to and use that color
-                        const pairIndex = isGodMode ? pairs.findIndex(p => p.right === text) : -1;
+                        // We must search in ACTIVE pairs for godMode matching color
+                        const pairIndex = isGodMode ? activePairs.findIndex(p => p.right === text) : -1;
                         const godModeColor = pairIndex >= 0 ? MATCH_COLORS[pairIndex % MATCH_COLORS.length] : null;
 
                         return (
@@ -4258,7 +4232,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                 }}
                                 onClick={() => {
                                     // Find first empty slot
-                                    const firstEmptyLeft = pairs.find(p => !matches[p.left]);
+                                    const firstEmptyLeft = activePairs.find(p => !matches[p.left]);
                                     if (firstEmptyLeft) {
                                         handleMatch(firstEmptyLeft.left, text);
                                     }
