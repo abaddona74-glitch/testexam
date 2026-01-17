@@ -9,6 +9,7 @@ export async function GET(request) {
       const period = searchParams.get('period');
       const page = parseInt(searchParams.get('page')) || 1;
       const limit = parseInt(searchParams.get('limit')) || 100;
+      const showHidden = searchParams.get('showHidden') === 'true';
       const skip = (page - 1) * limit;
 
       let dateQuery = {};
@@ -31,6 +32,13 @@ export async function GET(request) {
           const sevenDaysAgo = new Date(todayStart);
           sevenDaysAgo.setDate(todayStart.getDate() - 6); // Includes today + 6 previous days
           dateQuery = { date: { $gte: sevenDaysAgo } };
+      }
+
+      // Filter out hidden tests if not authorized (Merged after date query)
+      if (!showHidden) {
+          // Use implicit AND by adding properties
+          dateQuery.testId = { $not: { $regex: /hidden/i } };
+          dateQuery.testName = { $not: { $regex: /hidden/i } };
       }
 
       // Get Total Count for Pagination
@@ -85,7 +93,7 @@ export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { name, testName, score, total, duration, questions, answers, difficulty } = body;
+    const { name, testName, testId, score, total, duration, questions, answers, difficulty } = body;
     
     if (!name || score === undefined || !total) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 });
@@ -94,6 +102,7 @@ export async function POST(request) {
     const newEntry = await Leaderboard.create({
         name,
         testName,
+        testId,
         score,
         total,
         date: new Date(),

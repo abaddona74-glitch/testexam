@@ -1636,7 +1636,8 @@ export default function Home() {
 
     const fetchLeaderboard = async () => {
         try {
-            const res = await fetch(`/api/leaderboard?period=${filterPeriod}&page=${leaderboardPage}&limit=${leaderboardLimit}`);
+            const showHiddenParams = activatedCheats.includes('showhidden') ? '&showHidden=true' : '';
+            const res = await fetch(`/api/leaderboard?period=${filterPeriod}&page=${leaderboardPage}&limit=${leaderboardLimit}${showHiddenParams}`);
             if (res.ok) {
                 const json = await res.json();
                 if (json.data) {
@@ -1656,7 +1657,7 @@ export default function Home() {
         fetchLeaderboard();
         const interval = setInterval(fetchLeaderboard, 5000);
         return () => clearInterval(interval);
-    }, [filterPeriod, leaderboardPage, leaderboardLimit]);
+    }, [filterPeriod, leaderboardPage, leaderboardLimit, activatedCheats]);
 
     const handlePromoSubmit = (e) => {
         e.preventDefault();
@@ -4989,6 +4990,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: userName,
+                    testId: test.id, // Save ID for filtering
                     testName: test.name, // Ensure this matches schema
                     score: score,
                     total: totalQuestions,
