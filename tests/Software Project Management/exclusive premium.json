@@ -21,16 +21,17 @@
       "correct_answer": "A, B, C"
     },
     {
-      "id": 3,
-      "question": "What is a major challenge faced by global software development (GSD) teams?",
-      "options": {
-        "A": "Coordinating and communicating effectively across geographical distances",
-        "B": "Managing time zone differences",
-        "C": "Cultural and language barriers",
-        "D": "All of the above"
-      },
-      "correct_answer": "D"
+    "id": 3,
+    "question": "What is a major challenge faced by global software development (GSD) teams?",
+    "options": {
+      "A": "Avoiding the use of social media tools",
+      "B": "Eliminating stakeholder involvement", 
+      "C": "Operating with a single centralized team in one location",
+      "D": "Having no impact from cultural differences",
+      "E": "Coordinating and communicating effectively across geographical distances"
     },
+    "correct_answer": "E"
+     },
     {
       "id": 4,
       "question": "What is the main benefit of using GitHub Codespaces?",
