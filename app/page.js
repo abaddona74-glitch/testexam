@@ -854,6 +854,7 @@ export default function Home() {
     // Cheats / Promo Codes
     const [promoInput, setPromoInput] = useState('');
     const [activatedCheats, setActivatedCheats] = useState([]);
+    const [isCheatsLoaded, setIsCheatsLoaded] = useState(false);
 
     // Spinner State
     const [showSpinner, setShowSpinner] = useState(false);
@@ -897,6 +898,16 @@ export default function Home() {
             localStorage.setItem('examApp_userId', currentUserId);
         }
         setUserId(currentUserId);
+
+        // Load Activated Cheats
+        const storedCheats = localStorage.getItem('examApp_activatedCheats');
+        if (storedCheats) {
+            try {
+                const parsedCheats = JSON.parse(storedCheats);
+                if (Array.isArray(parsedCheats)) setActivatedCheats(parsedCheats);
+            } catch (e) { }
+        }
+        setIsCheatsLoaded(true);
 
         // 1. Load persisted user name FIRST
         const storedName = localStorage.getItem('examApp_userName');
@@ -1084,7 +1095,7 @@ export default function Home() {
         updateBoosts(); // Initial check
 
         // 3. Fetch initial data
-        fetchTests();
+        // fetchTests is now handled by its own useEffect to safely handle cheat loading
         fetchLeaderboard();
         fetchGlobalActiveUsers();
 
@@ -1606,8 +1617,18 @@ export default function Home() {
     };
 
     useEffect(() => {
-        fetchTests();
-    }, [activatedCheats]);
+        // Only fetch tests once cheats have been restored from localStorage (or confirmed empty)
+        // This prevents a "flash" of missing hidden files if the user reloads with the cheat active
+        if (isCheatsLoaded) {
+            fetchTests();
+        }
+    }, [activatedCheats, isCheatsLoaded]);
+
+    useEffect(() => {
+        if (isCheatsLoaded) {
+            localStorage.setItem('examApp_activatedCheats', JSON.stringify(activatedCheats));
+        }
+    }, [activatedCheats, isCheatsLoaded]);
 
     const [leaderboardPage, setLeaderboardPage] = useState(1);
     const [leaderboardLimit, setLeaderboardLimit] = useState(10);
