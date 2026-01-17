@@ -109,17 +109,6 @@
       "correct_answer": "A, B"
     },
     {
-      "id": 11,
-      "question": "According to the IEEE definition, what is the core concept of software engineering?",
-      "options": {
-        "A": "Developing software with a systematic, disciplined, quantifiable approach",
-        "B": "Creating software without any planning",
-        "C": "Focusing only on writing code",
-        "D": "Avoiding documentation to save time"
-      },
-      "correct_answer": "A"
-    },
-    {
       "id": 12,
       "question": "What is a common reason for merge conflicts in GitHub?",
       "options": {
@@ -151,17 +140,6 @@
         "D": "Waterfall → Sequential phases with no going back"
       },
       "correct_answer": "A, B, C"
-    },
-    {
-      "id": 15,
-      "question": "What is a major challenge faced by global software development (GSD) teams?",
-      "options": {
-        "A": "Coordinating and communicating effectively across geographical distances",
-        "B": "Having too many team members in one location",
-        "C": "Using the same programming language",
-        "D": "Working only during business hours"
-      },
-      "correct_answer": "A"
     },
     {
       "id": 16,
@@ -198,31 +176,6 @@
       "correct_answer": "A"
     },
     {
-      "id": 19,
-      "question": "What are the benefits of using GitHub Actions? (Select all that apply)",
-      "options": {
-        "A": "Automating workflows such as testing and deployments",
-        "B": "Integrating Continuous Integration (CI) into repositories",
-        "C": "Creating and publishing reusable workflows for other repositories",
-        "D": "Writing code directly in the GitHub web editor",
-        "E": "Hosting live interactive meetings"
-      },
-      "correct_answer": "A, B, C"
-    },
-    {
-      "id": 20,
-      "question": "According to the IEEE definition, what is the core concept of software engineering?",
-      "options": {
-        "A": "Developing software with a systematic, disciplined, quantifiable approach",
-        "B": "Creating software without any formal methods",
-        "C": "Prioritizing aesthetics over functionality",
-        "D": "Designing systems without user involvement",
-        "E": "Focusing on reducing hardware defects",
-        "F": "Writing code as fast as possible"
-      },
-      "correct_answer": "A"
-    },
-    {
       "id": 21,
       "question": "What is the primary purpose of early testing in the spiral model?",
       "options": {
@@ -245,18 +198,6 @@
         "E": "It lacks customer involvement during initial stages"
       },
       "correct_answer": "A, B, C"
-    },
-    {
-      "id": 23,
-      "question": "What is a major challenge faced by global software development (GSD) teams?",
-      "options": {
-        "A": "Avoiding the use of social media tools",
-        "B": "Eliminating stakeholder involvement",
-        "C": "Operating with a single centralized team in one location",
-        "D": "Having no impact from cultural differences",
-        "E": "Coordinating and communicating effectively across geographical distances"
-      },
-      "correct_answer": "E"
     },
     {
       "id": 24,
@@ -293,30 +234,6 @@
         "E": "Big Bang Delivery → Delivering all features at once"
       },
       "correct_answer": "A, B, C"
-    },
-    {
-      "id": 27,
-      "question": "Complete the sentence about software engineering framework activities: The software engineering process includes five key framework activities: ______ is the initial stage where requirements are gathered, ______ helps guide the project with plans and schedules, and ______ focuses on creating models to better understand requirements and design.",
-      "options": {
-        "A": "Communication → Requirements gathering (1)",
-        "B": "Planning → Project guidance with plans and schedules (2)",
-        "C": "Modeling → Creating models to understand requirements and design (3)",
-        "D": "Construction → Coding and testing",
-        "E": "Deployment → Delivering software to customer"
-      },
-      "correct_answer": "A, B, C"
-    },
-    {
-      "id": 28,
-      "question": "What is the main benefit of using GitHub Codespaces?",
-      "options": {
-        "A": "It integrates AI for code suggestions",
-        "B": "It manages repository settings and permissions",
-        "C": "It allows developers to write code directly in a browser-based VS Code environment",
-        "D": "It is used for creating pull requests",
-        "E": "It automates workflow processes like testing and deployment"
-      },
-      "correct_answer": "C"
     }
   ]
 }
