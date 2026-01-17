@@ -3950,15 +3950,15 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
 
     return (
         <div className={clsx(
-            "p-6 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden",
+            "p-6 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative",
             isHiddenTest 
                 ? "bg-gray-900/10 dark:bg-gray-900/40 backdrop-blur-xl hidden-card-border" 
                 : "bg-white/70 dark:bg-gray-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10"
         )}>
             {/* Original Star Badge */}
             {isOriginal && (
-                <div className="absolute -top-1 -left-1 z-[100] text-yellow-500 transform -rotate-12 filter drop-shadow-lg" title="Original Version">
-                     <Star size={42} fill="currentColor" strokeWidth={1} className="animate-pulse" />
+                <div className="absolute -top-3 -left-3 z-[100] text-yellow-500 transform -rotate-12 filter drop-shadow-lg" title="Original Version">
+                     <Star size={48} fill="currentColor" strokeWidth={1} className="animate-pulse" />
                 </div>
             )}
             <div className="flex absolute top-0 right-0">
@@ -4661,6 +4661,31 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         const correctIds = question.correct_answer.includes(',') 
             ? question.correct_answer.split(',').map(s => s.trim())
             : [question.correct_answer];
+
+        // Check if matching question (Drag & Drop)
+        const isMatching = question.shuffledOptions.some(o => o.text.includes('→'));
+
+        if (isMatching) {
+            // Limit hints to number of correct pairs
+            if (currentRevealed.length >= correctIds.length) return;
+
+            const newRevealed = [...currentRevealed, `HINT_${Date.now()}`];
+            setRevealedHints(prev => ({
+               ...prev,
+               [currentIndex]: newRevealed
+            }));
+
+            // Consume hint
+            if (infiniteHints) return;
+            if (hintsLeft > 0) {
+                setHintsLeft(prev => prev - 1);
+            } else if (extraHints > 0) {
+                const newVal = extraHints - 1;
+                setExtraHints(newVal);
+                localStorage.setItem('examApp_extraHints', newVal.toString());
+            }
+            return;
+        }
 
         // Only consider options that are WRONG and NOT YET REVEALED
         const incorrectOptions = question.shuffledOptions.filter(o =>
