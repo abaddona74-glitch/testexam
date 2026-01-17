@@ -1,0 +1,76 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Given the following Python code and data from file.csv, what will be the output when the user inputs 1 for gasoline amount?\n\nCode snippet:\n```python\nimport pandas as pd\ndf = pd.read_csv('file.csv')\na = float(df.iloc[1, 2])\nb = float(df.iloc[1, 3])\nc = float(df.iloc[0, 1])\ng = float(input('Insert the amount of gasoline in [T3] '))\nh = (c + a + f) * c + d * b + d\nprint(f'You have produced {h}kg CO₂eq., where CH4 consist of {e} + {f}, -2% of the emission.')\n```\n\nData from file.csv:\n|    | N20 | CO2 | CH4 |\n|----|-----|-----|-----|\n| GWP-100 | 273 | 1   | 30  |\n| Gasoline [kg/TJ] | 3.2 | 69300 | 33 |\n\n(Note: Some variables like d, e, f are not defined in the provided code)",
+      "options": {
+        "A": "71163.6",
+        "B": "69300",
+        "C": "69333",
+        "D": "Error due to undefined variables"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "In terms of energy modeling software, the **micro-scale** time horizon typically refers to long-term modeling.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 3,
+      "question": "What is the primary goal of Life Cycle Assessment (LCA) in software engineering?",
+      "options": {
+        "A": "To analyze user requirements and enhance software functionality.",
+        "B": "To evaluate the scalability of software systems in different environments.",
+        "C": "To assess the performance of algorithms in various software applications.",
+        "D": "To improve processes, support policy, and provide elements for informed decisions."
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 4,
+      "question": "For MUSE modeling, determine the correct sector for each of the following:",
+      "options": {
+        "A": "Buildings belong to → Demand sector",
+        "B": "Heat plants are an example of → Conversion sector",
+        "C": "Primary coal is part of → Supply sector"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 5,
+      "question": "What does \"Environmental Conservation\" aim to achieve in the context of IT sustainability?",
+      "options": {
+        "A": "To enhance technological advancements and increase production rates.",
+        "B": "To safeguard the climate so the assets provided by it don't get destroyed.",
+        "C": "To reduce operational costs and maximize economic growth.",
+        "D": "To ensure user satisfaction through innovative software solutions."
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 6,
+      "question": "Software for sustainable development is designed to:",
+      "options": {
+        "A": "Replace manual systems without sustainability",
+        "B": "Support environmental, economic, and social goals.",
+        "C": "Promote industrial growth without any limitations.",
+        "D": "Focus only on improving environmental policies."
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 7,
+      "question": "From an energy modeling software perspective, the **top-down modeling approach** is a detailed, technology-oriented approach that analyzes energy-specific technologies and their performance.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    }
+  ]
+}

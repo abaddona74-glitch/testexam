@@ -3931,6 +3931,9 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     // Check if test is a "hidden" test
     const isHiddenTest = test.id.toLowerCase().includes('hidden') || test.name?.toLowerCase().includes('hidden');
 
+    // Check if test is "original"
+    const isOriginal = test.name?.toLowerCase().includes('original');
+
     const handleStart = () => {
         if (selectedLang && test.translations) {
             onStart({
@@ -3952,6 +3955,12 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 ? "bg-gray-900/10 dark:bg-gray-900/40 backdrop-blur-xl hidden-card-border" 
                 : "bg-white/70 dark:bg-gray-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10"
         )}>
+            {/* Original Star Badge */}
+            {isOriginal && (
+                <div className="absolute -top-1 -left-1 z-[100] text-yellow-500 transform -rotate-12 filter drop-shadow-lg" title="Original Version">
+                     <Star size={42} fill="currentColor" strokeWidth={1} className="animate-pulse" />
+                </div>
+            )}
             <div className="flex absolute top-0 right-0">
                 {isUpdated && (
                     <div
