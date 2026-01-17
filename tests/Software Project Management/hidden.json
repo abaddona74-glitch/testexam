@@ -226,6 +226,42 @@
         "E": "All of the above are true"
       },
       "correct_answer": "E"
-    }
+    },
+    {
+      "id": 20,
+      "question": "Fill in the blanks: According to SCRUM framework, the ______ meeting focuses on team alignment and planning for the day, while the ______ meeting reviews completed work and gathers feedback from stakeholders.",
+      "options": {
+        "A": "According to SCRUM framework, the ______ meeting focuses on team alignment and planning for the day  → Daily Scrum",
+        "B": "while the ______ meeting reviews completed work and gathers feedback from stakeholders.  → Sprint Review",
+        "C": "plans work for the sprint →  Sprint Planning",
+        "D": "reflects on process improvements →  Retrospective"
+      },
+      "correct_answer": "A, B"
+    },
+    {
+      "id": 21,
+      "question": "Fill in the blanks: The ______ layer is the foundation of software engineering, enabling rational development, while ______ layer provide the 'how-to' for building software, and ______ layer automate support for the process.",
+      "options": {
+        "A": "The ______ layer is the foundation of software engineering, enabling rational development  → Process",
+        "B": "while ______ layer provide the 'how-to' for building software  → Methods",
+        "C": "and ______ layer automate support for the process  → Tools",
+        "D": "ensures quality →  Testing",
+        "E": "records information →  Documentation"
+      },
+      "correct_answer": "A, B, C"
+    },
+        {
+          "id": 22,
+          "question": "Fill in the blanks: ______ workflows in GitHub involve using branches to isolate changes, while ______ workflows are automated processes triggered by events like pull requests or commits.",
+          "options": {
+            "A": "Fill in the blanks: ______ workflows in GitHub involve using branches to isolate changes → Branch-based ",
+            "B": "while ______ workflows are automated processes triggered by events like pull requests or commits. → GitHub Actions ",
+            "C": "Cloud-based development environments  → Codespaces",
+            "D": "AI-assisted code completion →  Copilot",
+            "E": "Version release management workflows → Release-based"
+          },
+          "correct_answer": "A, B"
+        }
+      
   ]
 }
