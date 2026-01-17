@@ -3834,6 +3834,9 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
 
     // Get the base ID (without language suffix) for premium checking
     const baseTestId = test.id;
+    
+    // Check if test is a "hidden" test
+    const isHiddenTest = test.id.toLowerCase().includes('hidden') || test.name?.toLowerCase().includes('hidden');
 
     const handleStart = () => {
         if (selectedLang && test.translations) {
@@ -3850,7 +3853,12 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     };
 
     return (
-        <div className="bg-white/70 dark:bg-gray-900/40 backdrop-blur-xl p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-white/20 dark:border-white/10 flex flex-col justify-between group relative overflow-hidden">
+        <div className={clsx(
+            "p-6 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden",
+            isHiddenTest 
+                ? "bg-gray-900/10 dark:bg-gray-900/40 backdrop-blur-xl hidden-card-border" 
+                : "bg-white/70 dark:bg-gray-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10"
+        )}>
             <div className="flex absolute top-0 right-0">
                 {isUpdated && (
                     <div
