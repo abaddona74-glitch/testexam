@@ -5179,29 +5179,42 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                                         <span className="font-bold text-xs uppercase tracking-wider opacity-70">Your Answer</span>
                                                         {isMulti ? (
                                                             <div className="flex flex-col gap-2 mt-1">
-                                                                {(userAnswer || "").split(',').filter(Boolean).map((idRaw, i) => {
-                                                                    const id = idRaw.trim();
-                                                                    if (id === "NO_MATCH") return <span key={i} className="text-gray-500 italic">No Selection</span>;
-
-                                                                    const correctIds = q.correct_answer.split(',').map(s => s.trim());
-                                                                    const isItemCorrect = correctIds.includes(id);
-                                                                    const opt = q.shuffledOptions.find(o => o.id === id);
-                                                                    const text = opt ? (opt.text.includes('→') ? `${opt.text}` : opt.text) : id;
-                                                                    
-                                                                    return (
-                                                                        <div key={i} className={clsx(
-                                                                            "px-3 py-2 rounded-md border flex items-start gap-2 text-sm",
-                                                                            isItemCorrect 
-                                                                                ? "bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800" 
-                                                                                : "bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
-                                                                        )}>
-                                                                            <div className="mt-0.5 shrink-0">
-                                                                                {isItemCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                                                                {(() => {
+                                                                    const selections = (userAnswer || "").split(',').filter(Boolean);
+                                                                    if (selections.length === 0) {
+                                                                        return (
+                                                                            <div className="px-3 py-2 rounded-md border flex items-start gap-2 text-sm bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800">
+                                                                                <div className="mt-0.5 shrink-0">
+                                                                                    <XCircle size={16} />
+                                                                                </div>
+                                                                                <span className="italic">No valid selection</span>
                                                                             </div>
-                                                                            <span><span className="font-bold">[{id}]</span> {text}</span>
-                                                                        </div>
-                                                                    )
-                                                                })}
+                                                                        );
+                                                                    }
+                                                                    return selections.map((idRaw, i) => {
+                                                                        const id = idRaw.trim();
+                                                                        if (id === "NO_MATCH") return <span key={i} className="text-gray-500 italic">No Selection</span>;
+
+                                                                        const correctIds = q.correct_answer.split(',').map(s => s.trim());
+                                                                        const isItemCorrect = correctIds.includes(id);
+                                                                        const opt = q.shuffledOptions.find(o => o.id === id);
+                                                                        const text = opt ? (opt.text.includes('→') ? `${opt.text}` : opt.text) : id;
+                                                                        
+                                                                        return (
+                                                                            <div key={i} className={clsx(
+                                                                                "px-3 py-2 rounded-md border flex items-start gap-2 text-sm",
+                                                                                isItemCorrect 
+                                                                                    ? "bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800" 
+                                                                                    : "bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
+                                                                            )}>
+                                                                                <div className="mt-0.5 shrink-0">
+                                                                                    {isItemCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                                                                                </div>
+                                                                                <span><span className="font-bold">[{id}]</span> {text}</span>
+                                                                            </div>
+                                                                        )
+                                                                    });
+                                                                })()}
                                                             </div>
                                                         ) : (
                                                             <span className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-gray-100 dark:border-gray-700/50">
