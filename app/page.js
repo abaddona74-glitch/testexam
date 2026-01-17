@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
@@ -2077,6 +2077,12 @@ export default function Home() {
         );
     }
 
+    const visibleActiveUsers = globalActiveUsers.filter(u => {
+        const isHiddenActivity = u.testId && u.testId.toLowerCase().includes('hidden');
+        if (isHiddenActivity && !activatedCheats.includes('showhidden')) return false;
+        return true;
+    });
+
     return (
         <main className="min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
             <div className="max-w-7xl mx-auto">
@@ -2943,19 +2949,19 @@ export default function Home() {
                                         </div>
                                         <h3 className="font-bold text-gray-800 dark:text-gray-200">Online Users</h3>
                                         <span className="text-xs font-mono text-gray-400 ml-auto bg-gray-50 dark:bg-gray-950 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-800/50">
-                                            {globalActiveUsers.length}
+                                            {visibleActiveUsers.length}
                                         </span>
                                     </div>
 
                                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                                        {!isUsersLoaded && globalActiveUsers.length === 0 ? (
+                                        {!isUsersLoaded && visibleActiveUsers.length === 0 ? (
                                             <div className="flex justify-center p-4">
                                                 <Loader2 className="animate-spin text-blue-500" size={20} />
                                             </div>
-                                        ) : globalActiveUsers.length === 0 ? (
+                                        ) : visibleActiveUsers.length === 0 ? (
                                             <p className="text-sm text-gray-400 text-center py-4">No active users.</p>
                                         ) : (
-                                            [...globalActiveUsers]
+                                            [...visibleActiveUsers]
                                                 .sort((a, b) => (a.userId === userId ? -1 : b.userId === userId ? 1 : 0))
                                                 .map((user, idx) => {
                                                     const isMe = user.userId === userId;
@@ -3400,7 +3406,18 @@ export default function Home() {
                                     // We look in both defaultTests and uploadedTests (from state)
                                     var test;
                                     if (tests) {
+                                        // Try exact match first
                                         test = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])].find(t => t.id === spectatingUser.testId);
+                                        
+                                        // If not found, try removing language suffix (e.g. "_en", "_uz")
+                                        if (!test && spectatingUser.testId) {
+                                            const baseId = spectatingUser.testId.replace(/_(en|uz)$/, '');
+                                            test = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])].find(t => t.id === baseId);
+                                        }
+
+                                        // If still not found, check if it's a hidden test and we assume the base ID matches
+                                        // This handles case where API returns clean ID but active user sends suffix
+                                        // (Actually covered by the regex replace above, but just in case of other suffixes)
                                     }
 
                                     if (!test) return (
@@ -3415,7 +3432,17 @@ export default function Home() {
                                     const questions = test.questions || test.content?.test_questions;
                                     if (!questions) return <div className="p-4 text-center">Cannot load questions data.</div>;
 
-                                    const question = questions[spectatingUser.progress || 0];
+                                    // Find question by ID if available (handles shuffled order), else fallback to index
+                                    let question = null;
+                                    if (spectatingUser.questionId) {
+                                        // Use loose equality to handle number vs string mismatch
+                                        question = questions.find(q => q.id == spectatingUser.questionId);
+                                    }
+                                    // Fallback to index if questionId not found or not provided
+                                    if (!question) {
+                                        question = questions[spectatingUser.progress || 0];
+                                    }
+
                                     if (!question) return <div className="p-4 text-center">Waiting for question data...</div>;
 
                                     return (
@@ -3446,8 +3473,73 @@ export default function Home() {
                                                         }));
                                                     }
 
+                                                    // Detect if this is a matching question (-> arrows)
+                                                    const isMatching = optionsArray.some(o => o.text.includes('→'));
+                                                    
+                                                    // Current selected IDs (could be string like "A, B" or array)
+                                                    let selectedAnswerIds = [];
+                                                    if (spectatingUser.currentAnswer) {
+                                                        if (Array.isArray(spectatingUser.currentAnswer)) {
+                                                            selectedAnswerIds = spectatingUser.currentAnswer;
+                                                        } else if (typeof spectatingUser.currentAnswer === 'string') {
+                                                            selectedAnswerIds = spectatingUser.currentAnswer.split(',').map(s => s.trim());
+                                                        }
+                                                    }
+
+                                                    if (isMatching) {
+                                                        const visualState = spectatingUser.visualState || {};
+                                                        
+                                                        return optionsArray.map((option) => {
+                                                            const parts = option.text.split('→').map(s => s.trim());
+                                                            const left = parts[0];
+                                                            const correctRight = parts[1];
+                                                            
+                                                            let userSelectedRight = null;
+                                                            let isCorrectlyMatched = false;
+                                                            let isUserSelection = false;
+                                                           
+                                                            if (visualState && Object.keys(visualState).length > 0) {
+                                                                userSelectedRight = visualState[left];
+                                                                if (userSelectedRight) {
+                                                                    isUserSelection = true;
+                                                                    isCorrectlyMatched = (userSelectedRight === correctRight);
+                                                                }
+                                                            } else {
+                                                                if (selectedAnswerIds.includes(option.id)) {
+                                                                    userSelectedRight = correctRight;
+                                                                    isCorrectlyMatched = true;
+                                                                    isUserSelection = true;
+                                                                }
+                                                            }
+
+                                                            return (
+                                                                 <div key={option.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch mb-2">
+                                                                    {/* Left */}
+                                                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl">
+                                                                        <span className="font-bold text-gray-800 dark:text-gray-200">{left}</span>
+                                                                        <div className="text-gray-400"><ArrowRight size={16} /></div>
+                                                                    </div>
+                                                                    {/* Right */}
+                                                                    <div className={clsx(
+                                                                        "p-3 rounded-xl border-2 flex items-center justify-between",
+                                                                        isUserSelection
+                                                                            ? (isCorrectlyMatched 
+                                                                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-semibold"
+                                                                                : "border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 font-semibold"
+                                                                              )
+                                                                            : "border-gray-200 dark:border-gray-700 border-dashed text-gray-400 bg-gray-50 dark:bg-gray-900/50"
+                                                                    )}>
+                                                                        {isUserSelection ? userSelectedRight : "Not matched yet..."}
+                                                                        {isCorrectlyMatched && <CheckCircle2 size={16} className="text-blue-500" />}
+                                                                        {isUserSelection && !isCorrectlyMatched && <XCircle size={16} className="text-orange-500" />}
+                                                                    </div>
+                                                                 </div>
+                                                            );
+                                                        });
+                                                    }
+
                                                     return optionsArray.map((option) => {
-                                                        const isSelected = spectatingUser.currentAnswer === option.id;
+                                                        const isSelected = selectedAnswerIds.includes(option.id);
                                                         return (
                                                             <div key={option.id} className={clsx(
                                                                 "p-4 rounded-xl border-2 transition-all relative overflow-hidden",
@@ -4018,7 +4110,9 @@ const MATCH_COLORS = [
     { border: 'border-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' },
 ];
 
-function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion }) {
+function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion, handleVisualUpdate }) {
+    // Determine the current confirmed answer from props (to avoid loop)
+    const currentAnswerForQuestion = answers[currentIndex];
     // Parse Pairs from "A -> B" strings
     // Need state to track user's matches: { [leftText]: rightText }
     // Problem: Page re-renders when `answers` changes, but we shouldn't submit answer until ALL pairs are matched.
@@ -4137,7 +4231,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             const userRight = matches[p.left];
             if (!userRight) {
                 allMatched = false;
-                return;
+                // No return here, continue to collect other valid matches
             }
 
             // Did user match correctly?
@@ -4146,14 +4240,21 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             }
         });
 
-        // If user has filled ALL slots
-        if (Object.keys(matches).length === activePairs.length) {
-            // Construct answer string based on matches found.
-            // Since we only exposed activePairs slots, logical max is getting all activePairs correct.
-            const derivedAnswer = userMatchedIDs.sort().join(', ');
-            handleAnswer(derivedAnswer === "" ? "NO_MATCH" : derivedAnswer);
+        // Always report progress for real-time spectating
+        // If not all matched, it's a partial answer
+        const derivedAnswer = userMatchedIDs.sort().join(', ');
+        const finalAnswer = derivedAnswer === "" ? "NO_MATCH" : derivedAnswer;
+        
+        // Prevent infinite loop by checking if answer changed
+        if (finalAnswer !== currentAnswerForQuestion) {
+             handleAnswer(finalAnswer, true);
         }
-    }, [matches, activePairs]);
+
+        if (handleVisualUpdate) {
+            handleVisualUpdate(matches);
+        }
+        
+    }, [matches, activePairs, handleAnswer, handleVisualUpdate, currentAnswerForQuestion]);
 
     return (
         <div className="space-y-4">
@@ -4295,6 +4396,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
+    const [visualStates, setVisualStates] = useState({});
     const [isFinished, setIsFinished] = useState(test.isFinished || false);
     const [animatedScorePercent, setAnimatedScorePercent] = useState(0);
     const [showLegendaryEffect, setShowLegendaryEffect] = useState(false);
@@ -4643,13 +4745,15 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     total: totalQuestions,
                     device: getDeviceType(),
                     country: userCountry,
+                    questionId: question.id,
                     currentAnswer: answers[currentIndex], // Send the selected answer for the current question
+                    visualState: visualStates[currentIndex],
                     stars: userStars, // Send star count
                     theme: resolvedTheme
                 })
             }).catch(e => console.error("Active status update failed", e));
         }
-    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints, userStars, resolvedTheme]);
+    }, [currentIndex, answers, isFinished, test.questions, test.id, userName, userId, totalQuestions, userCountry, hintsLeft, revealedHints, userStars, resolvedTheme, question.id]);
 
     // Keep in-test presence alive even if the user pauses (no answers for a while).
     useEffect(() => {
@@ -4672,10 +4776,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     name: userName,
                     progress: currentIndex,
                     total: totalQuestions,
+                    questionId: question.id,
                     status,
                     device: getDeviceType(),
                     country: userCountry,
                     currentAnswer: answers[currentIndex],
+                    visualState: visualStates[currentIndex],
                     stars: userStars,
                     theme: resolvedTheme
                 })
@@ -4685,7 +4791,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         ping();
         const interval = setInterval(ping, 15000);
         return () => clearInterval(interval);
-    }, [isFinished, test?.id, userId, userName, currentIndex, totalQuestions, userCountry, userStars, resolvedTheme]);
+    }, [isFinished, test?.id, userId, userName, currentIndex, totalQuestions, userCountry, userStars, resolvedTheme, question.id]);
 
     // Poll for other active users
     useEffect(() => {
@@ -4734,9 +4840,27 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         }
     };
 
-    const handleAnswer = (optionId) => {
+    const handleVisualUpdate = useCallback((state) => {
+        setVisualStates(prev => {
+             // Only update if actually changed to prevent loop
+             if (JSON.stringify(prev[currentIndex]) === JSON.stringify(state)) {
+                 return prev;
+             }
+             return { ...prev, [currentIndex]: state };
+        });
+    }, [currentIndex]);
+
+    const handleAnswer = useCallback((optionId, forceOverride = false) => {
         playClickSound?.();
         
+        if (forceOverride) {
+             setAnswers(prev => {
+                if (prev[currentIndex] === optionId) return prev;
+                return ({ ...prev, [currentIndex]: optionId });
+            });
+            return;
+        }
+
         // Multi-select logic check
         const isMulti = question?.correct_answer?.includes(',');
 
@@ -4755,12 +4879,16 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 currentIds.sort();
                 
                 const newAnswer = currentIds.join(', ');
+                if (prev[currentIndex] === newAnswer) return prev;
                 return { ...prev, [currentIndex]: newAnswer };
             });
         } else {
-            setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
+            setAnswers(prev => {
+                if (prev[currentIndex] === optionId) return prev;
+                return ({ ...prev, [currentIndex]: optionId });
+            });
         }
-    };
+    }, [currentIndex, question, playClickSound]);
 
     const handleNext = () => {
         // Check if answered
@@ -5497,6 +5625,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 answers={answers}
                                 currentIndex={currentIndex}
                                 handleAnswer={handleAnswer}
+                                handleVisualUpdate={handleVisualUpdate}
                                 revealedHints={revealedHints}
                                 activatedCheats={activatedCheats}
                                 translatedQuestion={translatedQuestion}

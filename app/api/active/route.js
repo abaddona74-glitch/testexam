@@ -43,7 +43,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { testId, userId, name, progress, total, status, device, country, currentAnswer, stars, theme } = body; 
+    const { testId, userId, name, progress, total, status, device, country, currentAnswer, stars, theme, questionId, visualState } = body; 
     
     // Key by userId to ensure user appears only once
     const key = userId; 
@@ -58,8 +58,10 @@ export async function POST(request) {
         device: device || 'desktop', 
         country: country || null,
         currentAnswer: currentAnswer || null,
+        visualState: visualState || null,
         stars: stars || 0,
         theme: theme || 'light',
+        questionId: questionId || null,
         lastUpdated: Date.now()
     };
 
