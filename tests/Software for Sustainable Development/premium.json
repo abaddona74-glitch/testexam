@@ -2,83 +2,6 @@
   "test_questions": [
     {
       "id": 1,
-      "question": "What is the default embedded container used by Spring Boot for web applications?",
-      "options": {
-        "A": "Jetty",
-        "B": "Undertow",
-        "C": "Apache Tomcat",
-        "D": "WildFly"
-      },
-      "correct_answer": "C"
-    },
-    {
-      "id": 2,
-      "question": "In Spring Boot, what is the purpose of the @GetMapping annotation?",
-      "options": {
-        "A": "To define a bean",
-        "B": "To map HTTP GET requests to a controller method",
-        "C": "To enable transaction management",
-        "D": "To configure logging"
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 3,
-      "question": "What is the primary purpose of the MainActivity class in an Android application?",
-      "options": {
-        "A": "Define UI layout for Fragments",
-        "B": "Handle network requests",
-        "C": "Manage database operations",
-        "D": "Schedule background tasks"
-      },
-      "correct_answer": "A"
-    },
-    {
-      "id": 4,
-      "question": "Which method is responsible for inflating the layout of a fragment in Android?",
-      "options": {
-        "A": "onCreate()",
-        "B": "onStart()",
-        "C": "onCreateView()",
-        "D": "onResume()"
-      },
-      "correct_answer": "C"
-    },
-    {
-      "id": 5,
-      "question": "What is the purpose of the @RestController annotation in a Spring Boot application?",
-      "options": {
-        "A": "To enable Spring Security",
-        "B": "To handle HTTP requests and produce RESTful responses",
-        "C": "To configure data sources",
-        "D": "To schedule cron jobs"
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 6,
-      "question": "Which of the following annotations belong to Spring Data JPA?",
-      "options": {
-        "A": "@Transactional, @NoRepositoryBean, @Param",
-        "B": "@Autowired, @Component, @Service",
-        "C": "@GetMapping, @PostMapping, @RequestMapping",
-        "D": "@Bean, @Configuration, @Profile"
-      },
-      "correct_answer": "A"
-    },
-    {
-      "id": 7,
-      "question": "Which of the following annotations are related to Spring Data JPA query operations?",
-      "options": {
-        "A": "@Query, @Procedure, @Lock",
-        "B": "@Entity, @Table, @Column",
-        "C": "@Controller, @RestController, @Repository",
-        "D": "@Value, @PropertySource, @ConfigurationProperties"
-      },
-      "correct_answer": "A"
-    },
-    {
-      "id": 8,
       "question": "In MUSE modeling, which sector does 'Buildings' belong to?",
       "options": {
         "A": "Supply sector",
@@ -89,7 +12,7 @@
       "correct_answer": "C"
     },
     {
-      "id": 9,
+      "id": 2,
       "question": "In MUSE modeling, which sector does 'Heat plants' belong to?",
       "options": {
         "A": "Supply sector",
@@ -100,7 +23,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 10,
+      "id": 3,
       "question": "In MUSE modeling, which sector does 'Primary coal' belong to?",
       "options": {
         "A": "Supply sector",
@@ -111,7 +34,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 11,
+      "id": 4,
       "question": "In MUSE modeling, which sector does 'Hydro-power plant' belong to?",
       "options": {
         "A": "Supply sector",
@@ -122,7 +45,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 12,
+      "id": 5,
       "question": "In MUSE modeling, which sector does 'Computers' belong to?",
       "options": {
         "A": "Supply sector",
@@ -133,7 +56,7 @@
       "correct_answer": "C"
     },
     {
-      "id": 13,
+      "id": 6,
       "question": "What is the primary goal of Life Cycle Assessment (LCA)?",
       "options": {
         "A": "To reduce software bugs",
@@ -144,7 +67,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 14,
+      "id": 7,
       "question": "In LCA, how are calculations performed?",
       "options": {
         "A": "By estimating future market trends",
@@ -155,7 +78,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 15,
+      "id": 8,
       "question": "What does 'Environmental Conservation' aim to achieve in IT sustainability?",
       "options": {
         "A": "To increase data center cooling efficiency",
@@ -166,7 +89,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 16,
+      "id": 9,
       "question": "Software for sustainable development is designed to:",
       "options": {
         "A": "Support only environmental goals",
@@ -177,7 +100,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 17,
+      "id": 10,
       "question": "What is the goal of 'Social Development' in IT sustainability?",
       "options": {
         "A": "Accessibility of essential assets (e.g., internet) and great personal satisfaction for people",
@@ -188,7 +111,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 18,
+      "id": 11,
       "question": "What does 'Economic Progress' emphasize in IT sustainability?",
       "options": {
         "A": "Growth that takes into account the welfare and needs of present generations",
@@ -199,7 +122,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 19,
+      "id": 12,
       "question": "The bottom-up modeling approach is a detailed, technology-oriented approach that analyzes energy systems at a granular level.",
       "options": {
         "A": "True",
@@ -208,7 +131,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 20,
+      "id": 13,
       "question": "The top-down modeling approach is a detailed, technology-oriented approach that analyzes energy systems at a granular level.",
       "options": {
         "A": "True",
@@ -217,7 +140,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 21,
+      "id": 14,
       "question": "Micro-scale time horizon in energy modeling typically refers to long-term modeling.",
       "options": {
         "A": "True",
@@ -226,7 +149,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 22,
+      "id": 15,
       "question": "Macro-scale time horizon in energy modeling typically refers to short-term modeling.",
       "options": {
         "A": "True",
@@ -235,7 +158,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 23,
+      "id": 16,
       "question": "What is the main difference between Life Cycle Assessment (LCA) and Cradle to Cradle (C2C)?",
       "options": {
         "A": "LCA is voluntary, C2C is mandatory",
@@ -246,7 +169,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 24,
+      "id": 17,
       "question": "Which stages are included in a full Life Cycle Assessment (LCA)?",
       "options": {
         "A": "Only manufacturing and use",
@@ -257,7 +180,7 @@
       "correct_answer": "C"
     },
     {
-      "id": 25,
+      "id": 18,
       "question": "Which ISO standards are commonly used in Life Cycle Assessment (LCA)?",
       "options": {
         "A": "ISO 9001 and ISO 14001",
@@ -268,7 +191,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 26,
+      "id": 19,
       "question": "In Cradle to Cradle, what is the goal for materials at the end of a product's life?",
       "options": {
         "A": "Landfill disposal",
@@ -279,7 +202,7 @@
       "correct_answer": "C"
     },
     {
-      "id": 27,
+      "id": 20,
       "question": "What does 'Cradle to Grave' refer to in environmental assessment?",
       "options": {
         "A": "A product's journey from raw material extraction to disposal",
@@ -290,7 +213,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 28,
+      "id": 21,
       "question": "Which phase is NOT part of an LCA study according to ISO 14040?",
       "options": {
         "A": "Goal and scope definition",
@@ -301,7 +224,7 @@
       "correct_answer": "D"
     },
     {
-      "id": 29,
+      "id": 22,
       "question": "What is the purpose of the 'impact assessment' phase in LCA?",
       "options": {
         "A": "To calculate production costs",
@@ -312,7 +235,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 30,
+      "id": 23,
       "question": "In LCA, what does 'system boundary' define?",
       "options": {
         "A": "Geographical limits of the study",
@@ -323,7 +246,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 31,
+      "id": 24,
       "question": "Given the following Python code and data from file.csv, what will be the output when the user inputs 1 for gasoline amount?",
       "options": {
         "A": "71163.6",
