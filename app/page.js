@@ -3137,6 +3137,7 @@ export default function Home() {
 
                                             // Calculate time remaining (Year 2026)
                                             const examDate = new Date(`${item.month} ${item.day}, 2026 ${item.time}`);
+                                            const weekDay = examDate.toLocaleDateString('en-US', { weekday: 'long' });
                                             const now = new Date();
                                             const diffMs = examDate - now;
                                             const isFinished = diffMs < 0;
@@ -3220,7 +3221,7 @@ export default function Home() {
 
                                                             <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400">
                                                                 <Clock size={10} />
-                                                                <span>{item.time}</span>
+                                                                <span>{weekDay}, {item.time}</span>
                                                                 <span className="text-gray-600">•</span>
                                                                 <span>{item.room}</span>
                                                             </div>
@@ -4011,7 +4012,7 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
             {/* Original Star Badge */}
             {isOriginal && (
                 <div className="absolute -top-3 -left-3 z-[100] text-yellow-500 transform -rotate-12 filter drop-shadow-lg" title="Original Version">
-                     <Star size={48} fill="currentColor" strokeWidth={1} className="animate-pulse" />
+                     <Star size={48} fill="currentColor" stroke="#ffffff" strokeWidth={2} className="animate-pulse" />
                 </div>
             )}
             <div className="flex absolute top-0 right-0">
