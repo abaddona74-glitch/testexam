@@ -1,0 +1,103 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "What is the purpose of the following Maven dependency?\n\n<dependency>\n  <groupId>log4j</groupId>\n  <artifactId>log4j</artifactId>\n  <version>1.2.17</version>\n</dependency>",
+      "options": {
+        "A": "To connect to a database",
+        "B": "To create log management",
+        "C": "To enable Spring Security",
+        "D": "To handle HTTP requests"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "question": "What is the default embedded container used by Spring Boot for web applications?",
+      "options": {
+        "A": "Jetty",
+        "B": "Undertow",
+        "C": "Apache Tomcat",
+        "D": "WildFly"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 3,
+      "question": "In Spring Boot, what is the purpose of the @GetMapping annotation?",
+      "options": {
+        "A": "To define a bean",
+        "B": "To map HTTP GET requests to a controller method",
+        "C": "To enable transaction management",
+        "D": "To configure logging"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 4,
+      "question": "What does the following Spring Boot configuration block explain?\n\n@Bean\npublic JavaMailSender getJavaMailSender() {\n  // configuration code\n  return mailSender;\n}",
+      "options": {
+        "A": "Database connection configuration",
+        "B": "Spring Security configuration",
+        "C": "Spring Mail Server Properties",
+        "D": "REST controller configuration"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 5,
+      "question": "What is the primary purpose of the MainActivity class in an Android application?",
+      "options": {
+        "A": "Define UI layout for Fragments",
+        "B": "Handle network requests",
+        "C": "Manage database operations",
+        "D": "Schedule background tasks"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 6,
+      "question": "To which group do the following annotations correspond?\n@Transactional, @NoRepositoryBean, @Param, @ID, @Transient, @CreatedBy",
+      "options": {
+        "A": "Spring MVC Annotations",
+        "B": "Spring Security Annotations",
+        "C": "Spring Data JPA Annotations",
+        "D": "Spring Boot Annotations"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 7,
+      "question": "To which group do the following annotations correspond?\n@Query, @Procedure, @Lock, @Modifying, @EnableJpaRepositories",
+      "options": {
+        "A": "Spring MVC Annotations",
+        "B": "Spring Data JPA Annotations",
+        "C": "Spring Security Annotations",
+        "D": "Spring Cloud Annotations"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 8,
+      "question": "Which method is responsible for inflating the layout of a fragment in Android?",
+      "options": {
+        "A": "onCreate()",
+        "B": "onStart()",
+        "C": "onCreateView()",
+        "D": "onResume()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 9,
+      "question": "What is the purpose of the @RestController annotation in a Spring Boot application?",
+      "options": {
+        "A": "To enable Spring Security",
+        "B": "To handle HTTP requests and produce RESTful responses",
+        "C": "To configure data sources",
+        "D": "To schedule cron jobs"
+      },
+      "correct_answer": "B"
+    }
+  ]
+}
