@@ -4,6 +4,7 @@ import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, U
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LiquidGlassClock } from '@/components/liquid-clock';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -2101,11 +2102,23 @@ export default function Home() {
         <main className="min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
             <div className="max-w-7xl mx-auto">
                 <header className={clsx(
-                    "mb-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 sticky top-4 z-40 transition-all duration-300 ease-in-out",
-                    headerExpanded ? "p-6" : "p-0 py-2 border-transparent shadow-none bg-transparent"
+                    "relative mb-8 rounded-2xl sticky top-4 z-40 transition-all duration-300 ease-in-out overflow-hidden",
+                    headerExpanded 
+                        ? "p-6 border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl" 
+                        : "p-0 py-2 border-transparent shadow-none bg-transparent"
                 )}>
+                    {/* Liquid Background Effect */}
+                    {headerExpanded && (
+                        <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+                             <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
+                             <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-blob"></div>
+                             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+                        </div>
+                    )}
+
                     <div className={clsx(
-                        "flex justify-between items-center transition-all duration-300 overflow-hidden",
+                        "relative z-10 flex justify-between items-center transition-all duration-300 overflow-hidden",
                         headerExpanded ? "opacity-100 max-h-[100px]" : "opacity-0 max-h-0 pointer-events-none"
                     )}>
                         <div className="flex items-center gap-2 md:gap-4">
@@ -2120,6 +2133,11 @@ export default function Home() {
                             </div>
                         </div>
                         <div className="flex gap-1 md:gap-2 items-center">
+                            {/* Liquid Glass Clock (PC only) */}
+                            <div className="mr-4">
+                                <LiquidGlassClock />
+                            </div>
+
                             {/* Daily Spinner */}
                             <button
                                 onClick={() => { playStartSound(); setShowSpinner(true); }}
@@ -2750,8 +2768,16 @@ export default function Home() {
                             </section>
 
                             {/* Leaderboard Section */}
-                            <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 p-6">
-                                <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+                            <section className="relative overflow-hidden rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl p-6 transition-all duration-300">
+                                {/* Liquid Background */}
+                                <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+                                     <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
+                                     {/* Golden/Yellow blobs for Leaderboard Trophy Theme */}
+                                     <div className="absolute -top-32 -right-32 w-80 h-80 bg-yellow-400/10 rounded-full blur-3xl animate-blob"></div>
+                                     <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+                                </div>
+
+                                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
                                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                                         <Trophy className="text-yellow-500" /> Leaderboard
                                     </h2>
@@ -2759,12 +2785,12 @@ export default function Home() {
                                     <div className="flex flex-wrap justify-center items-center gap-3">
                                         <button
                                             onClick={() => setShowAchievements(true)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border bg-white dark:bg-transparent text-gray-500 border-gray-200 dark:border-orange-500/50 dark:text-orange-500 hover:text-orange-600 hover:border-orange-300 shadow-sm"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border bg-white/50 dark:bg-black/20 text-gray-600 border-gray-200 dark:border-orange-500/50 dark:text-orange-500 hover:text-orange-600 hover:border-orange-300 shadow-sm"
                                         >
                                             <Crown size={14} /> Achievements Rules
                                         </button>
 
-                                        <div className="flex justify-center gap-2 bg-gray-50 dark:bg-gray-950 p-1 rounded-xl border border-gray-100 dark:border-gray-800/50">
+                                        <div className="flex justify-center gap-2 bg-gray-50/50 dark:bg-gray-950/50 p-1 rounded-xl border border-gray-100 dark:border-gray-800/50 backdrop-blur-sm">
                                             {['today', '3days', '7days', 'all'].map((p) => (
                                                 <button
                                                     key={p}
@@ -2773,7 +2799,7 @@ export default function Home() {
                                                         "px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all",
                                                         filterPeriod === p
                                                             ? "bg-white dark:bg-gray-800 text-blue-600 shadow-sm border border-gray-100 dark:border-gray-800/50"
-                                                            : "text-gray-400 hover:text-gray-600"
+                                                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                     )}
                                                 >
                                                     {p === 'all' ? 'All Time' : p === '3days' ? '3 Days' : p === '7days' ? '7 Days' : 'Today'}
@@ -2783,9 +2809,9 @@ export default function Home() {
                                     </div>
                                 </div>
                                 {leaderboard.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-400 italic">No results yet. Be the first!</div>
+                                    <div className="relative z-10 text-center py-8 text-gray-400 italic">No results yet. Be the first!</div>
                                 ) : (
-                                    <div className="overflow-x-auto">
+                                    <div className="relative z-10 overflow-x-auto">
                                         <table className="w-full text-center">
                                             <thead>
                                                 <tr className="border-b border-gray-100 dark:border-gray-800/50 text-xs uppercase text-gray-400 font-semibold tracking-wider">
@@ -2955,19 +2981,26 @@ export default function Home() {
                         <div className={clsx("transition-all duration-500 ease-in-out relative shrink-0", sidebarExpanded ? "w-full lg:w-80 opacity-100" : "w-0 opacity-0 overflow-hidden")}>
                             <div className="sticky top-28 space-y-6 lg:w-80">
                                 {/* Active Users Widget */}
-                                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 p-6">
-                                    <div className="flex items-center gap-2 mb-4">
+                                <div className="relative overflow-hidden rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl p-6">
+                                    {/* Liquid Background */}
+                                    <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+                                        <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
+                                        <div className="absolute -top-10 -left-10 w-40 h-40 bg-green-500/20 rounded-full blur-xl animate-blob"></div>
+                                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-xl animate-blob animation-delay-2000"></div>
+                                    </div>
+
+                                    <div className="relative z-10 flex items-center gap-2 mb-4">
                                         <div className="relative">
                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                             <div className="w-2.5 h-2.5 bg-green-500 rounded-full relative"></div>
                                         </div>
                                         <h3 className="font-bold text-gray-800 dark:text-gray-200">Online Users</h3>
-                                        <span className="text-xs font-mono text-gray-400 ml-auto bg-gray-50 dark:bg-gray-950 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-800/50">
+                                        <span className="text-xs font-mono text-gray-400 ml-auto bg-gray-50/50 dark:bg-gray-950/50 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-800/50 backdrop-blur-sm">
                                             {visibleActiveUsers.length}
                                         </span>
                                     </div>
 
-                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                                    <div className="relative z-10 space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                                         {!isUsersLoaded && visibleActiveUsers.length === 0 ? (
                                             <div className="flex justify-center p-4">
                                                 <Loader2 className="animate-spin text-blue-500" size={20} />
@@ -3079,13 +3112,20 @@ export default function Home() {
                                 </div>
 
                                 {/* Exam Schedule Widget */}
-                                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 overflow-hidden">
-                                    <div className="p-4 border-b border-gray-100 dark:border-gray-800/50">
+                                <div className="relative overflow-hidden rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl">
+                                    {/* Liquid Background */}
+                                    <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+                                        <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
+                                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/10 rounded-full blur-xl animate-blob"></div>
+                                        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/10 rounded-full blur-xl animate-blob animation-delay-2000"></div>
+                                    </div>
+
+                                    <div className="relative z-10 p-4 border-b border-gray-100 dark:border-gray-800/50">
                                         <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
                                             <Calendar className="text-emerald-500 dark:text-emerald-400" size={18} /> Exam Schedule
                                         </h3>
                                     </div>
-                                    <div className="p-4 space-y-3">
+                                    <div className="relative z-10 p-4 space-y-3">
                                         {EXAM_SCHEDULE.map((item, idx, arr) => {
                                             if (item.isHeader) {
                                                 return (

@@ -2,6 +2,116 @@
   "test_questions": [
     {
       "id": 1,
+      "question": "What is the primary goal of Life Cycle Assessment (LCA) in sustainable development?",
+      "options": {
+        "A": "To reduce production costs",
+        "B": "To improve processes, support policy, and provide elements for informed decisions",
+        "C": "To increase product marketing",
+        "D": "To replace traditional energy sources"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "question": "What is the main difference between Life Cycle Assessment (LCA) and Cradle to Cradle (C2C)?",
+      "options": {
+        "A": "LCA focuses on energy consumption, C2C focuses on material recycling",
+        "B": "LCA is a systematic impact assessment, while C2C designs for renewable cycles",
+        "C": "LCA is only for electronics, C2C is for buildings",
+        "D": "LCA is voluntary, C2C is mandatory"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 3,
+      "question": "Which of the following stages is included in a full Life Cycle Assessment (LCA)?",
+      "options": {
+        "A": "Only manufacturing and use",
+        "B": "Only raw material extraction",
+        "C": "Cradle-to-grave: raw material, production, use, and end-of-life management",
+        "D": "Only transportation and distribution"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 4,
+      "question": "Which ISO standards are commonly used in Life Cycle Assessment (LCA)?",
+      "options": {
+        "A": "ISO 9001 and ISO 14001",
+        "B": "ISO 14040 and ISO 14044",
+        "C": "ISO 50001 and ISO 26000",
+        "D": "ISO 27001 and ISO 45001"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 5,
+      "question": "In the Cradle to Cradle approach, what is the goal for materials at the end of a product's life?",
+      "options": {
+        "A": "Landfill disposal",
+        "B": "Incineration for energy recovery",
+        "C": "Recycling or biodegradation in continuous cycles",
+        "D": "Export to other countries"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 6,
+      "question": "What does the term 'Cradle to Grave' refer to in environmental assessment?",
+      "options": {
+        "A": "A product's journey from raw material extraction to disposal",
+        "B": "Only the use phase of a product",
+        "C": "Recycling and reuse processes",
+        "D": "Economic valuation of a product"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 7,
+      "question": "Which of the following is NOT a typical phase in an LCA study according to ISO 14040?",
+      "options": {
+        "A": "Goal and scope definition",
+        "B": "Inventory analysis",
+        "C": "Impact assessment",
+        "D": "Marketing strategy development"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 8,
+      "question": "What is the purpose of the 'impact assessment' phase in LCA?",
+      "options": {
+        "A": "To calculate production costs",
+        "B": "To evaluate potential environmental impacts based on inventory data",
+        "C": "To design product packaging",
+        "D": "To determine market price"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "In LCA, what does 'system boundary' define?",
+      "options": {
+        "A": "Geographical limits of the study",
+        "B": "Which processes and life cycle stages are included or excluded",
+        "C": "The budget for the assessment",
+        "D": "The time frame for data collection"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 10,
+      "question": "Which concept emphasizes that all materials should be viewed as nutrients in continuous cycles?",
+      "options": {
+        "A": "Life Cycle Assessment",
+        "B": "Cradle to Cradle",
+        "C": "Circular Economy",
+        "D": "Green Design"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 11,
       "question": "Given the following Python code and data from file.csv, what will be the output when the user inputs 1 for gasoline amount?\n\nCode snippet:\n```python\nimport pandas as pd\ndf = pd.read_csv('file.csv')\na = float(df.iloc[1, 2])\nb = float(df.iloc[1, 3])\nc = float(df.iloc[0, 1])\ng = float(input('Insert the amount of gasoline in [T3] '))\nh = (c + a + f) * c + d * b + d\nprint(f'You have produced {h}kg CO₂eq., where CH4 consist of {e} + {f}, -2% of the emission.')\n```\n\nData from file.csv:\n|    | N20 | CO2 | CH4 |\n|----|-----|-----|-----|\n| GWP-100 | 273 | 1   | 30  |\n| Gasoline [kg/TJ] | 3.2 | 69300 | 33 |\n\n(Note: Some variables like d, e, f are not defined in the provided code)",
       "options": {
         "A": "71163.6",
@@ -12,7 +122,7 @@
       "correct_answer": "A"
     },
     {
-      "id": 2,
+      "id": 12,
       "question": "In terms of energy modeling software, the **micro-scale** time horizon typically refers to long-term modeling.",
       "options": {
         "A": "True",
@@ -21,7 +131,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 3,
+      "id": 13,
       "question": "What is the primary goal of Life Cycle Assessment (LCA) in software engineering?",
       "options": {
         "A": "To analyze user requirements and enhance software functionality.",
@@ -32,7 +142,7 @@
       "correct_answer": "D"
     },
     {
-      "id": 4,
+      "id": 14,
       "question": "For MUSE modeling, determine the correct sector for each of the following:",
       "options": {
         "A": "Buildings belong to → Demand sector",
@@ -42,7 +152,7 @@
       "correct_answer": "A, B, C"
     },
     {
-      "id": 5,
+      "id": 15,
       "question": "What does \"Environmental Conservation\" aim to achieve in the context of IT sustainability?",
       "options": {
         "A": "To enhance technological advancements and increase production rates.",
@@ -53,7 +163,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 6,
+      "id": 16,
       "question": "Software for sustainable development is designed to:",
       "options": {
         "A": "Replace manual systems without sustainability",
@@ -64,7 +174,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 7,
+      "id": 17,
       "question": "From an energy modeling software perspective, the **top-down modeling approach** is a detailed, technology-oriented approach that analyzes energy-specific technologies and their performance.",
       "options": {
         "A": "True",

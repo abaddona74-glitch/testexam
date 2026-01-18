@@ -311,3 +311,9 @@ body {
 }
 
 /* Dark mode adjustment for the orange color if needed, but #fb923c is visible on dark */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
