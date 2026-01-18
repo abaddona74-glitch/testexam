@@ -2,29 +2,252 @@
   "test_questions": [
     {
       "id": 1,
-      "question": "What is the primary goal of Life Cycle Assessment (LCA) in sustainable development?",
+      "question": "What is the default embedded container used by Spring Boot for web applications?",
       "options": {
-        "A": "To reduce production costs",
-        "B": "To improve processes, support policy, and provide elements for informed decisions",
-        "C": "To increase product marketing",
-        "D": "To replace traditional energy sources"
+        "A": "Jetty",
+        "B": "Undertow",
+        "C": "Apache Tomcat",
+        "D": "WildFly"
       },
-      "correct_answer": "B"
+      "correct_answer": "C"
     },
     {
       "id": 2,
-      "question": "What is the main difference between Life Cycle Assessment (LCA) and Cradle to Cradle (C2C)?",
+      "question": "In Spring Boot, what is the purpose of the @GetMapping annotation?",
       "options": {
-        "A": "LCA focuses on energy consumption, C2C focuses on material recycling",
-        "B": "LCA is a systematic impact assessment, while C2C designs for renewable cycles",
-        "C": "LCA is only for electronics, C2C is for buildings",
-        "D": "LCA is voluntary, C2C is mandatory"
+        "A": "To define a bean",
+        "B": "To map HTTP GET requests to a controller method",
+        "C": "To enable transaction management",
+        "D": "To configure logging"
       },
       "correct_answer": "B"
     },
     {
       "id": 3,
-      "question": "Which of the following stages is included in a full Life Cycle Assessment (LCA)?",
+      "question": "What is the primary purpose of the MainActivity class in an Android application?",
+      "options": {
+        "A": "Define UI layout for Fragments",
+        "B": "Handle network requests",
+        "C": "Manage database operations",
+        "D": "Schedule background tasks"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 4,
+      "question": "Which method is responsible for inflating the layout of a fragment in Android?",
+      "options": {
+        "A": "onCreate()",
+        "B": "onStart()",
+        "C": "onCreateView()",
+        "D": "onResume()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 5,
+      "question": "What is the purpose of the @RestController annotation in a Spring Boot application?",
+      "options": {
+        "A": "To enable Spring Security",
+        "B": "To handle HTTP requests and produce RESTful responses",
+        "C": "To configure data sources",
+        "D": "To schedule cron jobs"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 6,
+      "question": "Which of the following annotations belong to Spring Data JPA?",
+      "options": {
+        "A": "@Transactional, @NoRepositoryBean, @Param",
+        "B": "@Autowired, @Component, @Service",
+        "C": "@GetMapping, @PostMapping, @RequestMapping",
+        "D": "@Bean, @Configuration, @Profile"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 7,
+      "question": "Which of the following annotations are related to Spring Data JPA query operations?",
+      "options": {
+        "A": "@Query, @Procedure, @Lock",
+        "B": "@Entity, @Table, @Column",
+        "C": "@Controller, @RestController, @Repository",
+        "D": "@Value, @PropertySource, @ConfigurationProperties"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 8,
+      "question": "In MUSE modeling, which sector does 'Buildings' belong to?",
+      "options": {
+        "A": "Supply sector",
+        "B": "Conversion sector",
+        "C": "Demand sector",
+        "D": "Storage sector"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 9,
+      "question": "In MUSE modeling, which sector does 'Heat plants' belong to?",
+      "options": {
+        "A": "Supply sector",
+        "B": "Conversion sector",
+        "C": "Demand sector",
+        "D": "Transmission sector"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 10,
+      "question": "In MUSE modeling, which sector does 'Primary coal' belong to?",
+      "options": {
+        "A": "Supply sector",
+        "B": "Conversion sector",
+        "C": "Demand sector",
+        "D": "Export sector"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 11,
+      "question": "In MUSE modeling, which sector does 'Hydro-power plant' belong to?",
+      "options": {
+        "A": "Supply sector",
+        "B": "Conversion sector",
+        "C": "Demand sector",
+        "D": "Primary sector"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 12,
+      "question": "In MUSE modeling, which sector does 'Computers' belong to?",
+      "options": {
+        "A": "Supply sector",
+        "B": "Conversion sector",
+        "C": "Demand sector",
+        "D": "Service sector"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 13,
+      "question": "What is the primary goal of Life Cycle Assessment (LCA)?",
+      "options": {
+        "A": "To reduce software bugs",
+        "B": "To improve processes, support policy, and provide elements for informed decisions",
+        "C": "To increase server uptime",
+        "D": "To enhance user interface design"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 14,
+      "question": "In LCA, how are calculations performed?",
+      "options": {
+        "A": "By estimating future market trends",
+        "B": "By quantifying all inputs and outputs and assessing their environmental impacts",
+        "C": "By analyzing user behavior patterns",
+        "D": "By optimizing code execution time"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 15,
+      "question": "What does 'Environmental Conservation' aim to achieve in IT sustainability?",
+      "options": {
+        "A": "To increase data center cooling efficiency",
+        "B": "To safeguard the climate so the assets provided by it don't get destroyed",
+        "C": "To reduce software licensing costs",
+        "D": "To improve network bandwidth"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 16,
+      "question": "Software for sustainable development is designed to:",
+      "options": {
+        "A": "Support only environmental goals",
+        "B": "Support environmental, economic, and social goals",
+        "C": "Maximize profit only",
+        "D": "Replace all manual systems"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 17,
+      "question": "What is the goal of 'Social Development' in IT sustainability?",
+      "options": {
+        "A": "Accessibility of essential assets (e.g., internet) and great personal satisfaction for people",
+        "B": "Reducing carbon emissions",
+        "C": "Increasing hardware production",
+        "D": "Lowering software prices"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 18,
+      "question": "What does 'Economic Progress' emphasize in IT sustainability?",
+      "options": {
+        "A": "Growth that takes into account the welfare and needs of present generations",
+        "B": "Maximizing shareholder value",
+        "C": "Reducing operational costs only",
+        "D": "Expanding market share"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 19,
+      "question": "The bottom-up modeling approach is a detailed, technology-oriented approach that analyzes energy systems at a granular level.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 20,
+      "question": "The top-down modeling approach is a detailed, technology-oriented approach that analyzes energy systems at a granular level.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 21,
+      "question": "Micro-scale time horizon in energy modeling typically refers to long-term modeling.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 22,
+      "question": "Macro-scale time horizon in energy modeling typically refers to short-term modeling.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 23,
+      "question": "What is the main difference between Life Cycle Assessment (LCA) and Cradle to Cradle (C2C)?",
+      "options": {
+        "A": "LCA is voluntary, C2C is mandatory",
+        "B": "LCA is a systematic impact assessment, while C2C designs for renewable cycles",
+        "C": "LCA is only for electronics, C2C is for buildings",
+        "D": "LCA focuses on energy consumption, C2C focuses on material recycling"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 24,
+      "question": "Which stages are included in a full Life Cycle Assessment (LCA)?",
       "options": {
         "A": "Only manufacturing and use",
         "B": "Only raw material extraction",
@@ -34,7 +257,7 @@
       "correct_answer": "C"
     },
     {
-      "id": 4,
+      "id": 25,
       "question": "Which ISO standards are commonly used in Life Cycle Assessment (LCA)?",
       "options": {
         "A": "ISO 9001 and ISO 14001",
@@ -45,8 +268,8 @@
       "correct_answer": "B"
     },
     {
-      "id": 5,
-      "question": "In the Cradle to Cradle approach, what is the goal for materials at the end of a product's life?",
+      "id": 26,
+      "question": "In Cradle to Cradle, what is the goal for materials at the end of a product's life?",
       "options": {
         "A": "Landfill disposal",
         "B": "Incineration for energy recovery",
@@ -56,8 +279,8 @@
       "correct_answer": "C"
     },
     {
-      "id": 6,
-      "question": "What does the term 'Cradle to Grave' refer to in environmental assessment?",
+      "id": 27,
+      "question": "What does 'Cradle to Grave' refer to in environmental assessment?",
       "options": {
         "A": "A product's journey from raw material extraction to disposal",
         "B": "Only the use phase of a product",
@@ -67,8 +290,8 @@
       "correct_answer": "A"
     },
     {
-      "id": 7,
-      "question": "Which of the following is NOT a typical phase in an LCA study according to ISO 14040?",
+      "id": 28,
+      "question": "Which phase is NOT part of an LCA study according to ISO 14040?",
       "options": {
         "A": "Goal and scope definition",
         "B": "Inventory analysis",
@@ -78,7 +301,7 @@
       "correct_answer": "D"
     },
     {
-      "id": 8,
+      "id": 29,
       "question": "What is the purpose of the 'impact assessment' phase in LCA?",
       "options": {
         "A": "To calculate production costs",
@@ -89,7 +312,7 @@
       "correct_answer": "B"
     },
     {
-      "id": 9,
+      "id": 30,
       "question": "In LCA, what does 'system boundary' define?",
       "options": {
         "A": "Geographical limits of the study",
@@ -100,19 +323,8 @@
       "correct_answer": "B"
     },
     {
-      "id": 10,
-      "question": "Which concept emphasizes that all materials should be viewed as nutrients in continuous cycles?",
-      "options": {
-        "A": "Life Cycle Assessment",
-        "B": "Cradle to Cradle",
-        "C": "Circular Economy",
-        "D": "Green Design"
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 11,
-      "question": "Given the following Python code and data from file.csv, what will be the output when the user inputs 1 for gasoline amount?\n\nCode snippet:\n```python\nimport pandas as pd\ndf = pd.read_csv('file.csv')\na = float(df.iloc[1, 2])\nb = float(df.iloc[1, 3])\nc = float(df.iloc[0, 1])\ng = float(input('Insert the amount of gasoline in [T3] '))\nh = (c + a + f) * c + d * b + d\nprint(f'You have produced {h}kg CO₂eq., where CH4 consist of {e} + {f}, -2% of the emission.')\n```\n\nData from file.csv:\n|    | N20 | CO2 | CH4 |\n|----|-----|-----|-----|\n| GWP-100 | 273 | 1   | 30  |\n| Gasoline [kg/TJ] | 3.2 | 69300 | 33 |\n\n(Note: Some variables like d, e, f are not defined in the provided code)",
+      "id": 31,
+      "question": "Given the following Python code and data from file.csv, what will be the output when the user inputs 1 for gasoline amount?",
       "options": {
         "A": "71163.6",
         "B": "69300",
@@ -120,67 +332,6 @@
         "D": "Error due to undefined variables"
       },
       "correct_answer": "A"
-    },
-    {
-      "id": 12,
-      "question": "In terms of energy modeling software, the **micro-scale** time horizon typically refers to long-term modeling.",
-      "options": {
-        "A": "True",
-        "B": "False"
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 13,
-      "question": "What is the primary goal of Life Cycle Assessment (LCA) in software engineering?",
-      "options": {
-        "A": "To analyze user requirements and enhance software functionality.",
-        "B": "To evaluate the scalability of software systems in different environments.",
-        "C": "To assess the performance of algorithms in various software applications.",
-        "D": "To improve processes, support policy, and provide elements for informed decisions."
-      },
-      "correct_answer": "D"
-    },
-    {
-      "id": 14,
-      "question": "For MUSE modeling, determine the correct sector for each of the following:",
-      "options": {
-        "A": "Buildings belong to → Demand sector",
-        "B": "Heat plants are an example of → Conversion sector",
-        "C": "Primary coal is part of → Supply sector"
-      },
-      "correct_answer": "A, B, C"
-    },
-    {
-      "id": 15,
-      "question": "What does \"Environmental Conservation\" aim to achieve in the context of IT sustainability?",
-      "options": {
-        "A": "To enhance technological advancements and increase production rates.",
-        "B": "To safeguard the climate so the assets provided by it don't get destroyed.",
-        "C": "To reduce operational costs and maximize economic growth.",
-        "D": "To ensure user satisfaction through innovative software solutions."
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 16,
-      "question": "Software for sustainable development is designed to:",
-      "options": {
-        "A": "Replace manual systems without sustainability",
-        "B": "Support environmental, economic, and social goals.",
-        "C": "Promote industrial growth without any limitations.",
-        "D": "Focus only on improving environmental policies."
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 17,
-      "question": "From an energy modeling software perspective, the **top-down modeling approach** is a detailed, technology-oriented approach that analyzes energy-specific technologies and their performance.",
-      "options": {
-        "A": "True",
-        "B": "False"
-      },
-      "correct_answer": "B"
     }
   ]
 }
