@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 // Store active sessions in memory
-// Key: testId + userId, Value: { name, progress, lastUpdated }
-// Use global to persist across hot reloads in dev
+// We now use sessionId as key to support multiple tabs without race conditions
+// Key: sessionId (or userId if fallback), Value: { ... }
 if (!global.activeSessions) {
     global.activeSessions = {};
 }
@@ -14,9 +14,7 @@ export async function GET(request) {
   
   const now = Date.now();
   // Cleanup stale sessions.
-  // Mobile browsers may keep tabs open in background without reliably firing beforeunload,
-  // so we expire users based on lastUpdated.
-  const BROWSING_TTL_MS = 15 * 1000; // 15 seconds
+  const BROWSING_TTL_MS = 30 * 1000; // 30 seconds
   const AFK_TTL_MS = 2 * 60 * 1000; // 2 minutes
   const IN_TEST_TTL_MS = 3 * 60 * 1000; // 3 minutes
 
@@ -30,27 +28,50 @@ export async function GET(request) {
     }
   });
 
-  if (!testId) {
-      // Return all active users across all tests
-      return NextResponse.json(Object.values(activeSessions));
+  // Get all active sessions
+  let sessions = Object.values(activeSessions);
+
+  // If specific test requested, filter by it
+  if (testId) {
+      sessions = sessions.filter(s => s.testId === testId);
   }
 
-  // Filter by testId
-  const result = Object.values(activeSessions).filter(s => s.testId === testId);
-  return NextResponse.json(result);
+  // Deduplicate by userId
+  const uniqueUsers = {};
+  sessions.forEach(session => {
+      const existing = uniqueUsers[session.userId];
+      if (!existing) {
+          uniqueUsers[session.userId] = session;
+      } else {
+          // Priority: in-test > browsing > afk
+          const score = (s) => (s.status === 'in-test' ? 3 : s.status === 'browsing' ? 2 : 1);
+          if (score(session) > score(existing)) {
+              uniqueUsers[session.userId] = session;
+          } else if (score(session) === score(existing)) {
+               // Use latest
+               if (session.lastUpdated > existing.lastUpdated) {
+                   uniqueUsers[session.userId] = session;
+               }
+          }
+      }
+  });
+
+  return NextResponse.json(Object.values(uniqueUsers));
 }
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { testId, userId, name, progress, total, status, device, country, currentAnswer, stars, theme, questionId, visualState } = body; 
+    const { testId, userId, sessionId, name, progress, total, status, device, country, currentAnswer, stars, theme, questionId, visualState } = body; 
     
-    // Key by userId to ensure user appears only once
-    const key = userId; 
+    // Key by sessionId to ensure multiple tabs don "t conflict (race condition on reload)
+    // Fallback to userId for backward compatibility
+    const key = sessionId || userId; 
 
     activeSessions[key] = {
         testId, // can be null if just browsing
         userId,
+        sessionId,
         name,
         progress: progress || 0,
         total: total || 0,
@@ -74,12 +95,19 @@ export async function POST(request) {
 export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const sessionId = searchParams.get('sessionId');
 
-    if (userId) {
-        // Direct delete by userId key
-        if (activeSessions[userId]) {
-            delete activeSessions[userId];
-        }
+    // Prefer deleting by specific sessionId
+    if (sessionId && activeSessions[sessionId]) {
+        delete activeSessions[sessionId];
+    } 
+    // Fallback: Delete all sessions for this userId
+    else if (userId) {
+         Object.keys(activeSessions).forEach(key => {
+            if (activeSessions[key].userId === userId) {
+                 delete activeSessions[key];
+            }
+         });
     }
     
     return NextResponse.json({ success: true });

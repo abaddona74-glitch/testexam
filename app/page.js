@@ -767,6 +767,7 @@ export default function Home() {
 
     const [userName, setUserName] = useState('');
     const [userId, setUserId] = useState(''); // Unique Session ID
+    const sessionId = useMemo(() => 'sess_' + Math.random().toString(36).substr(2, 9), []);
     const [nameInput, setNameInput] = useState('');
     const [isNameSet, setIsNameSet] = useState(false);
     const [leaderboard, setLeaderboard] = useState([]);
@@ -1394,6 +1395,7 @@ export default function Home() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userId,
+                        sessionId,
                         name: userName,
                         status,
                         device: getDeviceType(),
@@ -1401,7 +1403,18 @@ export default function Home() {
                         stars: userStars, // Send star count
                         theme: resolvedTheme
                     })
-                }).catch(e => console.error(e));
+                })
+                .then(() => {
+                    // Immediately fetch updated users list to show "Me" faster
+                    fetch('/api/active')
+                        .then(res => res.json())
+                        .then(data => {
+                            setGlobalActiveUsers(data);
+                            setIsUsersLoaded(true);
+                        })
+                        .catch(() => {});
+                })
+                .catch(e => console.error(e));
             };
 
             let interval = null;
@@ -1426,7 +1439,7 @@ export default function Home() {
 
             // Cleanup on unmount/close
             const cleanup = () => {
-                fetch('/api/active?userId=' + userId, {
+                fetch(`/api/active?userId=${userId}&sessionId=${sessionId}`, {
                     method: 'DELETE',
                     keepalive: true
                 });
