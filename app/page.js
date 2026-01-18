@@ -3013,8 +3013,8 @@ export default function Home() {
                                                 .map((user, idx) => {
                                                     const isMe = user.userId === userId;
                                                     return (
-                                                        <div key={idx} className={clsx(
-                                                            "flex items-center gap-3 p-2 rounded-lg transition-colors border",
+                                                        <div key={user.userId || idx} className={clsx(
+                                                            "flex items-center gap-3 p-2 rounded-lg transition-colors border transform-gpu",
                                                             isMe
                                                                 ? "bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30"
                                                                 : "hover:bg-gray-50 dark:bg-gray-950 border-transparent hover:border-gray-100 dark:border-gray-800/50"
