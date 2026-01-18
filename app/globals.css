@@ -267,9 +267,12 @@ body {
 
 /* Horizontal bounce for arrow indicator */
 @keyframes bounce-x {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0);
   }
+
   50% {
     transform: translateX(6px);
   }
@@ -279,41 +282,61 @@ body {
   animation: bounce-x 0.8s ease-in-out infinite;
 }
 
+/* Arrow pointing animation - moves right to left while pointing right */
+@keyframes arrow-point {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(-8px);
+  }
+}
+
+.animate-arrow-point {
+  animation: arrow-point 1s ease-in-out infinite;
+}
+
 /* Hidden Test Card Animation */
 @keyframes marching-ants {
   0% {
-    background-position: 
-      0px 0px, 
-      100% 0px, 
-      100% 100%, 
+    background-position:
+      0px 0px,
+      100% 0px,
+      100% 100%,
       0px 100%;
   }
+
   100% {
-    background-position: 
-      30px 0px, 
-      100% 30px, 
-      calc(100% - 30px) 100%, 
+    background-position:
+      30px 0px,
+      100% 30px,
+      calc(100% - 30px) 100%,
       0px calc(100% - 30px);
   }
 }
 
 .hidden-card-border {
-  background-image: 
-    linear-gradient(90deg, #fb923c 50%, transparent 50%), 
-    linear-gradient(180deg, #fb923c 50%, transparent 50%), 
-    linear-gradient(270deg, #fb923c 50%, transparent 50%), 
+  background-image:
+    linear-gradient(90deg, #fb923c 50%, transparent 50%),
+    linear-gradient(180deg, #fb923c 50%, transparent 50%),
+    linear-gradient(270deg, #fb923c 50%, transparent 50%),
     linear-gradient(0deg, #fb923c 50%, transparent 50%);
   background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
   background-size: 30px 4px, 4px 30px, 30px 4px, 4px 30px;
   background-position: 0px 0px, 100% 0px, 100% 100%, 0px 100%;
   animation: marching-ants 1s linear infinite;
-  border-color: transparent !important; /* Hide original border */
+  border-color: transparent !important;
+  /* Hide original border */
 }
 
 /* Dark mode adjustment for the orange color if needed, but #fb923c is visible on dark */
 .animation-delay-2000 {
   animation-delay: 2s;
 }
+
 .animation-delay-4000 {
   animation-delay: 4s;
 }
