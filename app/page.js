@@ -2102,14 +2102,14 @@ export default function Home() {
         <main className="min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
             <div className="max-w-7xl mx-auto">
                 <header className={clsx(
-                    "relative mb-8 rounded-2xl sticky top-4 z-40 transition-all duration-300 ease-in-out overflow-hidden",
+                    "relative mb-8 rounded-2xl sticky top-4 z-40 transition-all duration-300 ease-in-out",
                     headerExpanded
                         ? "p-6 border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl"
                         : "p-0 py-2 border-transparent shadow-none bg-transparent"
                 )}>
                     {/* Liquid Background Effect */}
                     {headerExpanded && (
-                        <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+                        <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden rounded-2xl">
                             <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
                             <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-blob"></div>
                             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
