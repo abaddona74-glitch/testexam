@@ -247,14 +247,17 @@
     },
     {
       "id": 24,
-      "question": "Given the following Python code and data from file.csv, what will be the output when the user inputs 1 for gasoline amount?",
+      "question": "Match the CSV data values with their descriptions in the CO₂ equivalent calculation:",
       "options": {
-        "A": "71163.6",
-        "B": "69300",
-        "C": "69333",
-        "D": "Error due to undefined variables"
+        "A": "GWP for N₂O → 273",
+        "B": "GWP for CO₂ → 1",
+        "C": "GWP for CH₄ → 30",
+        "D": "N₂O emissions from gasoline → 3.2",
+        "E": "CO₂ emissions from gasoline → 69300",
+        "F": "CH₄ emissions from gasoline → 33",
+        "G": "Total CO₂eq for 1 TJ gasoline → 71163.6"
       },
-      "correct_answer": "A"
+      "correct_answer": "A, B, C, D, E, F, G"
     }
   ]
 }
