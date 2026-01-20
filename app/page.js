@@ -1827,9 +1827,15 @@ export default function Home() {
                 setKeyInput(data.key);
                 setKeyError(''); // Clear error
                 // Optional: add a success toast
-                addToast('Trial Key Generated', 'You have 1 week of free access!', 'success');
+                addToast('Trial Key Generated', 'You have 1 day of free access!', 'success');
+                localStorage.setItem('examApp_trialUsed', 'true'); // Flag to hide button in future (UX only)
+                setShowDemoButton(false); // Hide immediately
             } else {
                 setKeyError(data.message || 'Failed to generate trial key');
+                if (data.message && data.message.includes('already used')) {
+                     setShowDemoButton(false); // Hide if server says used
+                     localStorage.setItem('examApp_trialUsed', 'true');
+                }
             }
         } catch (err) {
             console.error(err);
