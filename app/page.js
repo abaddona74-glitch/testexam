@@ -5600,7 +5600,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 {/* Progress Bar */}
                 <div className="h-8 bg-gray-200 w-full relative rounded-t-2xl">
                     {/* Steps */}
-                    <div className="flex h-full rounded-2xl overflow-hidden gap-[1px]">
+                    <div className="flex h-full rounded-t-2xl overflow-hidden gap-[1px]">
                         {Array.from({ length: totalQuestions }).map((_, i) => {
                             let statusColor = "bg-gray-200 dark:bg-gray-700"; // Default/Pending
                             if (i === currentIndex) {
