@@ -1614,8 +1614,8 @@ export default function Home() {
         } catch (e) { console.error(e); }
     };
 
-    const fetchTests = async () => {
-        setLoading(true);
+    const fetchTests = async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const showHidden = activatedCheats.includes('showhidden');
             const res = await fetch(`/api/tests?showHidden=${showHidden}`);
@@ -1626,7 +1626,7 @@ export default function Home() {
         } catch (error) {
             console.error("Failed to fetch tests", error);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
@@ -1637,6 +1637,16 @@ export default function Home() {
             fetchTests();
         }
     }, [activatedCheats, isCheatsLoaded]);
+
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'development' && isCheatsLoaded) {
+            const interval = setInterval(() => {
+                fetchTests(true);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isCheatsLoaded, activatedCheats]);
 
     useEffect(() => {
         if (isCheatsLoaded) {
