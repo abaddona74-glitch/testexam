@@ -36,7 +36,7 @@ export async function POST(request) {
         // Create new key
         const newLicense = await LicenseKey.create({
             key: newKeyString,
-            type: 'weekly',
+            type: 'daily', // Changed to daily as per request
             status: 'active',
             generatedFor: deviceId
         });

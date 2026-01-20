@@ -13,7 +13,7 @@ const LicenseKeySchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['weekly', 'monthly', 'unlimited'],
+    enum: ['daily', 'weekly', 'monthly', 'unlimited'],
     default: 'weekly',
   },
   usedBy: {

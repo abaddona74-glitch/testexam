@@ -892,6 +892,9 @@ export default function Home() {
 
     // Persistent state for resuming tests
     const [savedProgress, setSavedProgress] = useState({});
+    
+    // Demo Button Visibility State
+    const [showDemoButton, setShowDemoButton] = useState(false);
 
     useEffect(() => {
         // 0. Initialize User ID
@@ -901,6 +904,20 @@ export default function Home() {
             localStorage.setItem('examApp_userId', currentUserId);
         }
         setUserId(currentUserId);
+
+        // Track First Visit for Demo Button (Limit to 3 days validity)
+        let firstVisit = localStorage.getItem('examApp_firstVisit');
+        if (!firstVisit) {
+            firstVisit = Date.now().toString();
+            localStorage.setItem('examApp_firstVisit', firstVisit);
+        }
+        
+        // Check functionality: Hides button 3 days after first visit
+        const msSinceVisit = Date.now() - parseInt(firstVisit, 10);
+        const daysSinceVisit = msSinceVisit / (1000 * 60 * 60 * 24);
+        if (daysSinceVisit <= 3) {
+            setShowDemoButton(true);
+        }
 
         // Load Activated Cheats
         const storedCheats = localStorage.getItem('examApp_activatedCheats');
@@ -4044,6 +4061,7 @@ export default function Home() {
                                             </button>
                                         </div>
 
+                                        {showDemoButton && (
                                         <div className="pt-2">
                                             <button
                                                 type="button"
@@ -4055,10 +4073,11 @@ export default function Home() {
                                                 </div>
                                                 <div className="flex flex-col items-start">
                                                     <span className="text-xs font-medium text-emerald-100">New User?</span>
-                                                    <span className="text-sm">Start Free Demo (1 Week)</span>
+                                                    <span className="text-sm">Start Free Demo (1 Day)</span>
                                                 </div>
                                             </button>
                                         </div>
+                                        )}
 
                                         <div className="grid grid-cols-2 gap-3 pt-2">
                                             <button

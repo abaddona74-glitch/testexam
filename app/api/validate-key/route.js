@@ -30,7 +30,15 @@ export async function POST(request) {
 
         // 1. If key is completely new/active
         if (license.status === 'active') {
-            const duration = 7 * 24 * 60 * 60 * 1000; // 1 week
+            let duration = 7 * 24 * 60 * 60 * 1000; // Default 1 week
+            
+            if (license.type === 'daily') {
+                duration = 1 * 24 * 60 * 60 * 1000; // 1 day
+            } else if (license.type === 'monthly') {
+                duration = 30 * 24 * 60 * 60 * 1000; // 30 days
+            } else if (license.type === 'unlimited') {
+                duration = 365 * 10 * 24 * 60 * 60 * 1000; // 10 years
+            }
             
             license.status = 'used';
             license.usedBy = userId;
