@@ -1,0 +1,152 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "What does the below condition mean? TeacherName LIKE '_e%'",
+      "options": {
+        "A": "The TeacherName attribute does not have an 'e' in the second position",
+        "B": "The TeacherName attribute has an 'e' in the second position from the end of the word.",
+        "C": "The TeacherName attribute has an 'e' in some position before the percentage character.",
+        "D": "The TeacherName attribute has an 'e' in the second position"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 2,
+      "question": "A CTE exists only during the execution of the query in which it is defined.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 3,
+      "question": "Match ALTER TABLE operations with their actions.",
+      "options": {
+        "A": "RENAME - Changes table or column name",
+        "B": "ADD - Adds new column",
+        "C": "MODIFY - Changes column definition",
+        "D": "DROP - Removes a column"
+      },
+      "correct_answer": "A,B,C,D"
+    },
+    {
+      "id": 4,
+      "question": "Which clause is used with aggregate functions to filter groups?",
+      "options": {
+        "A": "ORDER BY",
+        "B": "HAVING",
+        "C": "GROUP BY",
+        "D": "WHERE"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 5,
+      "question": "Which of the following is NOT an aggregate function?",
+      "options": {
+        "A": "AVG()",
+        "B": "SUM()",
+        "C": "CONCAT()",
+        "D": "COUNT()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 6,
+      "question": "Operators IN and NOT IN are equivalent to each other.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 7,
+      "question": "Every relation in a database must have a schema.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 8,
+      "question": "Match SQL constraints with their functions.",
+      "options": {
+        "A": "PRIMARY KEY - Identifies each row uniquely",
+        "B": "UNIQUE - Ensures unique values",
+        "C": "FOREIGN KEY - Maintains referential integrity"
+      },
+      "correct_answer": "A,B,C"
+    },
+    {
+      "id": 9,
+      "question": "What does CTE stand for?",
+      "options": {
+        "A": "Common Table Expression",
+        "B": "Central Table Engine",
+        "C": "Common Table Execution",
+        "D": "Complex Table Expression"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 10,
+      "question": "Which subquery returns only one value?",
+      "options": {
+        "A": "Correlated subquery",
+        "B": "Nested join",
+        "C": "Scalar subquery",
+        "D": "Multi-row subquery"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 11,
+      "question": "What does the below predicate mean? CourseName NOT LIKE 'B%'",
+      "options": {
+        "A": "Courses whose name begins with the letter B",
+        "B": "Courses whose name is 'B%'",
+        "C": "Courses whose name does not begin with the letter B",
+        "D": "Courses whose name contains no letter after 'B'"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 12,
+      "question": "Aggregate functions cannot be used without a GROUP BY clause.",
+      "options": {
+        "A": "True",
+        "B": "False"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 13,
+      "question": "Given two tables (COURSE and TEACHER), you are asked to find the names and research areas of teachers holding only a single course. Provide your answer by choosing the correct SQL keywords for the template below.",
+      "options": {
+        "A": "SELECT TeacherName, ResearchArea",
+        "B": "FROM COURSE C, TEACHER T",
+        "C": "WHERE C.CourseTeacher = T.TeacherCode",
+        "D": "GROUP BY T.TeacherCode",
+        "E": "HAVING COUNT(*) = 1"
+      },
+      "correct_answer": "A,B,C,D,E"
+    },
+    {
+      "id": 14,
+      "question": "Complete the code below with the necessary SQL keywords, which modifies the teacher of the Software engineering course to Eshmuratova K.",
+      "options": {
+        "A": "UPDATE COURSE",
+        "B": "SET CourseTeacher = (",
+        "C": "SELECT TeacherCode",
+        "D": "FROM TEACHER",
+        "E": "WHERE TeacherName LIKE 'Eshmuratova K.%')",
+        "F": "WHERE CourseName = 'Software engineering'"
+      },
+      "correct_answer": "A,B,C,D,E,F"
+    }
+  ]
+}
