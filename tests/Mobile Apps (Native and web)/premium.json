@@ -2,102 +2,199 @@
   "test_questions": [
     {
       "id": 1,
-      "question": "What is the purpose of the following Maven dependency?\n\n<dependency>\n  <groupId>log4j</groupId>\n  <artifactId>log4j</artifactId>\n  <version>1.2.17</version>\n</dependency>",
+      "question": "Given the following Kotlin declarations: fun main() { val scores = mutableListOf(100, 95); scores.add(90); val limit = 50; // limit = 60; println(scores); }\n1. What value is printed to the console when running the code before uncommenting Line 6?\n2. What happens if you uncomment limit = 60 (Line 6)? Explain the distinction between manipulating the scores list (Line 3) and attempting to reassign limit (Line 6).",
       "options": {
-        "A": "To connect to a database",
-        "B": "To create log management",
-        "C": "To enable Spring Security",
-        "D": "To handle HTTP requests"
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 2,
-      "question": "What is the default embedded container used by Spring Boot for web applications?",
-      "options": {
-        "A": "Jetty",
-        "B": "Undertow",
-        "C": "Apache Tomcat",
-        "D": "WildFly"
-      },
-      "correct_answer": "C"
-    },
-    {
-      "id": 3,
-      "question": "In Spring Boot, what is the purpose of the @GetMapping annotation?",
-      "options": {
-        "A": "To define a bean",
-        "B": "To map HTTP GET requests to a controller method",
-        "C": "To enable transaction management",
-        "D": "To configure logging"
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 4,
-      "question": "What does the following Spring Boot configuration block explain?\n\n@Bean\npublic JavaMailSender getJavaMailSender() {\n  // configuration code\n  return mailSender;\n}",
-      "options": {
-        "A": "Database connection configuration",
-        "B": "Spring Security configuration",
-        "C": "Spring Mail Server Properties",
-        "D": "REST controller configuration"
-      },
-      "correct_answer": "C"
-    },
-    {
-      "id": 5,
-      "question": "What is the primary purpose of the MainActivity class in an Android application?",
-      "options": {
-        "A": "Define UI layout for Fragments",
-        "B": "Handle network requests",
-        "C": "Manage database operations",
-        "D": "Schedule background tasks"
+        "A": "[100, 95, 90] - Compilation error at line 6",
+        "B": "[100, 95, 90] - Runtime error at line 6",
+        "C": "[100, 95] - Compilation error at line 6",
+        "D": "[100, 95] - No error, value changes to 60"
       },
       "correct_answer": "A"
     },
     {
-      "id": 6,
-      "question": "To which group do the following annotations correspond?\n@Transactional, @NoRepositoryBean, @Param, @ID, @Transient, @CreatedBy",
+      "id": 2,
+      "question": "Consider the following Kotlin code snippet: fun processData(data: String): Int { return data.length } fun main() { val nullableData: String? = null; // print(processData(nullableData)); val safeLength = nullableData?.length ?: 0; println(safeLength); }\n1. What is the output when only Line 10 executes?\n2. What is the result if Line 8 is uncommented? Justify the difference in behavior using Kotlin's Null Safety concepts.",
       "options": {
-        "A": "Spring MVC Annotations",
-        "B": "Spring Security Annotations",
-        "C": "Spring Data JPA Annotations",
-        "D": "Spring Boot Annotations"
+        "A": "0 - Compilation error",
+        "B": "null - Runtime NullPointerException",
+        "C": "0 - Runtime NullPointerException",
+        "D": "null - Compilation error"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 3,
+      "question": "In Kotlin, Lists are ordered collections that allow duplicate items, whereas Sets are unordered and only store unique items. Given: val listItems = listOf('Red', 'Green', 'Blue', 'Red', 'Green'); val setItems = setOf('Red', 'Green', 'Blue', 'Red', 'Green'); println('List: $listItems'); println('Set: $setItems'); What is the exact output for both the List and the Set?",
+      "options": {
+        "A": "List: [Red, Green, Blue] Set: [Red, Green, Blue]",
+        "B": "List: [Red, Green, Blue, Red, Green] Set: [Red, Green, Blue, Red, Green]",
+        "C": "List: [Red, Green, Blue, Red, Green] Set: [Red, Green, Blue]",
+        "D": "List: [Red, Green, Blue] Set: [Red, Green, Blue, Red, Green]"
       },
       "correct_answer": "C"
+    },
+    {
+      "id": 4,
+      "question": "Given: fun sendAlert(recipient: String, priority: Int = 1, message: String) { println('Alert to $recipient (P$priority): $message') } fun main() { sendAlert(message = 'System Down', recipient = 'Admin', priority = 5) }\n1. What is the output of the main function?\n2. Why does this specific call succeed even though the arguments are provided in a different order than they are declared in the function header?",
+      "options": {
+        "A": "Alert to Admin (P5): System Down - Because of named arguments",
+        "B": "Alert to Admin (P1): System Down - Because of default arguments",
+        "C": "Compilation error - Arguments must be in order",
+        "D": "Alert to System Down (P5): Admin - Because arguments are swapped"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 5,
+      "question": "You define two entities: class Employee(val name: String, val employeeId: Int); data class User(val name: String, val id: Int); If you print an instance of Employee and an instance of User directly, which one will automatically produce a readable string representation of its properties, and what is the name of the predefined member function responsible for this feature?",
+      "options": {
+        "A": "Employee - toString()",
+        "B": "User - equals()",
+        "C": "User - toString()",
+        "D": "Both - toString()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 6,
+      "question": "In Kotlin's Control Flow, both while and do-while loops execute code based on a condition. Explain the key difference between these two loops that guarantees the code block inside the loop will be executed at least once, regardless of the initial truthfulness of the condition.",
+      "options": {
+        "A": "do-while checks condition after executing the block",
+        "B": "while checks condition before executing the block",
+        "C": "Both check condition before executing",
+        "D": "Both check condition after executing"
+      },
+      "correct_answer": "A"
     },
     {
       "id": 7,
-      "question": "To which group do the following annotations correspond?\n@Query, @Procedure, @Lock, @Modifying, @EnableJpaRepositories",
+      "question": "When using Android Studio (the official IDE for Android app development), which specific Tool Window is crucial for viewing real-time system messages and debugging logs while an application is running on an emulator or device?",
       "options": {
-        "A": "Spring MVC Annotations",
-        "B": "Spring Data JPA Annotations",
-        "C": "Spring Security Annotations",
-        "D": "Spring Cloud Annotations"
-      },
-      "correct_answer": "B"
-    },
-    {
-      "id": 8,
-      "question": "Which method is responsible for inflating the layout of a fragment in Android?",
-      "options": {
-        "A": "onCreate()",
-        "B": "onStart()",
-        "C": "onCreateView()",
-        "D": "onResume()"
+        "A": "Project Window",
+        "B": "Run Window",
+        "C": "Logcat",
+        "D": "Debug Window"
       },
       "correct_answer": "C"
     },
     {
-      "id": 9,
-      "question": "What is the purpose of the @RestController annotation in a Spring Boot application?",
+      "id": 8,
+      "question": "In Git, if you have made several changes locally and are ready to save them to your local history, what are the two consecutive mandatory command-line interface (CLI) commands required to first prepare all modified files and then permanently save them with the message 'Feature complete'?",
       "options": {
-        "A": "To enable Spring Security",
-        "B": "To handle HTTP requests and produce RESTful responses",
-        "C": "To configure data sources",
-        "D": "To schedule cron jobs"
+        "A": "git add . ; git commit -m 'Feature complete'",
+        "B": "git commit -m 'Feature complete' ; git push",
+        "C": "git stage . ; git commit 'Feature complete'",
+        "D": "git add . ; git push -m 'Feature complete'"
       },
-      "correct_answer": "B"
+      "correct_answer": "A"
+    },
+    {
+      "id": 9,
+      "question": "What restriction applies specifically to direct subclasses or implementations of a sealed class or sealed interface in Kotlin, which does not apply to indirect subclasses?",
+      "options": {
+        "A": "Direct subclasses must be marked as final and cannot be extended further.",
+        "B": "Direct subclasses must be declared within the same file as the sealed type.",
+        "C": "Direct subclasses must be declared within the same module and package as the sealed type.",
+        "D": "Direct subclasses cannot contain any constructors, as the sealed class is inherently abstract."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 10,
+      "question": "In Clean Architecture, when an inner layer (A) needs to communicate with an outer layer (B), how is the Dependency Rule strictly enforced to ensure dependencies move inward?",
+      "options": {
+        "A": "Layer A directly imports Layer B's class, but Layer B is marked as internal to prevent external changes.",
+        "B": "Layer B is always implemented as an abstract base class, which Layer A inherits from.",
+        "C": "Layer A defines an abstract Interface (C) which specifies the required output format, and Layer B implements this Interface (C), thereby making B dependent on A's contract.",
+        "D": "Layer A receives data from B through a static utility class, eliminating explicit dependency between A and B."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 11,
+      "question": "A sealed class itself is always abstract and cannot be instantiated directly. Regarding the visibility of its constructors, which pair of visibility modifiers is explicitly forbidden in Kotlin and will raise a compilation error?",
+      "options": {
+        "A": "protected and private.",
+        "B": "internal and protected.",
+        "C": "private and public.",
+        "D": "public and internal."
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 12,
+      "question": "Which two core principles are central to the MVI (Model-View-Intent) architectural pattern, ensuring predictability and stability, and distinguishing it strongly from MVVM?",
+      "options": {
+        "A": "Loose coupling via an observable ViewModel layer and a bidirectional data flow.",
+        "B": "A passive View routing user actions to a Presenter, and a strict one-to-one View-Presenter relationship.",
+        "C": "Unidirectional Data Flow (UDF) and the Immutability of the Model's state.",
+        "D": "Controller acting as the central communication hub and Model having no knowledge of the View."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 13,
+      "question": "In the Android Clean Architecture implementation, both the Repository and Data Source classes reside in the Data Layer. Which one of the following responsibilities is specifically attributed to the Repository class, showcasing its role as an abstraction layer?",
+      "options": {
+        "A": "Working with only one single source of data (e.g., a network API).",
+        "B": "Serving as the bridge between the application and the system for data operations.",
+        "C": "Containing reusable, complex business logic that is reused by multiple ViewModels.",
+        "D": "Resolving conflicts between multiple data sources."
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 14,
+      "question": "You need to define a hierarchy where multiple unrelated types (classes from different base hierarchies) must implement a common characteristic or contract. Which special type should you use, and why?",
+      "options": {
+        "A": "enum class, because it offers a fixed set of named constants.",
+        "B": "sealed class, because it is best for closed class hierarchies with varying data.",
+        "C": "data class, because it allows for simple data storage and retrieval.",
+        "D": "sealed interface, because it allows for flexible composition by enabling a type to implement multiple sealed interfaces across different hierarchies."
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 15,
+      "question": "Match the MVVM architectural component with its primary role in the application flow.",
+      "options": {
+        "A": "ViewModel - Acts as the intermediary; handles business logic and exposes observable data streams to the UI.",
+        "B": "View - Represents the user interface elements; displays data and captures user interactions.",
+        "C": "Model - Manages data retrieval, storage, and interaction with data sources like databases or network APIs."
+      },
+      "correct_answer": "A,B,C"
+    },
+    {
+      "id": 16,
+      "question": "Order the three standard layers of an Android application following the principles of Clean Architecture, starting with the Outermost Layer and moving inward.",
+      "options": {
+        "A": "UI Layer → Data Layer → Domain Layer",
+        "B": "Data Layer → Domain Layer → UI Layer",
+        "C": "UI Layer → Domain Layer → Data Layer",
+        "D": "Domain Layer → Data Layer → UI Layer"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 17,
+      "question": "Match the requirement for defining application constants or states with the most appropriate Kotlin special class.",
+      "options": {
+        "A": "Fixed, simple, unique constants representing error severity levels (MINOR, MAJOR, CRITICAL) - enum class",
+        "B": "Representing network responses where each success/failure state needs unique, varying data properties - sealed class",
+        "C": "Defining a set of common behaviors for different payment processing classes - sealed interface"
+      },
+      "correct_answer": "A,B,C"
+    },
+    {
+      "id": 18,
+      "question": "Complete the sentences about MVP (Model-View-Presenter) pattern:\nA. The __ is a passive interface that is completely dumb and routes user actions to the Presenter.\nB. The __ relationship between the View and the Presenter is strictly.\nC. The __ is the 'middle man' that retrieves data from the Model and updates the View.",
+      "options": {
+        "A": "A: View, B: one-to-one, C: Presenter",
+        "B": "A: Model, B: many-to-one, C: View",
+        "C": "A: Presenter, B: one-to-one, C: Model",
+        "D": "A: View, B: many-to-many, C: Presenter"
+      },
+      "correct_answer": "A"
     }
   ]
 }
