@@ -41,6 +41,9 @@ export async function GET(request) {
           dateQuery.testName = { $not: { $regex: /hidden/i } };
       }
 
+      // Exclude study mode from leaderboard
+      dateQuery.difficulty = { $ne: 'study' };
+
       // Get Total Count for Pagination
       const totalDocs = await Leaderboard.countDocuments(dateQuery);
 
@@ -95,6 +98,11 @@ export async function POST(request) {
     const body = await request.json();
     const { name, testName, testId, score, total, duration, questions, answers, difficulty } = body;
     
+    // Do not save 'study' mode results to leaderboard
+    if (difficulty === 'study') {
+        return NextResponse.json({ message: "Study mode results are not saved" }, { status: 200 });
+    }
+
     if (!name || score === undefined || !total) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }

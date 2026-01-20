@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -14,7 +14,8 @@ const DIFFICULTIES = [
     { id: 'middle', name: 'Middle', hints: 1, icon: Zap, color: 'text-yellow-500', bg: 'bg-yellow-100', border: 'border-yellow-200', timeLimit: null },
     { id: 'hard', name: 'Hard', hints: 0, icon: Swords, color: 'text-orange-500', bg: 'bg-orange-100', border: 'border-orange-200', timeLimit: 30 },
     { id: 'insane', name: 'Insane', hints: 0, icon: Skull, color: 'text-red-500', bg: 'bg-red-100', border: 'border-red-200', timeLimit: 20 },
-    { id: 'impossible', name: 'Impossible', hints: 0, icon: Ghost, color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', timeLimit: 8 }
+    { id: 'impossible', name: 'Impossible', hints: 0, icon: Ghost, color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', timeLimit: 8 },
+    { id: 'study', name: 'Study', hints: 999, icon: BookOpen, color: 'text-blue-500', bg: 'bg-blue-100', border: 'border-blue-200', timeLimit: null }
 ];
 
 const EXAM_SCHEDULE = [
@@ -1991,6 +1992,10 @@ export default function Home() {
         setShowDifficultyModal(true);
     };
 
+    // Study Mode State
+    const [studyModeQuestionsCount, setStudyModeQuestionsCount] = useState(10);
+    const [showStudyOptions, setShowStudyOptions] = useState(false);
+
     const launchTest = (difficultyId) => {
         if (!pendingTest) return;
 
@@ -2009,8 +2014,18 @@ export default function Home() {
 
         // Easy mode limit logic (User request: 20 random questions for easy mode)
         let questionsPool = shuffleArray(rawQuestions);
+        
+        // Difficulty-specific Question Limiting
         if (difficultyId === 'easy' && questionsPool.length > 20) {
             questionsPool = questionsPool.slice(0, 20);
+        } else if (difficultyId === 'study') {
+            // Study Mode: Limit questions based on user selection
+            if (studyModeQuestionsCount !== 'all') {
+                const limit = parseInt(studyModeQuestionsCount, 10);
+                if (questionsPool.length > limit) {
+                    questionsPool = questionsPool.slice(0, limit);
+                }
+            }
         }
 
         const preparedQuestions = questionsPool.map(q => {
@@ -2046,6 +2061,7 @@ export default function Home() {
         playStartSound();
         setView('test');
         setShowDifficultyModal(false);
+        setShowStudyOptions(false); // Reset study options
         setPendingTest(null);
     };
 
@@ -3741,10 +3757,64 @@ export default function Home() {
                                 <p className="text-gray-500">Choose your challenge level for <span className="font-semibold text-gray-800 dark:text-gray-200">{pendingTest.name}</span></p>
                             </div>
                             <div className="p-6 space-y-3">
-                                {DIFFICULTIES.map((diff) => (
+                                {showStudyOptions ? (
+                                    <div className="space-y-4 animate-in slide-in-from-right duration-200">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <button 
+                                                onClick={() => setShowStudyOptions(false)}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                                            >
+                                                <ArrowLeft size={20} className="text-gray-500" />
+                                            </button>
+                                            <h4 className="font-bold text-gray-800 dark:text-gray-200">Study Mode Settings</h4>
+                                        </div>
+                                        
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                                            <p className="text-sm text-blue-800 dark:text-blue-300 mb-4 flex gap-2">
+                                                <BookOpen size={16} />
+                                                <span>Instant feedback mode. Select an answer to see if it's correct immediately.</span>
+                                            </p>
+                                            
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                                Number of Questions
+                                            </label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {['10', '20', '30', '50', 'all'].map((opt) => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => setStudyModeQuestionsCount(opt)}
+                                                        className={clsx(
+                                                            "py-2 px-3 rounded-lg text-sm font-bold border transition-all",
+                                                            studyModeQuestionsCount === opt 
+                                                                ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/30" 
+                                                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-blue-400"
+                                                        )}
+                                                    >
+                                                        {opt === 'all' ? 'All' : opt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={() => launchTest('study')}
+                                            className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transform transition-all hover:scale-[1.02]"
+                                        >
+                                            <Play fill="currentColor" size={20} />
+                                            Start Study Session
+                                        </button>
+                                    </div>
+                                ) : (
+                                    DIFFICULTIES.map((diff) => (
                                     <button
                                         key={diff.id}
-                                        onClick={() => launchTest(diff.id)}
+                                        onClick={() => {
+                                            if (diff.id === 'study') {
+                                                setShowStudyOptions(true);
+                                            } else {
+                                                launchTest(diff.id);
+                                            }
+                                        }}
                                         className={`w-full group relative flex items-center p-4 rounded-xl border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${diff.border} dark:border-transparent ${diff.bg || 'bg-white dark:bg-gray-800'} hover:border-current`}
                                     >
                                         <div className={`mr-4 p-3 rounded-full bg-white dark:bg-gray-800 shadow-sm ${diff.color}`}>
@@ -3753,7 +3823,10 @@ export default function Home() {
                                         <div className="text-left flex-1">
                                             <div className={`font-bold text-lg ${diff.color}`}>{diff.name}</div>
                                             <div className="text-sm text-gray-600 font-medium">
-                                                {diff.hints === 0 ? "No hints available" : `${diff.hints} ${diff.hints === 1 ? 'hint' : 'hints'} available`}
+                                                {diff.id === 'study' 
+                                                    ? 'Instant feedback & custom length'
+                                                    : (diff.hints === 0 ? "No hints available" : `${diff.hints} ${diff.hints === 1 ? 'hint' : 'hints'} available`)
+                                                }
                                             </div>
                                         </div>
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity -mr-2">
@@ -3762,7 +3835,8 @@ export default function Home() {
                                             </div>
                                         </div>
                                     </button>
-                                ))}
+                                ))
+                                )}
                             </div>
                             <div className="p-4 bg-gray-50 dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800/50 text-center">
                                 <button
@@ -4814,7 +4888,86 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     // Actually, TestRunner is child of Home, but Home holds the state `userCountry`.
     // Let's pass `userCountry` as prop to TestRunner.
 
+    // question was already defined above, so we don't need to define it again.
+    // However, the above definition variable name was changed to 'currentQuestionItem'.
+    // BUT the 'handleUseHint' function below uses valid 'question' variable which was previously defined here.
+    // So if we removed this line, 'question' would be undefined in handleUseHint.
+    // Wait, the error said "question is defined MULTIPLE times".
+    // This means it IS defined somewhere else in the same scope.
+    // Let's check where else 'question' is defined.
+    // Ah, I see I added `const question = test.questions[currentIndex]` in my previous edit block, 
+    // but it seems there was ALREADY one defined at line 4892.
+    // AND I added `currentQuestionItem` in the fix above, but kept the old variable name in `handleUseHint`.
 
+    // The fix is: Ensure only ONE definition exists.
+    // My previous edit removed the DUPLICATE definition I introduced, but I renamed it `currentQuestionItem`.
+    // So now we have `currentQuestionItem` (from my fix) AND `question` (from line 4892).
+    // But wait, the error is likely because I pasted the code block that introduced a NEW `question` variable while one existed.
+    // Since I renamed my new variable to `currentQuestionItem`, the clash should be gone IF the scopes are correct.
+    
+    // However, I see line 4892 in the `read_file` output above: `const question = test.questions[currentIndex];`
+    
+    // Let's simply use the existing `question` variable everywhere and remove my `currentQuestionItem` alias if it confuses things,
+    // OR just remove the re-declaration.
+    
+    // Since the code above (lines 5360+) uses `question` variable extensively, we should keep `const question`.
+    // The error happened because I pasted a block into the bottom of the component that declared `const question = ...` AGAIN.
+    // Now that I renamed the bottom one to `currentQuestionItem`, the code below it (that I also pasted) might be using `currentQuestionItem`.
+    
+    // Let's check where I used `currentQuestionItem`.
+    // `const rawCorrect = currentQuestionItem.correct_answer;`
+    
+    // This looks correct. I renamed the local variable in the bottom block.
+    // So the top block (line 4892) still defines `question`.
+    // And my bottom block defines `currentQuestionItem`.
+    
+    // BUT, `handleUseHint` (line 4895) uses `question`. That is fine, it uses the top one.
+    
+    // So why did the compilation fail? 
+    // Because in my PREVIOUS edit (before the rename), I had:
+    // `const question = test.questions[currentIndex];` (at bottom)
+    // AND `const question = test.questions[currentIndex];` (at top, line 4892).
+    
+    // My last edit fixed the variable name collision by renaming the bottom one to `currentQuestionItem`.
+    // So the compilation error "question is defined multiple times" SHOULD be resolved now.
+    
+    // The user just reported the error. I have APPLIED the fix.
+    // I should now verify if there are any other conflicts or if I need to clean up.
+    
+    // Let's just remove the top definition if it's redundant? No, `handleUseHint` is defined right after it and uses it.
+    // The structure is:
+    // function TestRunner(...) {
+    //    ...
+    //    const question = test.questions[currentIndex]; // LINE 4892
+    //    ...
+    //    const handleUseHint = ... uses question ...
+    //    ...
+    //    // MY ADDED CODE AT BOTTOM:
+    //    const currentQuestionItem = test.questions[currentIndex];
+    //    ...
+    // }
+    
+    // This is valid JS (two different variables, same value).
+    // Compilation should pass.
+    
+    // Wait, the user error message showed the error at line 4892:
+    // 4892 |     const question = test.questions[currentIndex];
+    //      |           ^^^^^^^^
+    //      |               previous definition of `question` here
+    
+    // This implies there was a SUBSEQUENT definition that caused the error.
+    // My previous edit (`currentQuestionItem`) fixed the *subsequent* definition.
+    
+    // So I just need to confirm to the user that it is fixed.
+    // BUT, I should check if `handleAnswer` or other functions inside the component depend on `question` variable being available globally in the scope.
+    // Yes, `handleAnswer` uses `question` in dependency array and body.
+    
+    // So `const question` at line 4892 is VITAL.
+    // My new `currentQuestionItem` at the bottom is redundant but harmless.
+    // I will remove `currentQuestionItem` and just reuse `question` to be cleaner.
+    
+    // Let's find where `currentQuestionItem` is defined and replace it with `question` (since `question` is already in scope).
+    
     const question = test.questions[currentIndex];
 
     // Hint Logic
@@ -5063,6 +5216,19 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             return;
         }
 
+        // STUDY MODE LOGIC
+        if (test.difficultyMode === 'study') {
+            // Check if already answered - prevent changing answer in Study Mode
+            // because feedback is instant and "one click only"
+            if (answers[currentIndex]) return;
+            
+            setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
+            
+            // Auto calculate result for instant UI feedback?
+            // The UI will re-render and use `answers` to show correct/incorrect state.
+            return;
+        }
+
         // Multi-select logic check
         const isMulti = question?.correct_answer?.includes(',');
 
@@ -5136,6 +5302,28 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         };
     }, [test.id, userId]);
 
+    // Force scroll to current question if it rendered off-screen
+    // (Only if not study mode or if needed)
+    
+    
+    // Study Mode Instant Result Helpers
+    const isStudyMode = test.difficultyMode === 'study';
+    const userAnswer = answers[currentIndex];
+    
+    // NEW: Define studyHasAnswered globally for component scope
+    const studyHasAnswered = isStudyMode && !!userAnswer;
+
+    const rawCorrect = question.correct_answer;
+    const correctIds = rawCorrect.includes(',') ? rawCorrect.split(',') : [rawCorrect];
+    
+    const isCorrect = isStudyMode && userAnswer && correctIds.some(id => id.trim() === userAnswer);
+    const isWrong = isStudyMode && userAnswer && !isCorrect;
+
+    // Next Question Button handler for Study Mode
+    const handleStudyNext = () => {
+        proceedToNext();
+    };
+
     const confirmFinish = async () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
@@ -5189,23 +5377,25 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 console.error("Failed to clear active session", e);
             }
 
-            // Submit to leaderboard
-            await fetch('/api/leaderboard', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: userName,
-                    testId: test.id, // Save ID for filtering
-                    testName: test.name, // Ensure this matches schema
-                    score: score,
-                    total: totalQuestions,
-                    date: new Date().toISOString(),
-                    duration: durationMs,
-                    questions: test.questions, // Store snapshot
-                    answers: answers,
-                    difficulty: test.difficultyMode // Save Difficulty to Leaderboard
-                })
-            });
+            // Submit to leaderboard (Skip for study mode)
+            if (test.difficultyMode !== 'study') {
+                await fetch('/api/leaderboard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: userName,
+                        testId: test.id, // Save ID for filtering
+                        testName: test.name, // Ensure this matches schema
+                        score: score,
+                        total: totalQuestions,
+                        date: new Date().toISOString(),
+                        duration: durationMs,
+                        questions: test.questions, // Store snapshot
+                        answers: answers,
+                        difficulty: test.difficultyMode // Save Difficulty to Leaderboard
+                    })
+                });
+            }
 
             setIsFinished(true);
             setShowConfirmFinish(false);
@@ -5872,19 +6062,38 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 const isCorrect = correctIds.includes(option.id);
                                 const isGodMode = activatedCheats?.includes('godmode');
 
+                                // STUDY MODE LOGIC
+                                // If study mode and user has answered ANY option on this question:
+                                // Note: isStudyMode and studyHasAnswered are now available from upper scope
+                                
+                                let studyClass = "";
+                                if (isStudyMode && studyHasAnswered) {
+                                  if (isSelected) {
+                                      // User picked this. Is it right?
+                                      if (isCorrect) studyClass = "!bg-green-100 !border-green-500 !text-green-900";
+                                      else studyClass = "!bg-red-100 !border-red-500 !text-red-900";
+                                  } else if (isCorrect) {
+                                      // Not selected, but it IS the correct answer (reveal correct)
+                                      studyClass = "!bg-green-50 !border-green-400 !text-green-800 opacity-70";
+                                  }
+                                }
+
                                 return (
                                     <button
                                         key={idx}
-                                        disabled={isEliminated}
+                                        disabled={isEliminated || (isStudyMode && studyHasAnswered)}
                                         onClick={() => !isEliminated && handleAnswer(option.id)}
                                         className={clsx(
                                             "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
-                                            isEliminated ? "opacity-30 cursor-not-allowed border-gray-100 dark:border-gray-800/50 bg-gray-50 dark:bg-gray-950 grayscale" : (
-                                                isSelected
-                                                    ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm"
-                                                    : (isGodMode && isCorrect)
-                                                        ? "border-green-500 bg-green-50 text-green-900 shadow-sm ring-2 ring-green-400"
-                                                        : "border-gray-100 dark:border-gray-800/50 hover:border-blue-200 hover:bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-100"
+                                            studyClass, // Apply study override classes
+                                            !studyClass && ( // Standard classes if not overridden
+                                              isEliminated ? "opacity-30 cursor-not-allowed border-gray-100 dark:border-gray-800/50 bg-gray-50 dark:bg-gray-950 grayscale" : (
+                                                  isSelected
+                                                      ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm"
+                                                      : (isGodMode && isCorrect)
+                                                          ? "border-green-500 bg-green-50 text-green-900 shadow-sm ring-2 ring-green-400"
+                                                          : "border-gray-100 dark:border-gray-800/50 hover:border-blue-200 hover:bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-100"
+                                              )
                                             )
                                         )}
                                     >
@@ -5924,17 +6133,40 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                             End Test Now
                         </button>
 
-                        <button
-                            onClick={() => { playClickSound?.(); handleNext(); }}
-                            className={clsx(
-                                "px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all",
-                                answers[currentIndex]
-                                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                                    : "bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-lg cursor-pointer"
+                        <div className="flex justify-end gap-2">
+                            {isStudyMode && studyHasAnswered && currentIndex < totalQuestions - 1 && (
+                                <button
+                                    onClick={() => { playClickSound?.(); handleStudyNext(); }}
+                                     className="px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 animate-in fade-in"
+                                >
+                                    Next Question <ChevronRight size={18} />
+                                </button>
                             )}
-                        >
-                            {currentIndex === totalQuestions - 1 ? 'Finish Test' : 'Next Question'}
-                        </button>
+
+                            {!isStudyMode && (
+                                <button
+                                    onClick={() => { playClickSound?.(); handleNext(); }}
+                                    className={clsx(
+                                        "px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all",
+                                        answers[currentIndex]
+                                            ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                            : "bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-lg cursor-pointer"
+                                    )}
+                                >
+                                    {currentIndex === totalQuestions - 1 ? 'Finish Test' : 'Next Question'}
+                                </button>
+                            )}
+                            
+                            {/* Study Mode Finish Button for Last Question */}
+                            {isStudyMode && currentIndex === totalQuestions - 1 && (
+                                <button
+                                    onClick={() => { playClickSound?.(); handleNext(); }}
+                                    className="px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    Finish Test
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
