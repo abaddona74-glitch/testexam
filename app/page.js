@@ -4358,7 +4358,7 @@ const MATCH_COLORS = [
     { border: 'border-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' },
 ];
 
-function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion, handleVisualUpdate }) {
+function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion, handleVisualUpdate, difficultyMode }) {
     // Determine the current confirmed answer from props (to avoid loop)
     const currentAnswerForQuestion = answers[currentIndex];
     // Parse Pairs from "A -> B" strings
@@ -4472,14 +4472,13 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
 
     useEffect(() => {
         const userMatchedIDs = [];
-        let allMatched = true;
+        let allFilled = true;
 
         // Check every Left Item (Active Slots Only)
         activePairs.forEach(p => {
             const userRight = matches[p.left];
             if (!userRight) {
-                allMatched = false;
-                // No return here, continue to collect other valid matches
+                allFilled = false;
             }
 
             // Did user match correctly?
@@ -4488,10 +4487,16 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             }
         });
 
-        // Always report progress for real-time spectating
-        // If not all matched, it's a partial answer
         const derivedAnswer = userMatchedIDs.sort().join(', ');
-        const finalAnswer = derivedAnswer === "" ? "NO_MATCH" : derivedAnswer;
+        let finalAnswer = derivedAnswer === "" ? "NO_MATCH" : derivedAnswer;
+
+        // STUDY MODE: Only submit answer if ALL slots are filled.
+        // This ensures the "Next" button remains hidden until the user has filled every drop zone.
+        if (difficultyMode === 'study') {
+            if (!allFilled) {
+                finalAnswer = ""; // Empty answer = No Next Button in TestRunner
+            }
+        }
 
         // Prevent infinite loop by checking if answer changed
         if (finalAnswer !== currentAnswerForQuestion) {
@@ -4502,7 +4507,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
             handleVisualUpdate(matches);
         }
 
-    }, [matches, activePairs, handleAnswer, handleVisualUpdate, currentAnswerForQuestion]);
+    }, [matches, activePairs, handleAnswer, handleVisualUpdate, currentAnswerForQuestion, difficultyMode]);
 
     return (
         <div className="space-y-4">
@@ -4518,6 +4523,16 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                     // Let's just use index in activePairs for color.
                     const godModeColor = isGodMode ? MATCH_COLORS[i % MATCH_COLORS.length] : null;
                     const filled = matches[p.left];
+
+                    // STUDY MODE: Instant Feedback Styles
+                    let studyStyle = null;
+                    if (difficultyMode === 'study' && filled) {
+                         if (filled === p.right) {
+                             studyStyle = { border: "border-green-500", bg: "bg-green-50", text: "text-green-700" };
+                         } else {
+                             studyStyle = { border: "border-red-500", bg: "bg-red-50", text: "text-red-700" };
+                         }
+                    }
 
                     return (
                         <div key={p.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
@@ -4543,6 +4558,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                             <div
                                 className={clsx(
                                     "p-3 rounded-xl border-2 border-dashed flex items-center justify-between min-h-[52px] transition-all h-full",
+                                    studyStyle ? `${studyStyle.border} ${studyStyle.bg}` :
                                     godModeColor
                                         ? `${godModeColor.border} ${godModeColor.bg}`
                                         : filled
@@ -4562,6 +4578,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                     <div className="flex items-center justify-between w-full">
                                         <span className={clsx(
                                             "font-semibold",
+                                            studyStyle ? studyStyle.text :
                                             godModeColor ? godModeColor.text : "text-blue-700 dark:text-blue-300"
                                         )}>{filled}</span>
                                         <button
@@ -5216,21 +5233,24 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             return;
         }
 
+        // Determine if multi-select
+        // Robust check: Check correct answer commas OR text label
+        const isMulti = (question?.correct_answer?.includes(',')) || 
+                        (question?.question && question.question.toLowerCase().includes('select all'));
+
         // STUDY MODE LOGIC
         if (test.difficultyMode === 'study') {
-            // Check if already answered - prevent changing answer in Study Mode
-            // because feedback is instant and "one click only"
-            if (answers[currentIndex]) return;
-            
-            setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
-            
-            // Auto calculate result for instant UI feedback?
-            // The UI will re-render and use `answers` to show correct/incorrect state.
-            return;
+            if (isMulti) {
+                 // For Multi-Select Study Mode: allow toggling (adding/removing) even if "answered"
+                 // We only lock it if "Complete"? No, user should be able to experiment.
+                 // So we fall through to the Multi logic below instead of returning early.
+            } else {
+                 // Single Choice Study: One shot only.
+                 if (answers[currentIndex]) return;
+                 setAnswers(prev => ({ ...prev, [currentIndex]: optionId }));
+                 return;
+            }
         }
-
-        // Multi-select logic check
-        const isMulti = question?.correct_answer?.includes(',');
 
         if (isMulti) {
             setAnswers(prev => {
@@ -5310,14 +5330,45 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const isStudyMode = test.difficultyMode === 'study';
     const userAnswer = answers[currentIndex];
     
-    // NEW: Define studyHasAnswered globally for component scope
-    const studyHasAnswered = isStudyMode && !!userAnswer;
+    // NEW: Logic for "Checkboxes" (Multi-Select) in Study Mode
+    // 1. Next button only appears when ALL correct answers are selected.
+    // 2. Wrong answers are marked red immediately, but do NOT stop the user from finding the rest.
+    const isMultiSelect = (question.correct_answer && question.correct_answer.includes(',')) || 
+                          (question.question && question.question.toLowerCase().includes('select all'));
+                          
+    const correctIds = question.correct_answer.includes(',') ? question.correct_answer.split(',').map(s => s.trim()) : [question.correct_answer];
+    const isMatching = question.shuffledOptions.every(o => o.text.includes('→'));
 
-    const rawCorrect = question.correct_answer;
-    const correctIds = rawCorrect.includes(',') ? rawCorrect.split(',') : [rawCorrect];
+    let isStudyComplete = false;
     
-    const isCorrect = isStudyMode && userAnswer && correctIds.some(id => id.trim() === userAnswer);
-    const isWrong = isStudyMode && userAnswer && !isCorrect;
+    if (isStudyMode) {
+        if (isMatching) {
+             // For Matching: "Complete" means user filled all slots.
+             // Our component sends a value (even NO_MATCH) ONLY when all filled in study mode.
+             // So existence of answer is enough.
+             isStudyComplete = !!userAnswer;
+        } else if (isMultiSelect) {
+            // Check if user has found ALL correct IDs
+            const userSelected = userAnswer ? userAnswer.split(',').map(s => s.trim()) : [];
+            // COMPLETE if every Correct ID is in userSelected
+            const allFound = correctIds.every(id => userSelected.includes(id));
+            isStudyComplete = allFound;
+        } else {
+            // Single choice: Complete as soon as defined
+            isStudyComplete = !!userAnswer;
+        }
+    }
+
+    // "studyHasAnswered" previously blocked inputs. 
+    // Now we split behavior:
+    // - Inputs Disabled?
+    //   - Single: YES, if answered.
+    //   - Multi: NO, even if answered some, keep open until complete? Or never disable? 
+    //     Let's disable INDIVIDUAL buttons in render loop instead.
+    
+    // Keep 'studyHasAnswered' for compatibility with single-choice logic if used elsewhere, 
+    // but prefer 'isStudyComplete' for Next Button visibility.
+    const studyHasAnswered = isStudyComplete; 
 
     // Next Question Button handler for Study Mode
     const handleStudyNext = () => {
@@ -6040,6 +6091,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 revealedHints={revealedHints}
                                 activatedCheats={activatedCheats}
                                 translatedQuestion={translatedQuestion}
+                                difficultyMode={test.difficultyMode}
                             />
                         ) : (
                             question.shuffledOptions.map((option, idx) => {
@@ -6063,25 +6115,44 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 const isGodMode = activatedCheats?.includes('godmode');
 
                                 // STUDY MODE LOGIC
-                                // If study mode and user has answered ANY option on this question:
-                                // Note: isStudyMode and studyHasAnswered are now available from upper scope
+                                // If study mode:
+                                // Single: Reveal all immediately after choice.
+                                // Multi: Reveal Status of THIS OPTION immediately upon selection. 
+                                //        Do NOT reveal others unless "Complete".
                                 
                                 let studyClass = "";
-                                if (isStudyMode && studyHasAnswered) {
-                                  if (isSelected) {
-                                      // User picked this. Is it right?
-                                      if (isCorrect) studyClass = "!bg-green-100 !border-green-500 !text-green-900";
-                                      else studyClass = "!bg-red-100 !border-red-500 !text-red-900";
-                                  } else if (isCorrect) {
-                                      // Not selected, but it IS the correct answer (reveal correct)
-                                      studyClass = "!bg-green-50 !border-green-400 !text-green-800 opacity-70";
-                                  }
+                                if (isStudyMode) {
+                                    if (isMultiSelect) {
+                                        // Multi-Select Logic
+                                        if (isSelected) {
+                                            // I picked this. Is it right?
+                                            if (isCorrect) studyClass = "!bg-green-100 !border-green-500 !text-green-900";
+                                            else studyClass = "!bg-red-100 !border-red-500 !text-red-900";
+                                        }
+                                        // Unlike Single choice, we do NOT reveal unselected correct answers yet
+                                        // UNLESS the question is fully complete (optional, but user asked for "Next button when complete")
+                                        // If complete, maybe we lock everything?
+                                        else if (isStudyComplete && isCorrect) {
+                                             studyClass = "!bg-green-50 !border-green-400 !text-green-800 opacity-70";
+                                        }
+
+                                    } else {
+                                        // Single Choice Logic (Original)
+                                        if (userAnswer) { // Any answer given
+                                            if (isSelected) {
+                                                if (isCorrect) studyClass = "!bg-green-100 !border-green-500 !text-green-900";
+                                                else studyClass = "!bg-red-100 !border-red-500 !text-red-900";
+                                            } else if (isCorrect) {
+                                                studyClass = "!bg-green-50 !border-green-400 !text-green-800 opacity-70";
+                                            }
+                                        }
+                                    }
                                 }
 
                                 return (
                                     <button
                                         key={idx}
-                                        disabled={isEliminated || (isStudyMode && studyHasAnswered)}
+                                        disabled={isEliminated || (isStudyMode && (!isMultiSelect ? !!userAnswer : false))} 
                                         onClick={() => !isEliminated && handleAnswer(option.id)}
                                         className={clsx(
                                             "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
@@ -6134,7 +6205,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         </button>
 
                         <div className="flex justify-end gap-2">
-                            {isStudyMode && studyHasAnswered && currentIndex < totalQuestions - 1 && (
+                            {isStudyMode && isStudyComplete && currentIndex < totalQuestions - 1 && (
                                 <button
                                     onClick={() => { playClickSound?.(); handleStudyNext(); }}
                                      className="px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 animate-in fade-in"
@@ -6158,7 +6229,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                             )}
                             
                             {/* Study Mode Finish Button for Last Question */}
-                            {isStudyMode && currentIndex === totalQuestions - 1 && (
+                            {isStudyMode && isStudyComplete && currentIndex === totalQuestions - 1 && (
                                 <button
                                     onClick={() => { playClickSound?.(); handleNext(); }}
                                     className="px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
