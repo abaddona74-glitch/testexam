@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -795,6 +795,74 @@ export default function Home() {
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
+    // Search State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    // Fuzzy matching helper
+    const fuzzyMatch = useCallback((text, query) => {
+        if (!text || !query) return false;
+        text = text.toString().toLowerCase();
+        query = query.toString().toLowerCase();
+        
+        // Exact substring match (high priority)
+        if (text.includes(query)) return true;
+        
+        // Acronym / Subsequence match (e.g. "dsa" -> "data structures algorithm")
+        let t = 0, q = 0;
+        while (t < text.length && q < query.length) {
+            if (text[t] === query[q]) q++;
+            t++;
+        }
+        return q === query.length;
+    }, []);
+
+    const filteredDefaultTests = useMemo(() => {
+        if (!searchQuery) return tests.defaultTests || [];
+        return (tests.defaultTests || []).filter(test => {
+            const name = test.name || '';
+            // Search in Name AND Folder/Category
+            const category = test.category || test.folder || 'General';
+            return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+        });
+    }, [tests.defaultTests, searchQuery, fuzzyMatch]);
+
+    const filteredUploadedTests = useMemo(() => {
+        if (!searchQuery) return tests.uploadedTests || [];
+        return (tests.uploadedTests || []).filter(test => {
+            const name = test.name || '';
+            const category = test.category || test.folder || 'General';
+            return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+        });
+    }, [tests.uploadedTests, searchQuery, fuzzyMatch]);
+
+    const searchSuggestions = useMemo(() => {
+        if (!searchQuery) return [];
+        const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
+        
+        // 1. Collect all matching Test Names
+        const matchedTests = allTests
+            .filter(test => fuzzyMatch(test.name, searchQuery))
+            .map(test => test.name);
+
+        // 2. Collect all matching Folders
+        const matchedFolders = allTests
+            .map(test => test.category || test.folder || 'General')
+            .filter(cat => fuzzyMatch(cat, searchQuery));
+
+        // Combine and Deduplicate
+        const uniqueSuggestions = [...new Set([...matchedFolders, ...matchedTests])];
+        
+        // Sort: Exact matches first, then shorter strings
+        return uniqueSuggestions.sort((a, b) => {
+             const aExact = a.toLowerCase().startsWith(searchQuery.toLowerCase());
+             const bExact = b.toLowerCase().startsWith(searchQuery.toLowerCase());
+             if (aExact && !bExact) return -1;
+             if (!aExact && bExact) return 1;
+             return a.length - b.length;
+        }).slice(0, 6);
+    }, [tests, searchQuery, fuzzyMatch]);
 
     // Premium / Unlock State
     const [unlockedTests, setUnlockedTests] = useState(new Set());
@@ -2795,9 +2863,60 @@ export default function Home() {
                                     </button>
                                 </div>
 
+                                {/* Search & Suggestions */}
+                                <div className="relative mb-6">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search tests..."
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setShowSuggestions(true);
+                                            }}
+                                            onFocus={() => setShowSuggestions(true)}
+                                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                        />
+                                        {searchQuery && (
+                                            <button 
+                                                onClick={() => setSearchQuery('')}
+                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                    <AnimatePresence>
+                                        {showSuggestions && searchSuggestions.length > 0 && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+                                            >
+                                                {searchSuggestions.map((suggestion, index) => (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => {
+                                                            setSearchQuery(suggestion);
+                                                            setShowSuggestions(false);
+                                                        }}
+                                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex items-center gap-2 text-gray-700 dark:text-gray-200"
+                                                    >
+                                                        <Search size={16} className="text-gray-400" />
+                                                        {suggestion}
+                                                    </button>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+
                                 <div className="space-y-8">
                                     {/* Default Tests Grouped by Category */}
-                                    {Object.entries(tests.defaultTests.reduce((acc, test) => {
+                                    {Object.entries(filteredDefaultTests.reduce((acc, test) => {
                                         const category = test.category || 'General';
                                         if (!acc[category]) acc[category] = [];
                                         acc[category].push(test);
@@ -2882,7 +3001,7 @@ export default function Home() {
                                     ))}
 
                                     {/* Uploaded Tests */}
-                                    {tests.uploadedTests.length > 0 && (
+                                    {filteredUploadedTests.length > 0 && (
                                         <div className="bg-gray-50 dark:bg-gray-950/50 rounded-xl p-6 border border-gray-100 dark:border-gray-800/50">
                                             <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
                                                 <span className="bg-blue-100 text-blue-600 p-2 rounded-lg">
@@ -2891,7 +3010,7 @@ export default function Home() {
                                                 Uploaded / Community
                                             </h3>
                                             <div className="grid md:grid-cols-2 gap-4">
-                                                {tests.uploadedTests.map(test => (
+                                                {filteredUploadedTests.map(test => (
                                                     <TestCard
                                                         key={test.id}
                                                         test={test}
@@ -2908,7 +3027,7 @@ export default function Home() {
                                         </div>
                                     )}
 
-                                    {tests.defaultTests.length === 0 && tests.uploadedTests.length === 0 && (
+                                    {filteredDefaultTests.length === 0 && filteredUploadedTests.length === 0 && (
                                         <div className="col-span-2 p-12 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 dark:bg-gray-950/50">
                                             No tests available. Upload one to get started.
                                         </div>
