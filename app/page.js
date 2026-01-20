@@ -915,7 +915,13 @@ export default function Home() {
         // Check functionality: Hides button 3 days after first visit
         const msSinceVisit = Date.now() - parseInt(firstVisit, 10);
         const daysSinceVisit = msSinceVisit / (1000 * 60 * 60 * 24);
-        if (daysSinceVisit <= 3) {
+        
+        // TEMPORARY ACTION: Force expiration on Jan 23, 2026
+        const expirationDate = new Date('2026-01-23T23:59:59').getTime();
+        const now = Date.now();
+        const isExpiredByDate = now > expirationDate;
+
+        if (daysSinceVisit <= 3 && !isExpiredByDate) {
             setShowDemoButton(true);
         }
 
@@ -1644,8 +1650,6 @@ export default function Home() {
                  let sortedFolders = [...data.folders];
                  try {
                      const now = new Date();
-                     console.log('[Sorting] Now:', now.toISOString());
-                     console.log('[Sorting] Original folders:', sortedFolders);
                      
                      // Parse all exams
                      const allExams = EXAM_SCHEDULE
@@ -1655,8 +1659,6 @@ export default function Home() {
                              return { ...e, date: d, diff: d - now };
                         });
 
-                     console.log('[Sorting] All Exams:', allExams.map(e => ({ name: e.name, diff: e.diff / 3600000 })));
-
                      // 1. Current Active Exam (started < 3h ago)
                      const activeExam = allExams.find(e => e.diff <= 0 && e.diff > -10800000);
                      
@@ -1664,9 +1666,6 @@ export default function Home() {
                      const nextExam = allExams
                         .filter(e => e.diff > 0)
                         .sort((a, b) => a.diff - b.diff)[0];
-
-                     console.log('[Sorting] Active Exam:', activeExam?.name);
-                     console.log('[Sorting] Next Exam:', nextExam?.name);
 
                      let targetExamName = null;
                      
@@ -1677,13 +1676,10 @@ export default function Home() {
                          targetExamName = nextExam.name;
                      }
 
-                     console.log('[Sorting] Target:', targetExamName);
-
                      if (targetExamName) {
                          const matchIndex = sortedFolders.findIndex(f => 
                              f.toLowerCase().trim() === targetExamName.toLowerCase().trim()
                          );
-                         console.log('[Sorting] Match index:', matchIndex);
                          
                          if (matchIndex > -1) {
                              const [folder] = sortedFolders.splice(matchIndex, 1);
@@ -1693,14 +1689,12 @@ export default function Home() {
                              const looseIndex = sortedFolders.findIndex(f => 
                                  f.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === targetExamName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
                              );
-                             console.log('[Sorting] Loose match index:', looseIndex);
                              if (looseIndex > -1) {
                                  const [folder] = sortedFolders.splice(looseIndex, 1);
                                  sortedFolders.unshift(folder);
                              }
                          }
                      }
-                     console.log('[Sorting] Final folders:', sortedFolders);
                  } catch (err) {
                      console.error("Sorting error", err);
                  }
