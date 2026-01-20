@@ -20,6 +20,10 @@ const LicenseKeySchema = new mongoose.Schema({
     type: String, // Store the userId or DeviceId of the whoever used it
     default: null
   },
+  generatedFor: {
+    type: String, // Store identifier of who generated it (for trial keys)
+    default: null
+  },
   activatedAt: {
     type: Date,
     default: null

@@ -1621,7 +1621,73 @@ export default function Home() {
             const res = await fetch(`/api/tests?showHidden=${showHidden}`);
             const data = await res.json();
             setTests(data);
-            if (data.folders) setFolders(data.folders);
+            if (data.folders) {
+                 // Sort folders: Move the upcoming exam to the top
+                 let sortedFolders = [...data.folders];
+                 try {
+                     const now = new Date();
+                     console.log('[Sorting] Now:', now.toISOString());
+                     console.log('[Sorting] Original folders:', sortedFolders);
+                     
+                     // Parse all exams
+                     const allExams = EXAM_SCHEDULE
+                        .filter(e => !e.isHeader)
+                        .map(e => {
+                             const d = new Date(`${e.month} ${e.day}, 2026 ${e.time}`);
+                             return { ...e, date: d, diff: d - now };
+                        });
+
+                     console.log('[Sorting] All Exams:', allExams.map(e => ({ name: e.name, diff: e.diff / 3600000 })));
+
+                     // 1. Current Active Exam (started < 3h ago)
+                     const activeExam = allExams.find(e => e.diff <= 0 && e.diff > -10800000);
+                     
+                     // 2. Next Upcoming Exam (Future)
+                     const nextExam = allExams
+                        .filter(e => e.diff > 0)
+                        .sort((a, b) => a.diff - b.diff)[0];
+
+                     console.log('[Sorting] Active Exam:', activeExam?.name);
+                     console.log('[Sorting] Next Exam:', nextExam?.name);
+
+                     let targetExamName = null;
+                     
+                     // Prioritize Active Exam, then Next Exam
+                     if (activeExam) {
+                         targetExamName = activeExam.name;
+                     } else if (nextExam) {
+                         targetExamName = nextExam.name;
+                     }
+
+                     console.log('[Sorting] Target:', targetExamName);
+
+                     if (targetExamName) {
+                         const matchIndex = sortedFolders.findIndex(f => 
+                             f.toLowerCase().trim() === targetExamName.toLowerCase().trim()
+                         );
+                         console.log('[Sorting] Match index:', matchIndex);
+                         
+                         if (matchIndex > -1) {
+                             const [folder] = sortedFolders.splice(matchIndex, 1);
+                             sortedFolders.unshift(folder);
+                         } else {
+                             // Fallback: Try loose matching (e.g. ignoring special chars)
+                             const looseIndex = sortedFolders.findIndex(f => 
+                                 f.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === targetExamName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+                             );
+                             console.log('[Sorting] Loose match index:', looseIndex);
+                             if (looseIndex > -1) {
+                                 const [folder] = sortedFolders.splice(looseIndex, 1);
+                                 sortedFolders.unshift(folder);
+                             }
+                         }
+                     }
+                     console.log('[Sorting] Final folders:', sortedFolders);
+                 } catch (err) {
+                     console.error("Sorting error", err);
+                 }
+                 setFolders(sortedFolders);
+            }
             if (data.uploadMode) setTestUploadMode(data.uploadMode);
         } catch (error) {
             console.error("Failed to fetch tests", error);
@@ -1718,6 +1784,36 @@ export default function Home() {
             setIsNameSet(true);
             setShowSettings(false);
         }
+    };
+
+    const handleStartFreeDemo = async () => {
+        // isLoading is generic, maybe add a specific loading state or just use isLoading
+        // But since isLoading covers the whole page usually, let's just use it or a local minimal loading
+        // I will use `keyError` to show status for now or simple alert if easier, but user wants smooth UI.
+        // Let's assume generic loading overlay is fine or I add a small loading indicator on button.
+        try {
+            const deviceId = localStorage.getItem('device_id') || 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+            if (!localStorage.getItem('device_id')) localStorage.setItem('device_id', deviceId);
+
+            const res = await fetch('/api/trial-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deviceId }),
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                setKeyInput(data.key);
+                setKeyError(''); // Clear error
+                // Optional: add a success toast
+                addToast('Trial Key Generated', 'You have 1 week of free access!', 'success');
+            } else {
+                setKeyError(data.message || 'Failed to generate trial key');
+            }
+        } catch (err) {
+            console.error(err);
+            setKeyError('Something went wrong. Please try again.');
+        } 
     };
 
     const handleUnlockSubmit = async (e) => {
@@ -2652,35 +2748,18 @@ export default function Home() {
                                         if (hasTestsA && !hasTestsB) return -1;
                                         if (!hasTestsA && hasTestsB) return 1;
 
-                                        // Sort by Exam Schedule Priority (Closest Date >= Today first)
-                                        const getPriority = (catName) => {
-                                            const now = new Date();
-                                            now.setHours(0, 0, 0, 0);
-                                            const months = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-                                            const year = now.getFullYear();
-
-                                            const exams = EXAM_SCHEDULE.filter(e => !e.isHeader && e.name === catName);
-                                            if (!exams.length) return Infinity; // No schedule = lowest priority
-
-                                            let minDiff = Infinity;
-                                            exams.forEach(e => {
-                                                const examDate = new Date(year, months[e.month], parseInt(e.day));
-                                                // Only consider upcoming or today's exams
-                                                if (examDate >= now) {
-                                                    const diff = examDate.getTime() - now.getTime();
-                                                    if (diff < minDiff) minDiff = diff;
-                                                }
-                                            });
-                                            return minDiff;
-                                        };
-
-                                        const pA = getPriority(catA);
-                                        const pB = getPriority(catB);
-
-                                        if (pA !== pB) {
-                                            return pA - pB;
+                                        // Use the already sorted folders array order
+                                        const idxA = folders.indexOf(catA);
+                                        const idxB = folders.indexOf(catB);
+                                        
+                                        // If both are in folders, preserve that order
+                                        if (idxA !== -1 && idxB !== -1) {
+                                            return idxA - idxB;
                                         }
-
+                                        // If only one is in folders, prioritize it
+                                        if (idxA !== -1) return -1;
+                                        if (idxB !== -1) return 1;
+                                        
                                         return catA.localeCompare(catB);
                                     }).map(([category, categoryTests]) => (
                                         <div key={category} className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-6 border border-gray-100 dark:border-gray-800/30">
@@ -3887,6 +3966,22 @@ export default function Home() {
                                                 <div className="flex flex-col items-start">
                                                     <span className="text-xs font-medium text-blue-100">Get Subscription for 1 week</span>
                                                     <span className="text-sm">30,000 UZS</span>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleStartFreeDemo}
+                                                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold shadow-lg shadow-emerald-500/20 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 group border border-emerald-400/20"
+                                            >
+                                                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-colors">
+                                                    <Zap size={20} className="text-white" />
+                                                </div>
+                                                <div className="flex flex-col items-start">
+                                                    <span className="text-xs font-medium text-emerald-100">New User?</span>
+                                                    <span className="text-sm">Start Free Demo (1 Week)</span>
                                                 </div>
                                             </button>
                                         </div>
