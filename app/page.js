@@ -4481,6 +4481,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const [showLegendaryEffect, setShowLegendaryEffect] = useState(false);
     const celebrationAudioRef = useRef(null);
     const [needsSoundTap, setNeedsSoundTap] = useState(false);
+    const [expandedImage, setExpandedImage] = useState(null);
 
     const stopCelebrationSound = () => {
         const audio = celebrationAudioRef.current;
@@ -5723,7 +5724,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                     {/* Image Support */}
                     {question.image && (
-                        <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 bg-gray-50 flex justify-center">
+                        <div
+                            onClick={() => setExpandedImage(question.image)}
+                            className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 bg-gray-50 flex justify-center cursor-zoom-in hover:opacity-95 transition-opacity"
+                        >
                             <img
                                 src={question.image}
                                 alt="Question diagram"
@@ -5876,6 +5880,31 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 ) : "Yes, Finish"}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Expansion Modal */}
+            {expandedImage && (
+                <div
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
+                    onClick={() => setExpandedImage(null)}
+                >
+                    <div
+                        className="relative max-w-full max-h-full flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setExpandedImage(null)}
+                            className="absolute -top-12 right-0 md:-right-12 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+                        >
+                            <X size={24} />
+                        </button>
+                        <img
+                            src={expandedImage}
+                            alt="Expanded View"
+                            className="max-w-[95vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                        />
                     </div>
                 </div>
             )}
