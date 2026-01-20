@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -1574,9 +1574,18 @@ export default function Home() {
             };
 
             // Aggressive CSS injection to stop selection on mobile
-            let style;
-            if (!isGodmode) {
-                style = document.createElement('style');
+            let style = document.createElement('style');
+            if (isGodmode) {
+                 style.innerHTML = `
+            body, #root, * {
+                user-select: text !important;
+                -webkit-user-select: text !important;
+                -moz-user-select: text !important;
+                -ms-user-select: text !important;
+            }
+            `;
+                document.head.appendChild(style);
+            } else {
                 style.innerHTML = `
             body, #root, * {
                 -webkit-touch-callout: none !important;
@@ -2159,23 +2168,29 @@ export default function Home() {
     }, [showUploadModal, canUploadTests]);
 
     useEffect(() => {
-        // Disable right-click context menu
-        document.addEventListener('contextmenu', function (e) {
+        const handleGlobalContextMenu = (e) => {
+            if (isGodmode) return;
             e.preventDefault();
-        });
+        };
 
-        // Disable copy and paste keyboard shortcuts
-        document.addEventListener('keydown', function (e) {
+        const handleGlobalKeydown = (e) => {
+            if (isGodmode) return;
             if (e.ctrlKey && (e.key === 'c' || e.key === 'v')) {
                 e.preventDefault();
             }
-        });
+        };
+
+        // Disable right-click context menu
+        document.addEventListener('contextmenu', handleGlobalContextMenu);
+
+        // Disable copy and paste keyboard shortcuts
+        document.addEventListener('keydown', handleGlobalKeydown);
 
         return () => {
-            document.removeEventListener('contextmenu', () => { });
-            document.removeEventListener('keydown', () => { });
+            document.removeEventListener('contextmenu', handleGlobalContextMenu);
+            document.removeEventListener('keydown', handleGlobalKeydown);
         };
-    }, []);
+    }, [isGodmode]);
 
     if (loading && view === 'list') {
         return (
@@ -2442,6 +2457,18 @@ export default function Home() {
                                     {canUploadTests ? "Enabled" : "Disabled"}
                                 </span>
                                 {isGodmode && <span className="ml-2 text-purple-600">(godmode)</span>}
+                            </div>
+
+                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">User ID</label>
+                                <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded p-2 border border-gray-200 dark:border-gray-700 group cursor-pointer hover:border-blue-300 transition-colors"
+                                     onClick={() => {
+                                        navigator.clipboard.writeText(userId);
+                                        addToast('Copied!', 'User ID copied to clipboard.', 'success');
+                                     }}>
+                                    <code className="text-xs text-gray-600 dark:text-gray-300 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono">{userId}</code>
+                                    <Copy size={14} className="text-gray-400 group-hover:text-blue-500" />
+                                </div>
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
