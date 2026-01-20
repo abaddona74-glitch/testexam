@@ -1,0 +1,224 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Which real-world scenario is a good example of a queue's behavior?",
+      "options": {
+        "A": "A waiting line at a bank.",
+        "B": "A stack of books.",
+        "C": "Undoing an action in a text editor.",
+        "D": "A pile of dirty dishes."
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "Choose the correct if-statement:",
+      "options": {
+        "A": "if x = 5;",
+        "B": "if x == 5;",
+        "C": "if (x == 5)",
+        "D": "if x := 5;"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 3,
+      "question": "What is a common application of stacks in programming?",
+      "options": {
+        "A": "Managing CPU task scheduling.",
+        "B": "Representing hierarchical data.",
+        "C": "Function call management (call stack).",
+        "D": "Implementing a breadth-first search."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 4,
+      "question": "Which of the following statements about the Stack ADT implementation are incorrect?",
+      "options": {
+        "A": "The Stack ADT can be implemented using an array.",
+        "B": "The Stack ADT can be implemented using a linked list.",
+        "C": "The Stack ADT can be implemented using a queue.",
+        "D": "The Stack ADT can be implemented using a binary tree."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 5,
+      "question": "When a collections.deque (used as a queue) is empty, what should happen if a popleft() operation is attempted?",
+      "options": {
+        "A": "The queue automatically fills with default values.",
+        "B": "The operation should succeed, returning None.",
+        "C": "It raises an IndexError.",
+        "D": "The program should terminate silently."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 6,
+      "question": "What happens internally when a Python list grows beyond its current allocated capacity?",
+      "options": {
+        "A": "It switches to a linked list implementation automatically.",
+        "B": "The oldest element is automatically removed to make space.",
+        "C": "It simply stops accepting new elements.",
+        "D": "A new, larger underlying array is allocated, and elements are copied."
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 7,
+      "question": "To delete a node from the middle of a singly linked list, what information do you primarily need (without modifying previous nodes)?",
+      "options": {
+        "A": "A reference to the node before the node to be deleted.",
+        "B": "A reference to the tail of the list.",
+        "C": "A reference to the head of the list.",
+        "D": "A reference to the node to be deleted."
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 8,
+      "question": "What is printed? nums = [1, 2, 3] for n in nums: print(n * 2)",
+      "options": {
+        "A": "1 2 3",
+        "B": "12",
+        "C": "Error",
+        "D": "2 4 6 (each on its own line)"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 9,
+      "question": "What is the correct way to format a string using an f-string?",
+      "options": {
+        "A": "f'Hello {name}'",
+        "B": "'Hello' + name",
+        "C": "\"Hello {{}}.format(name)\"",
+        "D": "format(f'Hello {name}')"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 10,
+      "question": "What is the root of a tree?",
+      "options": {
+        "A": "A child node",
+        "B": "A leaf node",
+        "C": "The topmost node",
+        "D": "A sibling node"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 11,
+      "question": "Where do insertions occur in a queue?",
+      "options": {
+        "A": "Anywhere in the middle.",
+        "B": "At the rear (tail).",
+        "C": "At the front (head).",
+        "D": "At both ends."
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 12,
+      "question": "A graph with no cycles is called:",
+      "options": {
+        "A": "Loop graph",
+        "B": "Tree",
+        "C": "Cyclic graph",
+        "D": "Labeled graph"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 13,
+      "question": "What are the two main operations associated with a stack (in Python, often implemented using a list)?",
+      "options": {
+        "A": "append and pop()",
+        "B": "insert(0, item) and pop()",
+        "C": "append and pop(0)",
+        "D": "append and remove(item)"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 14,
+      "question": "What does break do in a loop?",
+      "options": {
+        "A": "Does nothing",
+        "B": "Restarts loop",
+        "C": "Exits the loop",
+        "D": "Skips iteration"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 15,
+      "question": "What is the height of a tree?",
+      "options": {
+        "A": "The total number of nodes in the tree.",
+        "B": "The number of leaves in the tree.",
+        "C": "The number of nodes in the longest path from the root to a leaf.",
+        "D": "The number of edges in the longest path from the root to a leaf."
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 16,
+      "question": "\"a,b,c\".split(\";\") gives:",
+      "options": {
+        "A": "\"a b c\"",
+        "B": "\"abc\"",
+        "C": "[\"a\", \"b\", \"c\"]",
+        "D": "(\"a\", \"b\", \"c\")"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 17,
+      "question": "''.join(['a','b','c']) returns:",
+      "options": {
+        "A": "['a b c']",
+        "B": "Error",
+        "C": "'a b c'",
+        "D": "'abc'"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 18,
+      "question": "How do you create an empty list in Python?",
+      "options": {
+        "A": "Both b and c.",
+        "B": "my_list = []",
+        "C": "my_list = list()",
+        "D": "my_list = {}"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 19,
+      "question": "What is output of: a, b = [1, 2] print(b)",
+      "options": {
+        "A": "1",
+        "B": "Error",
+        "C": "2",
+        "D": "[1, 2]"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 20,
+      "question": "What does this function output? def f(a, b=3): return a + b print(f(2))",
+      "options": {
+        "A": "Error",
+        "B": "3",
+        "C": "2",
+        "D": "5"
+      },
+      "correct_answer": "D"
+    }
+  ]
+}
