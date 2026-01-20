@@ -261,6 +261,7 @@
     },
     {
       "id": 25,
+      "image": "/scopes.jpg",
       "question": "According to the GHG Protocol, which emissions are considered 'Scope 1'?",
       "options": {
         "A": "Direct emissions from assets owned or controlled by the company",
@@ -271,6 +272,7 @@
     },
     {
       "id": 26,
+      "image": "/scopes.jpg",
       "question": "Which type of emission falls under 'Scope 2'?",
       "options": {
         "A": "CO₂ emissions from fuel combustion",
@@ -281,6 +283,7 @@
     },
     {
       "id": 27,
+      "image": "/scopes.jpg",
       "question": "Which activities can be examples of 'Scope 3' emissions?",
       "options": {
         "A": "Only purchased goods and services",
@@ -291,6 +294,7 @@
     },
     {
       "id": 28,
+      "image": "/scopes.jpg",
       "question": "Under which Scope do Upstream emissions fall?",
       "options": {
         "A": "Scope 1",
@@ -301,6 +305,7 @@
     },
     {
       "id": 29,
+      "image": "/scopes.jpg",
       "question": "Under which Scope do Downstream emissions fall?",
       "options": {
         "A": "Scope 1",
@@ -311,6 +316,7 @@
     },
     {
       "id": 30,
+      "image": "/scopes.jpg",
       "question": "Which of the following is an example of a 'Scope 1' emission?",
       "options": {
         "A": "Natural gas combustion at the company's manufacturing plant",
@@ -321,6 +327,7 @@
     },
     {
       "id": 31,
+      "image": "/scopes.jpg",
       "question": "Which of the following is an example of a 'Scope 2' emission?",
       "options": {
         "A": "Coal combustion in boilers for heating company buildings",
@@ -331,6 +338,7 @@
     },
     {
       "id": 32,
+      "image": "/scopes.jpg",
       "question": "What is the main difference between Upstream and Downstream activities?",
       "options": {
         "A": "Upstream - processes before the company's activities; Downstream - processes after the company's activities",

@@ -5721,6 +5721,17 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         />
                     </h2>
 
+                    {/* Image Support */}
+                    {question.image && (
+                        <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 bg-gray-50 flex justify-center">
+                            <img
+                                src={question.image}
+                                alt="Question diagram"
+                                className="max-w-full h-auto max-h-[400px] object-contain"
+                            />
+                        </div>
+                    )}
+
                     <div className="space-y-3 flex-1">
                         {/* Check if it's a Matching Question (contains '→') */}
                         {question.shuffledOptions.every(o => o.text.includes('→')) ? (
