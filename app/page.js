@@ -4482,6 +4482,8 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const celebrationAudioRef = useRef(null);
     const [needsSoundTap, setNeedsSoundTap] = useState(false);
     const [expandedImage, setExpandedImage] = useState(null);
+    const [skipConfirmationDisabled, setSkipConfirmationDisabled] = useState(false);
+    const [dontAskAgain, setDontAskAgain] = useState(false);
 
     const stopCelebrationSound = () => {
         const audio = celebrationAudioRef.current;
@@ -4998,7 +5000,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const handleNext = () => {
         // Check if answered
         if (!answers[currentIndex]) {
-            setShowConfirmSkip(true);
+            if (skipConfirmationDisabled) {
+                proceedToNext();
+            } else {
+                setShowConfirmSkip(true);
+            }
             return;
         }
         proceedToNext();
@@ -5978,6 +5984,20 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         <p className="text-gray-600 mb-6">
                             Are you sure you want to skip this question without answering? It will be marked as incorrect.
                         </p>
+
+                        <div className="flex items-center gap-2 mb-6">
+                            <input
+                                type="checkbox"
+                                id="dontAskAgain"
+                                checked={dontAskAgain}
+                                onChange={(e) => setDontAskAgain(e.target.checked)}
+                                className="w-5 h-5 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500 cursor-pointer"
+                            />
+                            <label htmlFor="dontAskAgain" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none">
+                                Don't ask again for this test
+                            </label>
+                        </div>
+
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowConfirmSkip(false)}
@@ -5986,7 +6006,14 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 Cancel
                             </button>
                             <button
-                                onClick={() => { playClickSound?.(); proceedToNext(); }}
+                                onClick={() => {
+                                    playClickSound?.();
+                                    if (dontAskAgain) {
+                                        setSkipConfirmationDisabled(true);
+                                    }
+                                    setShowConfirmSkip(false); // Close modal first
+                                    proceedToNext();
+                                }}
                                 className="flex-1 py-2.5 rounded-lg bg-yellow-500 font-semibold text-white hover:bg-yellow-600 transition-colors shadow-md"
                             >
                                 Yes, Skip
