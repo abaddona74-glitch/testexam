@@ -21,89 +21,128 @@ export async function GET(request) {
   const testsDirectory = path.join(process.cwd(), 'tests');
   let defaultTests = [];
   let folders = new Set(); 
+  let universities = new Set();
+  let universityStructure = {}; // { "UniName": ["Dir1", "Dir2"] }
 
   // 1. Load from File System (Legacy/Static Tests)
   try {
-    const entries = await fs.readdir(testsDirectory, { withFileTypes: true });
+    const traverse = async (currentPath, folderStack = []) => {
+      let entries = [];
+      try {
+          entries = await fs.readdir(currentPath, { withFileTypes: true });
+      } catch (err) {
+          console.error(`Error reading directory ${currentPath}`, err);
+          return;
+      }
 
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-         folders.add(entry.name);
-        // Handle Subject Folder
-        const subjectPath = path.join(testsDirectory, entry.name);
-        try {
-          const subjectFiles = await fs.readdir(subjectPath);
-          const jsonFiles = subjectFiles.filter(file => {
-             if (!file.endsWith('.json')) return false;
-             if (file.toLowerCase().includes('hidden')) return showHidden;
-             return true;
+      const jsonFiles = entries.filter(e => e.isFile() && e.name.endsWith('.json'));
+      const subDirectories = entries.filter(e => e.isDirectory());
+
+      // --- Structure Building Logic (Empty Folders Support) ---
+      if (folderStack.length === 0) {
+          // We are at Root. subDirectories are Universities.
+          subDirectories.forEach(dir => {
+              const uniName = dir.name;
+              universities.add(uniName);
+              if (!universityStructure[uniName]) {
+                  universityStructure[uniName] = [];
+              }
           });
+      } else if (folderStack.length === 1) {
+          // We are inside a University. subDirectories are Directions.
+          const uniName = folderStack[0];
+          subDirectories.forEach(dir => {
+              const dirName = dir.name;
+              if (universityStructure[uniName] && !universityStructure[uniName].includes(dirName)) {
+                  universityStructure[uniName].push(dirName);
+              }
+          });
+      }
+      // --------------------------------------------------------
+
+      // 1. Process files in current directory
+      if (jsonFiles.length > 0) {
+          // Identify Category/Subject
+          let category = 'General';
+          let university = 'General';
+          let direction = 'General'; // New Field
+
+          if (folderStack.length > 0) {
+              category = folderStack[folderStack.length - 1]; 
+              folders.add(category);
+              
+              // Assume first folder in stack is University
+              university = folderStack[0];
+              // Ensure we add it to universities set (already done in structure logic but safety net)
+              universities.add(university);
+              
+              // Assume second folder is Direction (Group/System/Major)
+              if (folderStack.length > 1) {
+                  direction = folderStack[1];
+              }
+          }
 
           const groupedFiles = new Map();
 
-          for (const filename of jsonFiles) {
-            const filePath = path.join(subjectPath, filename);
-            const fileStat = await fs.stat(filePath);
-            const fileUpdatedAt = fileStat?.mtime;
-            const fileContents = await fs.readFile(filePath, 'utf8');
-            try {
-              const json = JSON.parse(fileContents);
+          for (const entry of jsonFiles) {
+              const filename = entry.name;
+              if (filename.toLowerCase().includes('hidden') && !showHidden) continue;
+
+              const filePath = path.join(currentPath, filename);
               
-              let baseName = filename.replace('.json', '');
-              let lang = 'en';
+              try {
+                  const fileContents = await fs.readFile(filePath, 'utf8');
+                  const json = JSON.parse(fileContents);
 
-              // Logic to group en/uz files
-              // 1. Check for suffix _en or _uz
-              const suffixMatch = baseName.match(/^(.*)_(en|uz)$/);
-              if (suffixMatch) {
-                  baseName = suffixMatch[1];
-                  lang = suffixMatch[2];
-              }
-              // 2. Check if file IS en.json or uz.json
-              // In this case, use folder name as the test name? 
-              // unique ID logic might need care.
-              else if (baseName === 'en' || baseName === 'uz') {
-                  // If just en.json inside "Subject", maybe we want the test name to be "Subject"?
-                  // But we might have multiple groups? 
-                  // Let's assume if it is explicitly en.json, it belongs to a "Main" test of that folder.
-                  // For now, let's keep it simple: if it is "en", baseName is "Main" or just use the folder name logic if needed.
-                  // Actually, the user specifically mentioned "v1_en", "v1_uz".
-                  // Let's stick to the user's specific request about suffixes.
-                  // But I'll handle "en"/"uz" as a special case where baseName becomes the folder name for cleaner UI.
-                  lang = baseName; // 'en' or 'uz'
-                  baseName = entry.name; // Use folder name as the test title
-              }
+                  let baseName = filename.replace('.json', '');
+                  let lang = 'en';
 
-              if (!groupedFiles.has(baseName)) {
-                  groupedFiles.set(baseName, {
-                      id: `${entry.name}/${baseName}`,
-                      name: baseName,
-                      category: entry.name,
-                      type: 'default',
-                      isPremium: baseName.toLowerCase().includes('premium'),
-                    variants: {},
-                    variantsUpdatedAt: {},
-                    variantsCreatedAt: {}
-                  });
-              }
-              groupedFiles.get(baseName).variants[lang] = json;
-                // Use updatedAt from JSON if available. Do NOT fallback to file time.
-                groupedFiles.get(baseName).variantsUpdatedAt[lang] = json.updatedAt ? new Date(json.updatedAt) : null;
-                groupedFiles.get(baseName).variantsCreatedAt[lang] = json.createdAt ? new Date(json.createdAt) : null;
+                  // Logic to group en/uz files
+                  const suffixMatch = baseName.match(/^(.*)_(en|uz)$/);
+                  if (suffixMatch) {
+                      baseName = suffixMatch[1];
+                      lang = suffixMatch[2];
+                  } else if (baseName === 'en' || baseName === 'uz') {
+                      lang = baseName;
+                      // Use category (folder name) as test name if file is just en.json/uz.json
+                      baseName = category === 'General' ? 'Test' : category; 
+                  }
 
-            } catch (e) {
-              console.error(`Error parsing ${entry.name}/${filename}`, e);
-            }
+                  // ID creation: use path to avoid collisions
+                  const idPath = [...folderStack, baseName].join('/');
+
+                  if (!groupedFiles.has(baseName)) {
+                      groupedFiles.set(baseName, {
+                          id: idPath,
+                          name: baseName,
+                          category: category,
+                          university: university,
+                          direction: direction, // Add direction
+                          type: 'default',
+                          isPremium: baseName.toLowerCase().includes('premium'),
+                          variants: {},
+                          variantsUpdatedAt: {},
+                          variantsCreatedAt: {}
+                      });
+                  }
+                  
+                  groupedFiles.get(baseName).variants[lang] = json;
+                  groupedFiles.get(baseName).variantsUpdatedAt[lang] = json.updatedAt ? new Date(json.updatedAt) : null;
+                  groupedFiles.get(baseName).variantsCreatedAt[lang] = json.createdAt ? new Date(json.createdAt) : null;
+
+              } catch (e) {
+                  console.error(`Error processing file ${filePath}`, e);
+              }
           }
 
-          // Convert grouped files to test objects
-          for (const group of groupedFiles.values()) {
+          // Push grouped files to defaultTests
+           for (const group of groupedFiles.values()) {
               const variants = group.variants;
               const langs = Object.keys(variants);
-              // Prefer 'en', then 'uz', then whatever
+              if (langs.length === 0) continue;
+
               const primaryLang = langs.includes('en') ? 'en' : langs[0];
 
-              // Compute "last updated" across all language variants
               const groupUpdatedAt = Object.values(group.variantsUpdatedAt || {})
                 .filter(Boolean)
                 .reduce((latest, current) => {
@@ -122,40 +161,25 @@ export async function GET(request) {
                   id: group.id,
                   name: group.name,
                   category: group.category,
+                  university: group.university,
+                  direction: group.direction,
                   type: group.type,
                   isPremium: group.isPremium,
                   content: variants[primaryLang],
-                  translations: variants, // Pass all variants to frontend
+                  translations: variants,
                   updatedAt: groupUpdatedAt,
                   createdAt: groupCreatedAt
               });
           }
-
-        } catch (err) {
-            console.error(`Error reading subject folder ${entry.name}`, err);
-        }
-      } else if (entry.isFile() && entry.name.endsWith('.json')) {
-        // Handle Root Files
-        const filePath = path.join(testsDirectory, entry.name);
-        const fileStat = await fs.stat(filePath);
-        const fileUpdatedAt = fileStat?.mtime;
-        const fileContents = await fs.readFile(filePath, 'utf8');
-        try {
-            const json = JSON.parse(fileContents);
-            defaultTests.push({
-                id: entry.name,
-                name: entry.name.replace('.json', ''),
-                category: 'General',
-                type: 'default',
-                content: json,
-                updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
-                createdAt: json.createdAt ? new Date(json.createdAt) : null
-            });
-        } catch (e) {
-            console.error(`Error parsing ${entry.name}`, e);
-        }
       }
-    }
+
+      // 2. Recurse into subdirectories
+      for (const dir of subDirectories) {
+          await traverse(path.join(currentPath, dir.name), [...folderStack, dir.name]);
+      }
+    };
+
+    await traverse(testsDirectory, []);
   } catch (error) {
     console.error("Error reading tests directory:", error);
   }
@@ -168,11 +192,14 @@ export async function GET(request) {
             id: test._id.toString(),
             name: test.name,
             category: test.folder || 'General',
+            university: 'Uploaded', // Group Uploaded tests separately
+            direction: 'General', 
             type: 'uploaded', 
             content: test.content,
             updatedAt: test.updatedAt || test.createdAt
         });
         if (test.folder) folders.add(test.folder);
+        universities.add('Uploaded');
     });
   } catch (e) {
       console.error("DB Fetch Error", e);
@@ -180,11 +207,14 @@ export async function GET(request) {
 
   // Convert Set to Array for response
   const foldersArray = Array.from(folders);
+  const universitiesArray = Array.from(universities);
 
   return NextResponse.json({ 
     defaultTests, 
     uploadedTests: [], // Empty as we merged everything
     folders: foldersArray,
+    universities: universitiesArray,
+    universityStructure, // Return the full structure
     uploadMode,
     uploadsEnabled: isTestUploadEnabled()
   });

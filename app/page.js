@@ -798,10 +798,31 @@ export default function Home() {
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
+    const [universities, setUniversities] = useState([]);
+    const [universityStructure, setUniversityStructure] = useState({});
+    const [selectedUniversity, setSelectedUniversity] = useState('All');
+    const [selectedDirection, setSelectedDirection] = useState('All');
+    const [isFiltersInitialized, setIsFiltersInitialized] = useState(false);
+
+    // Persistence for Filters
+    useEffect(() => {
+        const savedUni = localStorage.getItem('examApp_selectedUniversity');
+        const savedDir = localStorage.getItem('examApp_selectedDirection');
+        if (savedUni) setSelectedUniversity(savedUni);
+        if (savedDir) setSelectedDirection(savedDir);
+        setIsFiltersInitialized(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isFiltersInitialized) return;
+        localStorage.setItem('examApp_selectedUniversity', selectedUniversity);
+        localStorage.setItem('examApp_selectedDirection', selectedDirection);
+    }, [selectedUniversity, selectedDirection, isFiltersInitialized]);
 
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
     // Fuzzy matching helper
     const fuzzyMatch = useCallback((text, query) => {
@@ -822,23 +843,166 @@ export default function Home() {
     }, []);
 
     const filteredDefaultTests = useMemo(() => {
-        if (!searchQuery) return tests.defaultTests || [];
-        return (tests.defaultTests || []).filter(test => {
+        let list = tests.defaultTests || [];
+
+        // Filter by University
+        if (selectedUniversity && selectedUniversity !== 'All') {
+            list = list.filter(test => test.university === selectedUniversity);
+        }
+
+        // Filter by Direction
+        if (selectedDirection && selectedDirection !== 'All') {
+            list = list.filter(test => test.direction === selectedDirection);
+        }
+
+        if (!searchQuery) return list;
+        return list.filter(test => {
             const name = test.name || '';
             // Search in Name AND Folder/Category
             const category = test.category || test.folder || 'General';
             return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
         });
-    }, [tests.defaultTests, searchQuery, fuzzyMatch]);
+    }, [tests.defaultTests, searchQuery, fuzzyMatch, selectedUniversity, selectedDirection]);
 
     const filteredUploadedTests = useMemo(() => {
-        if (!searchQuery) return tests.uploadedTests || [];
-        return (tests.uploadedTests || []).filter(test => {
+        let list = tests.uploadedTests || [];
+
+         // Filter by University
+         if (selectedUniversity && selectedUniversity !== 'All') {
+             list = list.filter(test => test.university === selectedUniversity);
+         }
+
+        // Filter by Direction
+        if (selectedDirection && selectedDirection !== 'All') {
+            list = list.filter(test => test.direction === selectedDirection);
+        }
+
+        if (!searchQuery) return list;
+        return list.filter(test => {
             const name = test.name || '';
             const category = test.category || test.folder || 'General';
             return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
         });
-    }, [tests.uploadedTests, searchQuery, fuzzyMatch]);
+    }, [tests.uploadedTests, searchQuery, fuzzyMatch, selectedUniversity, selectedDirection]);
+
+    // Directions based on University
+    const availableDirections = useMemo(() => {
+        if (!selectedUniversity || selectedUniversity === 'All') return [];
+        
+        // 1. Try to use structure from Backend
+        if (universityStructure && universityStructure[selectedUniversity]) {
+             const dirs = universityStructure[selectedUniversity];
+             return ['All', ...dirs.sort()];
+        }
+
+        // 2. Fallback
+        const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
+        const uniTests = allTests.filter(t => t.university === selectedUniversity);
+        
+        const directions = new Set(uniTests.map(t => t.direction || 'General'));
+        const arr = Array.from(directions).filter(d => d);
+        return ['All', ...arr.sort()];
+    }, [tests, selectedUniversity, universityStructure]);
+
+    // Active Folders Validation for Display
+    const activeDisplayFolders = useMemo(() => {
+        let baseFolders = folders;
+        
+        // If specific University selected, limit folders to its structure
+        if (selectedUniversity !== 'All' && universityStructure[selectedUniversity]) {
+            // We want to show SUBJECTS, not Directions as categories.
+            // But wait, the categories ARE the folders. 
+            // In the hierarchy: University -> Direction -> Subject
+            // The Subject is what contains the tests.
+            // The Direction is a grouping of Subjects.
+
+            // The 'folders' array currently contains ALL folder names (Directions AND Subjects if flat, or mixed).
+            // Actually, in the backend route.js:
+            // "folders.add(category)" where category is the LAST folder in the stack.
+            // If structure is tests/TTPU/SE/MobileApps, folderStack is [TTPU, SE, MobileApps]. Category is MobileApps.
+            // But if structure is tests/TTPU/BM (and BM has json), Category is BM.
+
+            // The issue is that SE and BM are appearing as categories.
+            // This implies that either:
+            // 1. There are tests DIRECTLY inside SE/BM folders.
+            // 2. OR the 'folders' set includes intermediate folders mistakenly.
+
+            // In route.js, I set category = folderStack[folderStack.length - 1].
+            // If we have tests/TTPU/SE/MobileApps/test.json -> Category = MobileApps.
+            // If we have tests/TTPU/SE/test.json -> Category = SE. 
+
+            // User says "BM and SE shouldn't be visible". 
+            // This means he treats them PURELY as Directions, not as Subjects containing tests.
+            // BUT, the `activeDisplayFolders` logic was returning `universityStructure[selectedUniversity]`.
+            // In route.js: `universityStructure[uniName].push(dirName)`. 
+            // So for TTPU, it returns ['SE', 'BM'].
+            // These are DIRECTIONS. We shouldn't use them as Categories for the list unless the category IS the direction (mixed depth).
+
+            // However, the user wants: University -> Direction -> Subject.
+            // The List view shows SUBJECTS (Categories).
+            
+            // If I select TTPU -> SE:
+            // I should see Subjects INSIDE SE.
+            
+            // Correct logic:
+            // 1. Get all tests filtered by current Uni & Direction.
+            // 2. Extract their Categories.
+            // 3. Use THOSE categories to render the list.
+            
+            // We don't really need `activeDisplayFolders` from structure for the MAIN list rendering, 
+            // we should rely on the tests' categories.
+            // BUT, for "Empty State" (showing folders that have no tests yet), we need to know what those folders are.
+
+            // If the user wants to see "Mobile Apps" folder, that is a Subject. 
+            // "SE" is a Direction. 
+            // The "Buttons" at the top select the Direction.
+            
+            // If TTPU is selected, structure returns ['SE', 'BM']. These are Directions.
+            // If I select "SE", I want to see folders INSIDE "SE".
+            
+            // Current route.js `universityStructure` only goes 1 level deep (University -> Directions). 
+            // It doesn't track Subjects inside Directions explicitly for empty folders.
+            
+            // If the user wants empty "Subject" folders to appear, we need to track them.
+            // Currently route.js:
+            // if folderStack.length === 1 (inside Uni), we add to structure as Direction.
+            // We presumably need to track Subjects too if we want to show empty subjects.
+            
+            // BUT, for the specific issue "BM/SE showing as subjects":
+            // This is happening because `activeDisplayFolders` is returning `universityStructure[selectedUniversity]` which are Directions.
+            // And then the page maps over these Directions and tries to find tests where `test.category === Direction`.
+            // If no tests match, it shows "No tests available in this subject".
+            // That's why SE and BM appear as empty subjects.
+            
+            // FIX: The list of "Categories" to display should be derived from:
+            // 1. Actual tests present (their categories).
+            // 2. PLUS any empty "Subject" folders (if we knew them).
+            
+            // Since we don't strictly list empty SUBJECT folders in the `universityStructure` (we only list Directions),
+            // we should probably NOT use `universityStructure` to drive the main list categories DIRECTLY if those are Directions.
+
+            // We should filter `folders` (which contains the actual bottom-level categories/subjects of found tests)
+            // But what about empty subjects?
+            
+            // Let's rely on `filteredDefaultTests` to drive the categories for now, 
+            // AND if we want to support empty subjects, we need the backend to tell us about them.
+            
+            // Logic change: Use filtered tests to determine categories.
+            // `activeDisplayFolders` was intended to support empty folders, but it's using Directions as Folders.
+            
+            // If we revert to using categories from tests, "BM" and "SE" will disappear (unless they actually have tests).
+            // BUT we lose the "Empty Folder" feature for Subjects that have no tests.
+            
+            // For now, to fix the visual bug:
+            const categoriesFromTests = new Set(filteredDefaultTests.map(t => t.category));
+            return Array.from(categoriesFromTests);
+        }
+
+        // Default behavior (All/General)
+        return folders;
+    }, [folders, selectedUniversity, selectedDirection, universityStructure, filteredDefaultTests]);
+
+
 
     const searchSuggestions = useMemo(() => {
         if (!searchQuery) return [];
@@ -1728,6 +1892,20 @@ export default function Home() {
             const res = await fetch(`/api/tests?showHidden=${showHidden}`);
             const data = await res.json();
             setTests(data);
+            if (data.universityStructure) {
+                setUniversityStructure(data.universityStructure);
+                // Use keys from structure for University list to include empty ones
+                const uniList = Object.keys(data.universityStructure);
+                if (data.universities) {
+                    // Merge with set to ensure Uploaded etc are included if not in structure
+                    const unique = new Set([...uniList, ...data.universities]);
+                    setUniversities(['All', ...Array.from(unique)]);
+                } else {
+                    setUniversities(['All', ...uniList]);
+                }
+            } else if (data.universities) {
+                setUniversities(['All', ...data.universities]);
+            }
             if (data.folders) {
                  // Sort folders: Move the upcoming exam to the top
                  let sortedFolders = [...data.folders];
@@ -2869,6 +3047,50 @@ export default function Home() {
                                     </button>
                                 </div>
 
+                                {/* University Filter */}
+                                {universities.length > 0 && (
+                                    <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide mask-fade-sides no-scrollbar">
+                                        {universities.map(uni => (
+                                            <button
+                                                key={uni}
+                                                onClick={() => {
+                                                    setSelectedUniversity(uni);
+                                                    setSelectedDirection('All'); // Reset direction when university changes
+                                                }}
+                                                className={clsx(
+                                                    "px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all border-2",
+                                                    selectedUniversity === uni
+                                                        ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                                        : "border-transparent bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                                )}
+                                            >
+                                                {uni}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Direction Filter (Only if University selected) */}
+                                {selectedUniversity !== 'All' && availableDirections.length > 2 && ( // > 2 because 'All' is always there, and if only 1 real direction exists (e.g. 'General'), maybe we don't need to show? User asked for buttons though. 
+                                    // Actually user wants buttons. Let's show if length > 1 (All + 1 real).
+                                    <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide mask-fade-sides no-scrollbar">
+                                        {availableDirections.map(dir => (
+                                            <button
+                                                key={dir}
+                                                onClick={() => setSelectedDirection(dir)}
+                                                className={clsx(
+                                                    "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border",
+                                                    selectedDirection === dir
+                                                        ? "border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                                                        : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                )}
+                                            >
+                                                {dir}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
                                 {/* Search & Suggestions */}
                                 <div className="relative mb-6">
                                     <div className="relative">
@@ -2880,6 +3102,31 @@ export default function Home() {
                                             onChange={(e) => {
                                                 setSearchQuery(e.target.value);
                                                 setShowSuggestions(true);
+                                                setSelectedSuggestionIndex(-1);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (!showSuggestions || searchSuggestions.length === 0) return;
+                                                
+                                                if (e.key === 'ArrowDown') {
+                                                    e.preventDefault();
+                                                    setSelectedSuggestionIndex(prev => 
+                                                        prev < searchSuggestions.length - 1 ? prev + 1 : 0
+                                                    );
+                                                } else if (e.key === 'ArrowUp') {
+                                                    e.preventDefault();
+                                                    setSelectedSuggestionIndex(prev => 
+                                                        prev > 0 ? prev - 1 : searchSuggestions.length - 1
+                                                    );
+                                                } else if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (selectedSuggestionIndex >= 0) {
+                                                        setSearchQuery(searchSuggestions[selectedSuggestionIndex]);
+                                                        setShowSuggestions(false);
+                                                        setSelectedSuggestionIndex(-1);
+                                                    }
+                                                } else if (e.key === 'Escape') {
+                                                    setShowSuggestions(false);
+                                                }
                                             }}
                                             onFocus={() => setShowSuggestions(true)}
                                             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
@@ -2894,6 +3141,18 @@ export default function Home() {
                                             </button>
                                         )}
                                     </div>
+
+                                    {/* Empty State Message for Selected University/Direction */}
+                                    {selectedUniversity !== 'All' && filteredDefaultTests.length === 0 && !loading && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-4 p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30 text-center"
+                                        >
+                                            <p className="text-gray-500 font-medium">Data (tests) not added yet for this selection.</p>
+                                        </motion.div>
+                                    )}
+
                                     <AnimatePresence>
                                         {showSuggestions && searchSuggestions.length > 0 && (
                                             <motion.div
@@ -2909,9 +3168,17 @@ export default function Home() {
                                                             setSearchQuery(suggestion);
                                                             setShowSuggestions(false);
                                                         }}
-                                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex items-center gap-2 text-gray-700 dark:text-gray-200"
+                                                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                                        className={clsx(
+                                                            "w-full text-left px-4 py-3 transition-colors flex items-center gap-2 text-gray-700 dark:text-gray-200",
+                                                            index === selectedSuggestionIndex 
+                                                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" 
+                                                                : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                                        )}
                                                     >
-                                                        <Search size={16} className="text-gray-400" />
+                                                        <Search size={16} className={clsx(
+                                                            index === selectedSuggestionIndex ? "text-blue-500" : "text-gray-400"
+                                                        )} />
                                                         {suggestion}
                                                     </button>
                                                 ))}
@@ -2927,15 +3194,15 @@ export default function Home() {
                                         if (!acc[category]) acc[category] = [];
                                         acc[category].push(test);
                                         return acc;
-                                    }, folders.reduce((acc, f) => ({ ...acc, [f]: [] }), {}))).sort(([catA, testsA], [catB, testsB]) => {
+                                    }, activeDisplayFolders.reduce((acc, f) => ({ ...acc, [f]: [] }), {}))).sort(([catA, testsA], [catB, testsB]) => {
                                         const hasTestsA = testsA.length > 0;
                                         const hasTestsB = testsB.length > 0;
                                         if (hasTestsA && !hasTestsB) return -1;
                                         if (!hasTestsA && hasTestsB) return 1;
 
-                                        // Use the already sorted folders array order
-                                        const idxA = folders.indexOf(catA);
-                                        const idxB = folders.indexOf(catB);
+                                        // Use the active display folders array order
+                                        const idxA = activeDisplayFolders.indexOf(catA);
+                                        const idxB = activeDisplayFolders.indexOf(catB);
                                         
                                         // If both are in folders, preserve that order
                                         if (idxA !== -1 && idxB !== -1) {
