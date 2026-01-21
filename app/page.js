@@ -6166,7 +6166,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 {/* Progress Bar */}
                 <div className="h-8 bg-gray-200 w-full relative rounded-t-2xl">
                     {/* Steps */}
-                    <div className="flex h-full rounded-t-2xl overflow-hidden gap-[1px]">
+                    <div className="flex h-full rounded-t-2xl overflow-hidden divide-x divide-white/20">
                         {Array.from({ length: totalQuestions }).map((_, i) => {
                             let statusColor = "bg-gray-200 dark:bg-gray-700"; // Default/Pending
                             if (i === currentIndex) {
@@ -6188,18 +6188,20 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     {/* Active User Markers */}
                     {/* Current User Marker */}
                     <div
-                        className="absolute bottom-full flex flex-col items-center z-20 group transition-all duration-300 ease-out -translate-x-1/2 animate-float"
-                        style={{ left: `calc(${((currentIndex) / totalQuestions) * 100}% - 1px)` }}
+                        className="absolute bottom-full z-20 group transition-all duration-300 ease-out -translate-x-1/2"
+                        style={{ left: `calc(${((currentIndex + 0.5) / totalQuestions) * 100}%)` }}
                     >
-                        <div className="bg-green-600 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded mb-0.5 shadow-sm whitespace-nowrap">You</div>
-                        <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-green-600"></div>
+                        <div className="flex flex-col items-center animate-float">
+                            <div className="bg-green-600 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded mb-0.5 shadow-sm whitespace-nowrap">You</div>
+                            <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-green-600"></div>
+                        </div>
                     </div>
 
                     {activeUsers.map((user, idx) => (
                         <div
                             key={idx}
                             className="absolute bottom-full flex flex-col items-center z-10 transition-all duration-500 ease-out -translate-x-1/2"
-                            style={{ left: `calc(${((user.progress) / totalQuestions) * 100}% - 1px)` }}
+                            style={{ left: `calc(${((user.progress + 0.5) / totalQuestions) * 100}%)` }}
                             title={`${user.name} is here`}
                         >
                             <div className="bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm mb-0.5 whitespace-nowrap min-w-[20px] text-center">
