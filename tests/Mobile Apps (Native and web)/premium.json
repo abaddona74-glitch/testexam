@@ -3,11 +3,11 @@
   "test_questions": [
     {
       "id": 1,
-      "question": "Given the following Kotlin declarations:\n\n``````kotlin\nfun main() {\n val scores = mutableListOf(100, 95)\n scores.add(90)\n val limit = 50\n // limit = 60\n println(scores)\n}\n```\n\n1. What value is printed to the console when running the code before uncommenting Line 6?\n2. What happens if you uncomment limit = 60 (Line 6)? Explain the distinction between manipulating the scores list (Line 3) and attempting to reassign limit (Line 6).\n```",
+      "question": "Given the following Kotlin declarations:\n\n``````kotlin\nfun main() {\n val scores = mutableListOf(100, 95)\n scores.add(90)\n val limit = 50\n // limit = 60\n println(scores)\n}\n```\n\n1. What value is printed to the console when running the code before uncommenting Line 5?\n2. What happens if you uncomment limit = 60 (Line 5)? Explain the distinction between manipulating the scores list (Line 3) and attempting to reassign limit (Line 5).\n```",
       "options": {
-        "A": "[100, 95, 90] - Compilation error at line 6",
-        "B": "[100, 95, 90] - Runtime error at line 6",
-        "C": "[100, 95] - Compilation error at line 6",
+        "A": "[100, 95, 90] - Compilation error at line 5",
+        "B": "[100, 95, 90] - Runtime error at line 5",
+        "C": "[100, 95] - Compilation error at line 5",
         "D": "[100, 95] - No error, value changes to 60"
       },
       "correct_answer": "A"
