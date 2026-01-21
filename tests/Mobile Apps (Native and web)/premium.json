@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-01-21T10:00:00Z",
+  "updatedAt": "2026-01-26T11:24:00Z",
   "test_questions": [
     {
       "id": 1,
-      "question": "Given the following Kotlin declarations:\n\n```kotlin\nfun main() {\n    val scores = mutableListOf(100, 95)\n    scores.add(90)\n    val limit = 50\n    // limit = 60\n    println(scores)\n}\n```\n\n1. What value is printed to the console when running the code before uncommenting Line 6?\n2. What happens if you uncomment limit = 60 (Line 6)? Explain the distinction between manipulating the scores list (Line 3) and attempting to reassign limit (Line 6).",
+      "question": "Given the following Kotlin declarations:\n\n``````kotlin\nfun main() {\n val scores = mutableListOf(100, 95)\n scores.add(90)\n val limit = 50\n // limit = 60\n println(scores)\n}\n```\n\n1. What value is printed to the console when running the code before uncommenting Line 6?\n2. What happens if you uncomment limit = 60 (Line 6)? Explain the distinction between manipulating the scores list (Line 3) and attempting to reassign limit (Line 6).\n```",
       "options": {
         "A": "[100, 95, 90] - Compilation error at line 6",
         "B": "[100, 95, 90] - Runtime error at line 6",
@@ -14,7 +14,7 @@
     },
     {
       "id": 2,
-      "question": "Consider the following Kotlin code snippet:\n\n```kotlin\nfun processData(data: String): Int {\n    return data.length\n}\n\nfun main() {\n    val nullableData: String? = null\n    // print(processData(nullableData))\n    val safeLength = nullableData?.length ?: 0\n    println(safeLength)\n}\n```\n\n1. What is the output when only Line 10 executes?\n2. What is the result if Line 8 is uncommented? Justify the difference in behavior using Kotlin's Null Safety concepts.",
+      "question": "Consider the following Kotlin code snippet:\n\n``````kotlin\nfun processData(data: String): Int {\n return data.length\n}\n\nfun main() {\n val nullableData: String? = null\n // print(processData(nullableData))\n val safeLength = nullableData?.length ?: 0\n println(safeLength)\n}\n```\n\n1. What is the output when only Line 10 executes?\n2. What is the result if Line 8 is uncommented? Justify the difference in behavior using Kotlin's Null Safety concepts.\n```",
       "options": {
         "A": "0 - Compilation error",
         "B": "null - Runtime NullPointerException",
@@ -25,7 +25,7 @@
     },
     {
       "id": 3,
-      "question": "In Kotlin, Lists are ordered collections that allow duplicate items, whereas Sets are unordered and only store unique items. Given:\n\n```kotlin\nval listItems = listOf('Red', 'Green', 'Blue', 'Red', 'Green')\nval setItems = setOf('Red', 'Green', 'Blue', 'Red', 'Green')\nprintln(\"List: $listItems\")\nprintln(\"Set: $setItems\")\n```\n\nWhat is the exact output for both the List and the Set?",
+      "question": "In Kotlin, Lists are ordered collections that allow duplicate items, whereas Sets are unordered and only store unique items. Given:\n\n``````kotlin\nval listItems = listOf('Red', 'Green', 'Blue', 'Red', 'Green')\nval setItems = setOf('Red', 'Green', 'Blue', 'Red', 'Green')\nprintln(\"List: $listItems\")\nprintln(\"Set: $setItems\")\n```\n\nWhat is the exact output for both the List and the Set?\n```",
       "options": {
         "A": "List: [Red, Green, Blue] Set: [Red, Green, Blue]",
         "B": "List: [Red, Green, Blue, Red, Green] Set: [Red, Green, Blue, Red, Green]",
@@ -36,7 +36,7 @@
     },
     {
       "id": 4,
-      "question": "Given:\n\n```kotlin\nfun sendAlert(recipient: String, priority: Int = 1, message: String) {\n    println(\"Alert to $recipient (P$priority): $message\")\n}\n\nfun main() {\n    sendAlert(message = \"System Down\", recipient = \"Admin\", priority = 5)\n}\n```\n\n1. What is the output of the main function?\n2. Why does this specific call succeed even though the arguments are provided in a different order than they are declared in the function header?",
+      "question": "Given:\n\n``````kotlin\nfun sendAlert(recipient: String, priority: Int = 1, message: String) {\n println(\"Alert to $recipient (P$priority): $message\")\n}\n\nfun main() {\n sendAlert(message = \"System Down\", recipient = \"Admin\", priority = 5)\n}\n```\n\n1. What is the output of the main function?\n2. Why does this specific call succeed even though the arguments are provided in a different order than they are declared in the function header?\n```",
       "options": {
         "A": "Alert to Admin (P5): System Down - Because of named arguments",
         "B": "Alert to Admin (P1): System Down - Because of default arguments",
@@ -47,7 +47,7 @@
     },
     {
       "id": 5,
-      "question": "You define two entities:\n\n```kotlin\nclass Employee(val name: String, val employeeId: Int)\ndata class User(val name: String, val id: Int)\n```\n\nIf you print an instance of Employee and an instance of User directly, which one will automatically produce a readable string representation of its properties, and what is the name of the predefined member function responsible for this feature?",
+      "question": "You define two entities:\n\n``````kotlin\nclass Employee(val name: String, val employeeId: Int)\ndata class User(val name: String, val id: Int)\n```\n\nIf you print an instance of Employee and an instance of User directly, which one will automatically produce a readable string representation of its properties, and what is the name of the predefined member function responsible for this feature?\n```",
       "options": {
         "A": "Employee - toString()",
         "B": "User - equals()",
@@ -157,7 +157,7 @@
     },
     {
       "id": 15,
-      "question": "Match the MVVM architectural component with its primary role in the application flow:\n\n1.  **Acts as the intermediary**; handles business logic and exposes observable data streams to the UI.\n2.  **Represents the user interface elements**; displays data and captures user interactions.\n3.  **Manages data retrieval**, storage, and interaction with data sources like databases or network APIs.",
+      "question": "Match the MVVM architectural component with its primary role in the application flow:\n\n1. Acts as the intermediary; handles business logic and exposes observable data streams to the UI.\n2. Represents the user interface elements; displays data and captures user interactions.\n3. Manages data retrieval, storage, and interaction with data sources like databases or network APIs.",
       "options": {
         "A": "1-ViewModel, 2-View, 3-Model",
         "B": "1-Model, 2-View, 3-ViewModel",
@@ -168,18 +168,18 @@
     },
     {
       "id": 16,
-      "question": "Order the three standard layers of an Android application following the principles of Clean Architecture, starting with the **Outermost Layer** and moving inward.",
+      "question": "Order the three standard layers of an Android application following the principles of Clean Architecture, starting with the Outermost Layer and moving inward.",
       "options": {
-        "A": "`Outermost Layer` → `UI Layer`",
-        "B": "`Middle Layer` → `Domain Layer`",
-        "C": "`Innermost Layer` → `Data Layer`",
-        "D": "`Infrastructure` → `Hardware Layer`"
+        "A": "Outermost Layer → UI Layer",
+        "B": "Middle Layer → Domain Layer",
+        "C": "Innermost Layer → Data Layer",
+        "D": "Infrastructure → Hardware Layer"
       },
       "correct_answer": "A, B, C"
     },
     {
       "id": 17,
-      "question": "Match the requirement for defining application constants or states with the most appropriate Kotlin special class:\n\n1.  Fixed, simple, unique constants representing error severity levels (MINOR, MAJOR, CRITICAL)\n2.  Representing network responses where each success/failure state needs unique, varying data properties\n3.  Defining a set of common behaviors for different payment processing classes",
+      "question": "Match the requirement for defining application constants or states with the most appropriate Kotlin special class:\n\n1. Fixed, simple, unique constants representing error severity levels (MINOR, MAJOR, CRITICAL)\n2. Representing network responses where each success/failure state needs unique, varying data properties\n3. Defining a set of common behaviors for different payment processing classes",
       "options": {
         "A": "1-enum class, 2-sealed class, 3-sealed interface",
         "B": "1-sealed class, 2-enum class, 3-sealed interface",
@@ -190,7 +190,7 @@
     },
     {
       "id": 18,
-      "question": "Complete the sentences about MVP (Model-View-Presenter) pattern:\n\n*   **A.** The **`______`** is a passive interface that is completely dumb and routes user actions to the Presenter.\n*   **B.** The **`______`** relationship between the View and the Presenter is strictly.\n*   **C.** The **`______`** is the 'middle man' that retrieves data from the Model and updates the View.",
+      "question": "Complete the sentences about MVP (Model-View-Presenter) pattern:\n\n* A. The ______ is a passive interface that is completely dumb and routes user actions to the Presenter.\n* B. The ______ relationship between the View and the Presenter is strictly.\n* C. The ______ is the 'middle man' that retrieves data from the Model and updates the View.",
       "options": {
         "A": "A: View, B: one-to-one, C: Presenter",
         "B": "A: Model, B: many-to-one, C: View",
@@ -198,6 +198,116 @@
         "D": "A: View, B: many-to-many, C: Presenter"
       },
       "correct_answer": "A"
+    },
+    {
+      "id": 19,
+      "question": "What happens when executing the following code?\n\n```kotlin\nfun main() {\n val immutableList = listOf(1, 2, 3)\n immutableList.add(4) // Line 4\n println(immutableList)\n}\n```\n",
+      "options": {
+        "A": "[1, 2, 3, 4] - No error",
+        "B": "[1, 2, 3] - Compilation error at line 4",
+        "C": "[1, 2, 3] - Runtime error at line 4",
+        "D": "NullPointerException"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 20,
+      "question": "What is the result of the following code?\n\n```kotlin\nfun main() {\n val mutableSet = mutableSetOf(\"A\", \"B\", \"C\")\n val immutableSet = setOf(\"X\", \"Y\", \"Z\")\n \n mutableSet.add(\"D\")\n immutableSet.add(\"W\") // Line 6\n \n println(\"Mutable: $mutableSet\")\n println(\"Immutable: $immutableSet\")\n}\n```\n",
+      "options": {
+        "A": "Both sets get new elements added",
+        "B": "Compilation error at line 6",
+        "C": "Runtime error at line 6",
+        "D": "Only mutable set gets the new element"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 21,
+      "question": "What is the output of this code?\n\n```kotlin\nfun main() {\n val numbers1 = mutableListOf(10, 20, 30)\n val numbers2 = numbers1.toList() // immutable copy\n \n numbers1.add(40)\n \n println(\"Mutable: $numbers1\")\n println(\"Immutable: $numbers2\")\n}\n```\n",
+      "options": {
+        "A": "Mutable: [10, 20, 30, 40] Immutable: [10, 20, 30, 40]",
+        "B": "Mutable: [10, 20, 30] Immutable: [10, 20, 30, 40]",
+        "C": "Mutable: [10, 20, 30, 40] Immutable: [10, 20, 30]",
+        "D": "Compilation error"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 22,
+      "question": "Analyze this code:\n\n``````kotlin\nfun main() {\n val originalMap = mutableMapOf(\"a\" to 1, \"b\" to 2)\n val readOnlyMap: Map<String, Int> = originalMap\n \n originalMap[\"c\"] = 3\n readOnlyMap[\"d\"] = 4 // Line 6\n \n println(\"Original: $originalMap\")\n}\n```\n\nWhat happens at line 6?\n```",
+      "options": {
+        "A": "\"d\"→4 is added to the map",
+        "B": "Compilation error",
+        "C": "Runtime error",
+        "D": "NullPointerException"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 23,
+      "question": "What does this program print?\n\n```kotlin\nfun main() {\n val mutableList = mutableListOf<Int>()\n val immutableList = listOf<Int>()\n \n mutableList.addAll(listOf(5, 10, 15))\n val newImmutableList = immutableList + 20\n \n println(\"Mutable: $mutableList\")\n println(\"New Immutable: $newImmutableList\")\n}\n```\n",
+      "options": {
+        "A": "Mutable: [5, 10, 15] New Immutable: [20]",
+        "B": "Mutable: [] New Immutable: [20]",
+        "C": "Compilation error",
+        "D": "Mutable: [5, 10, 15] New Immutable: []"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 24,
+      "question": "Which of the following statements about Kotlin collections is CORRECT?",
+      "options": {
+        "A": "mutableListOf() creates a list that cannot be changed after initialization",
+        "B": "listOf() creates a list that can be modified using add() method",
+        "C": "toMutableList() converts an immutable list to a mutable one",
+        "D": "Immutable collections are faster than mutable collections for all operations"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 25,
+      "question": "What is the output of this code?\n\n```kotlin\nfun main() {\n val immutable = setOf(1, 2, 3, 2, 1)\n val mutable = mutableSetOf(1, 2, 3, 2, 1)\n \n println(\"Immutable size: ${immutable.size}\")\n println(\"Mutable size: ${mutable.size}\")\n}\n```\n",
+      "options": {
+        "A": "Immutable size: 5, Mutable size: 5",
+        "B": "Immutable size: 3, Mutable size: 5",
+        "C": "Immutable size: 3, Mutable size: 3",
+        "D": "Compilation error"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 26,
+      "question": "What happens when you try to compile this code?\n\n```kotlin\nfun modifyCollection(collection: MutableList<String>) {\n collection.add(\"Modified\")\n}\n\nfun main() {\n val list1 = mutableListOf(\"Original\")\n val list2 = listOf(\"Original\")\n \n modifyCollection(list1)\n modifyCollection(list2) // Line 10\n \n println(\"List1: $list1\")\n}\n```\n",
+      "options": {
+        "A": "Both lists get modified successfully",
+        "B": "Compilation error at line 10",
+        "C": "Runtime error at line 10",
+        "D": "Only list1 gets modified"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 27,
+      "question": "What is the result of executing this code?\n\n```kotlin\nfun main() {\n val builderList = buildList {\n add(\"First\")\n add(\"Second\")\n }\n \n println(\"Type: ${builderList::class.simpleName}\")\n println(\"Size: ${builderList.size}\")\n}\n```\n",
+      "options": {
+        "A": "Type: ArrayList, Size: 2",
+        "B": "Type: ImmutableCollections$ListN, Size: 2",
+        "C": "Compilation error",
+        "D": "Type: MutableList, Size: 2"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 28,
+      "question": "Which collection creation function guarantees that the returned collection cannot be modified?",
+      "options": {
+        "A": "mutableListOf()",
+        "B": "arrayListOf()",
+        "C": "listOf()",
+        "D": "toMutableList()"
+      },
+      "correct_answer": "C"
     }
   ]
 }
