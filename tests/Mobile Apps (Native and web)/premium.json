@@ -2,7 +2,7 @@
   "test_questions": [
     {
       "id": 1,
-      "question": "Given the following Kotlin declarations: fun main() { val scores = mutableListOf(100, 95); scores.add(90); val limit = 50; // limit = 60; println(scores); }\n1. What value is printed to the console when running the code before uncommenting Line 6?\n2. What happens if you uncomment limit = 60 (Line 6)? Explain the distinction between manipulating the scores list (Line 3) and attempting to reassign limit (Line 6).",
+      "question": "Given the following Kotlin declarations:\n\n```kotlin\nfun main() {\n    val scores = mutableListOf(100, 95)\n    scores.add(90)\n    val limit = 50\n    // limit = 60\n    println(scores)\n}\n```\n\n1. What value is printed to the console when running the code before uncommenting Line 6?\n2. What happens if you uncomment limit = 60 (Line 6)? Explain the distinction between manipulating the scores list (Line 3) and attempting to reassign limit (Line 6).",
       "options": {
         "A": "[100, 95, 90] - Compilation error at line 6",
         "B": "[100, 95, 90] - Runtime error at line 6",
@@ -13,7 +13,7 @@
     },
     {
       "id": 2,
-      "question": "Consider the following Kotlin code snippet: fun processData(data: String): Int { return data.length } fun main() { val nullableData: String? = null; // print(processData(nullableData)); val safeLength = nullableData?.length ?: 0; println(safeLength); }\n1. What is the output when only Line 10 executes?\n2. What is the result if Line 8 is uncommented? Justify the difference in behavior using Kotlin's Null Safety concepts.",
+      "question": "Consider the following Kotlin code snippet:\n\n```kotlin\nfun processData(data: String): Int {\n    return data.length\n}\n\nfun main() {\n    val nullableData: String? = null\n    // print(processData(nullableData))\n    val safeLength = nullableData?.length ?: 0\n    println(safeLength)\n}\n```\n\n1. What is the output when only Line 10 executes?\n2. What is the result if Line 8 is uncommented? Justify the difference in behavior using Kotlin's Null Safety concepts.",
       "options": {
         "A": "0 - Compilation error",
         "B": "null - Runtime NullPointerException",
@@ -24,7 +24,7 @@
     },
     {
       "id": 3,
-      "question": "In Kotlin, Lists are ordered collections that allow duplicate items, whereas Sets are unordered and only store unique items. Given: val listItems = listOf('Red', 'Green', 'Blue', 'Red', 'Green'); val setItems = setOf('Red', 'Green', 'Blue', 'Red', 'Green'); println('List: $listItems'); println('Set: $setItems'); What is the exact output for both the List and the Set?",
+      "question": "In Kotlin, Lists are ordered collections that allow duplicate items, whereas Sets are unordered and only store unique items. Given:\n\n```kotlin\nval listItems = listOf('Red', 'Green', 'Blue', 'Red', 'Green')\nval setItems = setOf('Red', 'Green', 'Blue', 'Red', 'Green')\nprintln(\"List: $listItems\")\nprintln(\"Set: $setItems\")\n```\n\nWhat is the exact output for both the List and the Set?",
       "options": {
         "A": "List: [Red, Green, Blue] Set: [Red, Green, Blue]",
         "B": "List: [Red, Green, Blue, Red, Green] Set: [Red, Green, Blue, Red, Green]",
@@ -35,7 +35,7 @@
     },
     {
       "id": 4,
-      "question": "Given: fun sendAlert(recipient: String, priority: Int = 1, message: String) { println('Alert to $recipient (P$priority): $message') } fun main() { sendAlert(message = 'System Down', recipient = 'Admin', priority = 5) }\n1. What is the output of the main function?\n2. Why does this specific call succeed even though the arguments are provided in a different order than they are declared in the function header?",
+      "question": "Given:\n\n```kotlin\nfun sendAlert(recipient: String, priority: Int = 1, message: String) {\n    println(\"Alert to $recipient (P$priority): $message\")\n}\n\nfun main() {\n    sendAlert(message = \"System Down\", recipient = \"Admin\", priority = 5)\n}\n```\n\n1. What is the output of the main function?\n2. Why does this specific call succeed even though the arguments are provided in a different order than they are declared in the function header?",
       "options": {
         "A": "Alert to Admin (P5): System Down - Because of named arguments",
         "B": "Alert to Admin (P1): System Down - Because of default arguments",
@@ -46,7 +46,7 @@
     },
     {
       "id": 5,
-      "question": "You define two entities: class Employee(val name: String, val employeeId: Int); data class User(val name: String, val id: Int); If you print an instance of Employee and an instance of User directly, which one will automatically produce a readable string representation of its properties, and what is the name of the predefined member function responsible for this feature?",
+      "question": "You define two entities:\n\n```kotlin\nclass Employee(val name: String, val employeeId: Int)\ndata class User(val name: String, val id: Int)\n```\n\nIf you print an instance of Employee and an instance of User directly, which one will automatically produce a readable string representation of its properties, and what is the name of the predefined member function responsible for this feature?",
       "options": {
         "A": "Employee - toString()",
         "B": "User - equals()",
@@ -156,38 +156,40 @@
     },
     {
       "id": 15,
-      "question": "Match the MVVM architectural component with its primary role in the application flow.",
+      "question": "Match the MVVM architectural component with its primary role in the application flow:\n\n1.  **Acts as the intermediary**; handles business logic and exposes observable data streams to the UI.\n2.  **Represents the user interface elements**; displays data and captures user interactions.\n3.  **Manages data retrieval**, storage, and interaction with data sources like databases or network APIs.",
       "options": {
-        "A": "ViewModel - Acts as the intermediary; handles business logic and exposes observable data streams to the UI.",
-        "B": "View - Represents the user interface elements; displays data and captures user interactions.",
-        "C": "Model - Manages data retrieval, storage, and interaction with data sources like databases or network APIs."
-      },
-      "correct_answer": "A,B,C"
-    },
-    {
-      "id": 16,
-      "question": "Order the three standard layers of an Android application following the principles of Clean Architecture, starting with the Outermost Layer and moving inward.",
-      "options": {
-        "A": "UI Layer → Data Layer → Domain Layer",
-        "B": "Data Layer → Domain Layer → UI Layer",
-        "C": "UI Layer → Domain Layer → Data Layer",
-        "D": "Domain Layer → Data Layer → UI Layer"
+        "A": "1-ViewModel, 2-View, 3-Model",
+        "B": "1-Model, 2-View, 3-ViewModel",
+        "C": "1-View, 2-ViewModel, 3-Model",
+        "D": "1-ViewModel, 2-Model, 3-View"
       },
       "correct_answer": "A"
     },
     {
-      "id": 17,
-      "question": "Match the requirement for defining application constants or states with the most appropriate Kotlin special class.",
+      "id": 16,
+      "question": "Order the three standard layers of an Android application following the principles of Clean Architecture, starting with the **Outermost Layer** and moving inward.",
       "options": {
-        "A": "Fixed, simple, unique constants representing error severity levels (MINOR, MAJOR, CRITICAL) - enum class",
-        "B": "Representing network responses where each success/failure state needs unique, varying data properties - sealed class",
-        "C": "Defining a set of common behaviors for different payment processing classes - sealed interface"
+        "A": "`Outermost Layer` → `UI Layer`",
+        "B": "`Middle Layer` → `Domain Layer`",
+        "C": "`Innermost Layer` → `Data Layer`",
+        "D": "`Infrastructure` → `Hardware Layer`"
       },
-      "correct_answer": "A,B,C"
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 17,
+      "question": "Match the requirement for defining application constants or states with the most appropriate Kotlin special class:\n\n1.  Fixed, simple, unique constants representing error severity levels (MINOR, MAJOR, CRITICAL)\n2.  Representing network responses where each success/failure state needs unique, varying data properties\n3.  Defining a set of common behaviors for different payment processing classes",
+      "options": {
+        "A": "1-enum class, 2-sealed class, 3-sealed interface",
+        "B": "1-sealed class, 2-enum class, 3-sealed interface",
+        "C": "1-data class, 2-sealed class, 3-enum class",
+        "D": "1-sealed interface, 2-data class, 3-enum class"
+      },
+      "correct_answer": "A"
     },
     {
       "id": 18,
-      "question": "Complete the sentences about MVP (Model-View-Presenter) pattern:\nA. The __ is a passive interface that is completely dumb and routes user actions to the Presenter.\nB. The __ relationship between the View and the Presenter is strictly.\nC. The __ is the 'middle man' that retrieves data from the Model and updates the View.",
+      "question": "Complete the sentences about MVP (Model-View-Presenter) pattern:\n\n*   **A.** The **`______`** is a passive interface that is completely dumb and routes user actions to the Presenter.\n*   **B.** The **`______`** relationship between the View and the Presenter is strictly.\n*   **C.** The **`______`** is the 'middle man' that retrieves data from the Model and updates the View.",
       "options": {
         "A": "A: View, B: one-to-one, C: Presenter",
         "B": "A: Model, B: many-to-one, C: View",

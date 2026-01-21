@@ -5,3 +5,5 @@ leaderboard.json
 .env
 .env.local
 materials/
+.venv
+__pycache__/

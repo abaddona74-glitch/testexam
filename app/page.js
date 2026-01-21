@@ -8,6 +8,9 @@ import { LiquidGlassClock } from '@/components/liquid-clock';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/atom-one-dark.css';
 
 const DIFFICULTIES = [
     { id: 'easy', name: 'Easy', hints: 3, icon: Lightbulb, color: 'text-green-500', bg: 'bg-green-100', border: 'border-green-200', timeLimit: null },
@@ -4493,11 +4496,32 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
 }
 
 function TranslatableText({ text, translation, type = 'text' }) {
-    if (!translation) return <span>{text}</span>;
+    const content = (
+        <ReactMarkdown
+            rehypePlugins={[rehypeHighlight]}
+            components={{
+                pre: ({ node, ...props }) => <pre className="rounded-lg p-3 bg-[#282c34] overflow-x-auto my-3 text-sm text-gray-100 shadow-sm border border-gray-700 font-mono leading-relaxed" {...props} />,
+                code: ({ node, inline, className, children, ...props }) => (
+                    <code className={clsx(className, inline ? "bg-gray-200 dark:bg-gray-800 rounded px-1.5 py-0.5 text-[0.9em] font-mono text-pink-600 dark:text-pink-400" : "bg-transparent")} {...props}>
+                        {children}
+                    </code>
+                ),
+                p: ({ node, ...props }) => <p className="mb-2 last:mb-0 inline-block" {...props} />,
+                ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-2 space-y-1 block" {...props} />,
+                ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-2 space-y-1 block" {...props} />,
+                li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 dark:text-gray-100" {...props} />
+            }}
+        >
+            {text}
+        </ReactMarkdown>
+    );
+
+    if (!translation) return <div className="inline-block">{content}</div>;
 
     return (
         <div className="group relative inline-block cursor-help border-b border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-colors rounded px-1 -mx-1">
-            {text}
+            {content}
             <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[300px] z-50 pointer-events-none">
                 <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-xl relative text-center leading-relaxed">
                     <span className="text-[10px] uppercase text-gray-400 font-bold block mb-0.5 border-b border-gray-700 pb-1">Translation</span>
@@ -4681,7 +4705,10 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                 <span>Match the items on the left with the correct category on the right.</span>
             </div>
 
-            <div className="space-y-3 select-none">
+            <div className={clsx(
+                "select-none",
+                activePairs.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" : "space-y-3"
+            )}>
                 {activePairs.map((p, i) => {
                     // Is this pair correct in God Mode? Yes, activePairs are by definition correct slots.
                     // But we might want color consistency from original index?
@@ -4700,7 +4727,9 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                     }
 
                     return (
-                        <div key={p.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                        <div key={p.id} className={clsx(
+                            activePairs.length === 3 ? "flex flex-col gap-2" : "grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch"
+                        )}>
                             {/* Left Side */}
                             <div
                                 className={clsx(
@@ -4714,7 +4743,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                     "font-bold",
                                     godModeColor ? godModeColor.text : "text-gray-800 dark:text-gray-200"
                                 )}>{p.left}</span>
-                                <div className={clsx("h-4 w-4", godModeColor ? godModeColor.text : "text-gray-400")}>
+                                <div className={clsx("h-4 w-4", godModeColor ? godModeColor.text : "text-gray-400", activePairs.length === 3 && "rotate-90 md:rotate-0")}>
                                     <ArrowRight size={16} />
                                 </div>
                             </div>
@@ -6222,12 +6251,12 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         </div>
                     </div>
 
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 leading-relaxed">
+                    <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 leading-relaxed">
                         <TranslatableText
                             text={question.question}
                             translation={translatedQuestion?.question}
                         />
-                    </h2>
+                    </div>
 
                     {/* Image Support */}
                     {question.image && (
@@ -6259,8 +6288,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 difficultyMode={test.difficultyMode}
                             />
                         ) : (
-                            question.shuffledOptions.map((option, idx) => {
-                                // Multi logic
+                            <div className={clsx(
+                                question.layout === 'grid' ? "grid grid-cols-1 md:grid-cols-2 gap-3" : "space-y-3"
+                            )}>
+                                {question.shuffledOptions.map((option, idx) => {
+                                    // Multi logic
                                 const isMulti = question.correct_answer && question.correct_answer.includes(',');
                                 const answerStr = answers[currentIndex] || '';
                                 const userSelectedIds = isMulti
@@ -6346,15 +6378,16 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                                 String.fromCharCode(65 + idx)
                                             )}
                                         </div>
-                                        <span className="font-medium">
+                                        <div className="font-medium text-left flex-1 min-w-0">
                                             <TranslatableText
                                                 text={option.text}
                                                 translation={translatedOptionText}
                                             />
-                                        </span>
+                                        </div>
                                     </button>
                                 );
-                            })
+                            })}
+                            </div>
                         )}
                     </div>
 
