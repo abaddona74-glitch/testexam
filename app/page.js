@@ -1688,6 +1688,9 @@ export default function Home() {
             window.addEventListener('focus', handleVisibilityChange);
 
             return () => {
+                if (style && style.parentNode) {
+                    style.parentNode.removeChild(style);
+                }
                 document.removeEventListener('contextmenu', handleContextMenu);
                 document.removeEventListener('copy', handleCopyPaste);
                 document.removeEventListener('cut', handleCopyPaste);
@@ -4513,7 +4516,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
     const content = (
         <ReactMarkdown
             rehypePlugins={[rehypeHighlight]}
-            components={{
+            components={useMemo(() => ({
                 pre: ({ node, ...props }) => <div className="my-3 rounded-lg overflow-hidden shadow-sm border border-gray-700 bg-[#282c34]" {...props} />,
                 code: ({ node, inline, className, children, ...props }) => {
                     if (inline) {
@@ -4577,7 +4580,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
                 ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-2 space-y-1 block" {...props} />,
                 li: ({ node, ...props }) => <li className="pl-1" {...props} />,
                 strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 dark:text-gray-100" {...props} />
-            }}
+            }), [])}
         >
             {text}
         </ReactMarkdown>
