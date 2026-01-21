@@ -4500,12 +4500,48 @@ function TranslatableText({ text, translation, type = 'text' }) {
         <ReactMarkdown
             rehypePlugins={[rehypeHighlight]}
             components={{
-                pre: ({ node, ...props }) => <pre className="rounded-lg p-3 bg-[#282c34] overflow-x-auto my-3 text-sm text-gray-100 shadow-sm border border-gray-700 font-mono leading-relaxed" {...props} />,
-                code: ({ node, inline, className, children, ...props }) => (
-                    <code className={clsx(className, inline ? "bg-gray-200 dark:bg-gray-800 rounded px-1.5 py-0.5 text-[0.9em] font-mono text-pink-600 dark:text-pink-400" : "bg-transparent")} {...props}>
-                        {children}
-                    </code>
-                ),
+                pre: ({ node, ...props }) => <div className="my-3 rounded-lg overflow-hidden shadow-sm border border-gray-700 bg-[#282c34]" {...props} />,
+                code: ({ node, inline, className, children, ...props }) => {
+                    if (inline) {
+                        return (
+                            <code className={clsx(className, "bg-gray-200 dark:bg-gray-800 rounded px-1.5 py-0.5 text-[0.9em] font-mono text-pink-600 dark:text-pink-400")} {...props}>
+                                {children}
+                            </code>
+                        );
+                    }
+                    
+                    // Helper to count lines from React children (recursively)
+                    const getText = (nodes) => {
+                        if (typeof nodes === 'string') return nodes;
+                        if (Array.isArray(nodes)) return nodes.map(getText).join('');
+                        if (nodes?.props?.children) return getText(nodes.props.children);
+                        return '';
+                    };
+                    
+                    const codeText = getText(children);
+                    // Count lines. Handle trailing newline standard in code blocks.
+                    const lines = codeText.trimEnd().split('\n').length;
+                    const showLineNumbers = lines > 1;
+
+                    return (
+                        <div className="flex font-mono text-sm leading-relaxed rounded-md overflow-hidden bg-[#282c34] border border-gray-700 my-2">
+                            {/* Line Numbers - Only show for multi-line blocks */}
+                            {showLineNumbers && (
+                                <div className="flex-none text-right select-none text-gray-500 bg-[#21252b] border-r border-gray-700 py-3 px-3 min-w-[2.5rem]">
+                                    {Array.from({ length: lines }).map((_, i) => (
+                                        <div key={i}>{i + 1}</div>
+                                    ))}
+                                </div>
+                            )}
+                            {/* Code Content */}
+                            <div className="flex-1 overflow-x-auto py-3 px-4 text-gray-100">
+                                <code className={clsx(className, "bg-transparent block whitespace-pre min-w-full")} {...props}>
+                                    {children}
+                                </code>
+                            </div>
+                        </div>
+                    );
+                },
                 p: ({ node, ...props }) => <p className="mb-2 last:mb-0 inline-block" {...props} />,
                 ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-2 space-y-1 block" {...props} />,
                 ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-2 space-y-1 block" {...props} />,
