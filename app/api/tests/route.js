@@ -82,11 +82,14 @@ export async function GET(request) {
                       type: 'default',
                       isPremium: baseName.toLowerCase().includes('premium'),
                     variants: {},
-                    variantsUpdatedAt: {}
+                    variantsUpdatedAt: {},
+                    variantsCreatedAt: {}
                   });
               }
               groupedFiles.get(baseName).variants[lang] = json;
-                groupedFiles.get(baseName).variantsUpdatedAt[lang] = fileUpdatedAt;
+                // Use updatedAt from JSON if available. Do NOT fallback to file time.
+                groupedFiles.get(baseName).variantsUpdatedAt[lang] = json.updatedAt ? new Date(json.updatedAt) : null;
+                groupedFiles.get(baseName).variantsCreatedAt[lang] = json.createdAt ? new Date(json.createdAt) : null;
 
             } catch (e) {
               console.error(`Error parsing ${entry.name}/${filename}`, e);
@@ -108,6 +111,13 @@ export async function GET(request) {
                   return new Date(current) > new Date(latest) ? current : latest;
                 }, null);
               
+             const groupCreatedAt = Object.values(group.variantsCreatedAt || {})
+                .filter(Boolean)
+                .reduce((earliest, current) => {
+                  if (!earliest) return current;
+                  return new Date(current) < new Date(earliest) ? current : earliest;
+                }, null);
+
               defaultTests.push({
                   id: group.id,
                   name: group.name,
@@ -116,7 +126,8 @@ export async function GET(request) {
                   isPremium: group.isPremium,
                   content: variants[primaryLang],
                   translations: variants, // Pass all variants to frontend
-                  updatedAt: groupUpdatedAt
+                  updatedAt: groupUpdatedAt,
+                  createdAt: groupCreatedAt
               });
           }
 
@@ -136,8 +147,9 @@ export async function GET(request) {
                 name: entry.name.replace('.json', ''),
                 category: 'General',
                 type: 'default',
-            content: json,
-            updatedAt: fileUpdatedAt
+                content: json,
+                updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
+                createdAt: json.createdAt ? new Date(json.createdAt) : null
             });
         } catch (e) {
             console.error(`Error parsing ${entry.name}`, e);

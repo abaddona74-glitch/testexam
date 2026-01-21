@@ -2959,6 +2959,9 @@ export default function Home() {
 
                                                     // Check if Updated recently (within 1 day)
                                                     const isUpdated = test.updatedAt && (new Date() - new Date(test.updatedAt) < 1 * 24 * 60 * 60 * 1000);
+                                                    
+                                                    // Check if New recently (within 1 day)
+                                                    const isNew = test.createdAt && (new Date() - new Date(test.createdAt) < 2 * 24 * 60 * 60 * 1000);
 
                                                     // Check unlock status - also check with common base patterns
                                                     const testIsUnlocked = allPremiumUnlocked || (test.isPremium && (
@@ -2976,6 +2979,7 @@ export default function Home() {
                                                             badge={badgeLabel}
                                                             badgeColor={badgeColor}
                                                             isUpdated={isUpdated}
+                                                            isNew={isNew}
                                                             hasProgress={!!savedProgress[test.id]}
                                                             isLocked={test.isPremium && !testIsUnlocked}
                                                             isUnlocked={test.isPremium && testIsUnlocked}
@@ -4310,7 +4314,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, activeUsers = [], isLocked, isUnlocked }) {
+function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked }) {
     const [selectedLang, setSelectedLang] = useState(() => {
         if (!test.translations) return null;
         return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
@@ -4368,11 +4372,21 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 </div>
             )}
             <div className="flex absolute top-0 right-0">
+                {isNew && !isUpdated && (
+                    <div
+                        className={clsx(
+                            "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200 text-xs px-2 py-1 font-bold flex items-center gap-1 shadow-sm border border-purple-200/60 dark:border-purple-700/40 z-10",
+                            (!hasProgress && !isLocked && !isUnlocked) ? "rounded-bl-lg" : ""
+                        )}
+                    >
+                         <Star size={12} strokeWidth={3} /> NEW
+                    </div>
+                )}
                 {isUpdated && (
                     <div
                         className={clsx(
                             "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 text-xs px-2 py-1 font-bold flex items-center gap-1 shadow-sm border border-emerald-200/60 dark:border-emerald-700/40 z-10",
-                            (!hasProgress && !isLocked && !isUnlocked) ? "rounded-bl-lg" : ""
+                            (!hasProgress && !isLocked && !isUnlocked && !isNew) ? "rounded-bl-lg" : ""
                         )}
                     >
                         <RefreshCcw size={12} strokeWidth={3} /> UPDATED
@@ -4503,6 +4517,22 @@ function TranslatableText({ text, translation, type = 'text' }) {
                 pre: ({ node, ...props }) => <div className="my-3 rounded-lg overflow-hidden shadow-sm border border-gray-700 bg-[#282c34]" {...props} />,
                 code: ({ node, inline, className, children, ...props }) => {
                     if (inline) {
+                        const strContent = Array.isArray(children) ? children.join('') : String(children || '');
+                        // Robust check: purely underscores or whitespace, at least 2 chars long after trim
+                        const isBlank = typeof strContent === 'string' && /^[_\s]+$/.test(strContent) && strContent.trim().length >= 2;
+
+                        if (isBlank) {
+                            return (
+                                <code
+                                    className={clsx(className, "mx-1 text-transparent border-b-2 border-gray-500 dark:border-gray-400 inline-block min-w-[60px] align-baseline select-none")}
+                                    style={{ backgroundColor: 'transparent', boxShadow: 'none', borderRadius: 0, padding: '0 4px' }}
+                                    {...props}
+                                >
+                                    {children}
+                                </code>
+                            );
+                        }
+
                         return (
                             <code className={clsx(className, "bg-gray-200 dark:bg-gray-800 rounded px-1.5 py-0.5 text-[0.9em] font-mono text-pink-600 dark:text-pink-400")} {...props}>
                                 {children}
