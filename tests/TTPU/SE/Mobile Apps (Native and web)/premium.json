@@ -308,6 +308,248 @@
         "D": "toMutableList()"
       },
       "correct_answer": "C"
-    }
+    },
+    {
+    "id": 29,
+    "question": "What does this code output?\n\n```kotlin\nfun main() {\n    val numbers = listOf(1, 2, 3, 4, 5)\n    val result = numbers\n        .filter { it % 2 == 0 }\n        .map { it * it }\n        .reduce { acc, i -> acc + i }\n    \n    println(result)\n}\n```",
+    "options": {
+      "A": "20",
+      "B": "30",
+      "C": "55",
+      "D": "6"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 30,
+    "question": "Which of the following correctly demonstrates the use of a secondary constructor in a Kotlin class?",
+    "options": {
+      "A": "```kotlin\nclass Person(name: String) {\n    constructor(name: String, age: Int) : this(name)\n}\n```",
+      "B": "```kotlin\nclass Person(name: String) {\n    constructor(name: String, age: Int)\n}\n```",
+      "C": "```kotlin\nclass Person {\n    constructor(name: String)\n    constructor(name: String, age: Int)\n}\n```",
+      "D": "```kotlin\nclass Person(name: String) {\n    secondary constructor(name: String, age: Int)\n}\n```"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 31,
+    "question": "In Android development, which component is responsible for managing the lifecycle of a Fragment?",
+    "options": {
+      "A": "Activity",
+      "B": "ViewModel",
+      "C": "FragmentManager",
+      "D": "Application"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 32,
+    "question": "What is the purpose of the `@Composable` annotation in Jetpack Compose?",
+    "options": {
+      "A": "To mark a function as a UI component that can be recomposed",
+      "B": "To indicate that a class is serializable",
+      "C": "To enable data binding in XML layouts",
+      "D": "To create dependency injection"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 33,
+    "question": "Which Room annotation is used to define a method that returns a list of items with a WHERE clause?",
+    "options": {
+      "A": "@Query",
+      "B": "@Select",
+      "C": "@Where",
+      "D": "@Filter"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 34,
+    "question": "What does the following Kotlin code using coroutines output?\n\n```kotlin\nimport kotlinx.coroutines.*\n\nfun main() = runBlocking {\n    launch {\n        delay(1000L)\n        println(\"World!\")\n    }\n    println(\"Hello,\")\n}\n```",
+    "options": {
+      "A": "Hello,\nWorld!",
+      "B": "World!\nHello,",
+      "C": "Hello, World! (on same line)",
+      "D": "Compilation error"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 35,
+    "question": "In MVVM architecture, what is the recommended way for a ViewModel to communicate with the View?",
+    "options": {
+      "A": "Direct method calls",
+      "B": "Using callbacks/interfaces",
+      "C": "Through LiveData or StateFlow",
+      "D": "Using SharedPreferences"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 36,
+    "question": "Which Gradle configuration file is used to define dependencies for an Android module?",
+    "options": {
+      "A": "settings.gradle",
+      "B": "build.gradle (Project level)",
+      "C": "build.gradle (Module level)",
+      "D": "gradle.properties"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 37,
+    "question": "What is the difference between `val` and `var` in Kotlin?",
+    "options": {
+      "A": "`val` is for variables, `var` is for values",
+      "B": "`val` is immutable (read-only), `var` is mutable",
+      "C": "`val` is for primitive types, `var` is for objects",
+      "D": "There is no difference"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 38,
+    "question": "In Android, which permission is required to access the internet?",
+    "options": {
+      "A": "<uses-permission android:name=\"android.permission.INTERNET\" />",
+      "B": "<uses-permission android:name=\"android.permission.NETWORK\" />",
+      "C": "<uses-permission android:name=\"android.permission.WIFI\" />",
+      "D": "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 39,
+    "question": "What does the `suspend` modifier mean in Kotlin coroutines?",
+    "options": {
+      "A": "The function can be paused and resumed later",
+      "B": "The function will be cancelled automatically",
+      "C": "The function runs on the main thread",
+      "D": "The function is synchronous"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 40,
+    "question": "Which lifecycle method is called when an Activity becomes visible to the user?",
+    "options": {
+      "A": "onCreate()",
+      "B": "onStart()",
+      "C": "onResume()",
+      "D": "onVisible()"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 41,
+    "question": "What is the purpose of the `by lazy` delegate in Kotlin?",
+    "options": {
+      "A": "To create a thread-safe singleton",
+      "B": "To initialize a property only when it's first accessed",
+      "C": "To bind a property to another property",
+      "D": "To make a property observable"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 42,
+    "question": "In Jetpack Compose, what is the difference between `remember` and `rememberSaveable`?",
+    "options": {
+      "A": "`remember` survives configuration changes, `rememberSaveable` doesn't",
+      "B": "`rememberSaveable` survives configuration changes, `remember` doesn't",
+      "C": "They are identical",
+      "D": "`remember` is for state, `rememberSaveable` is for effects"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 43,
+    "question": "Which HTTP status code indicates a successful request in REST APIs?",
+    "options": {
+      "A": "200 OK",
+      "B": "404 Not Found",
+      "C": "500 Internal Server Error",
+      "D": "301 Moved Permanently"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 44,
+    "question": "What is the purpose of the `Sealed` class in Kotlin?",
+    "options": {
+      "A": "To create immutable classes",
+      "B": "To restrict class hierarchies to a fixed set of subtypes",
+      "C": "To make classes serializable",
+      "D": "To enable inheritance from multiple classes"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 45,
+    "question": "In Android, what is the difference between `dp` and `sp` units?",
+    "options": {
+      "A": "`dp` is density-independent pixels, `sp` is scale-independent pixels",
+      "B": "`dp` is for width, `sp` is for height",
+      "C": "`dp` is device pixels, `sp` is screen pixels",
+      "D": "They are the same"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 46,
+    "question": "Which annotation is used to mark a function as a test in Kotlin with JUnit?",
+    "options": {
+      "A": "@Test",
+      "B": "@RunWith",
+      "C": "@Before",
+      "D": "@After"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 47,
+    "question": "What does the following code using Kotlin flows output?\n\n```kotlin\nimport kotlinx.coroutines.*\nimport kotlinx.coroutines.flow.*\n\nfun main() = runBlocking {\n    flow {\n        emit(1)\n        emit(2)\n        emit(3)\n    }\n    .filter { it % 2 == 1 }\n    .collect { println(it) }\n}\n```",
+    "options": {
+      "A": "1\n3",
+      "B": "2",
+      "C": "1\n2\n3",
+      "D": "Compilation error"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 48,
+    "question": "Which component is NOT part of the Android Jetpack libraries?",
+    "options": {
+      "A": "Room",
+      "B": "LiveData",
+      "C": "Retrofit",
+      "D": "ViewModel"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 49,
+    "question": "What is the purpose of the `companion object` in Kotlin classes?",
+    "options": {
+      "A": "To create static members",
+      "B": "To implement interfaces",
+      "C": "To enable inheritance",
+      "D": "To make the class singleton"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 50,
+    "question": "In Clean Architecture, which layer should contain the business logic of the application?",
+    "options": {
+      "A": "Presentation Layer",
+      "B": "Domain Layer",
+      "C": "Data Layer",
+      "D": "Infrastructure Layer"
+    },
+    "correct_answer": "B"
+  }
   ]
 }
