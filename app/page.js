@@ -5866,7 +5866,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const isMultiSelect = (question.correct_answer && question.correct_answer.includes(',')) || 
                           (question.question && question.question.toLowerCase().includes('select all'));
                           
-    const correctIds = question.correct_answer.includes(',') ? question.correct_answer.split(',').map(s => s.trim()) : [question.correct_answer];
+    const correctIds = (question.correct_answer && question.correct_answer.includes(',')) ? question.correct_answer.split(',').map(s => s.trim()) : [question.correct_answer || ""];
     const isMatching = question.shuffledOptions.every(o => o.text.includes('→'));
 
     let isStudyComplete = false;

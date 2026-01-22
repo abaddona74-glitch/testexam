@@ -1,0 +1,1124 @@
+{
+  "updatedAt": "2026-01-26T11:24:00Z",
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Quyidagi Kotlin deklaratsiyalarini ko'rib chiqing:\n\n```kotlin\nfun main() {\n val scores = mutableListOf(100, 95)\n scores.add(90)\n val limit = 50\n // limit = 60\n println(scores)\n}\n```\n\n1. 5-qatorni kommentdan chiqarmasdan kod ishlaganda konsolga qanday qiymat chiqadi?\n2. Agar limit = 60 (5-qator) kommentdan chiqarilsa nima bo'ladi? Scores ro'yxatini o'zgartirish (3-qator) va limit qiymatini qayta belgilash (5-qator) o'rtasidagi farqni tushuntiring.",
+      "options": {
+        "A": "[100, 95, 90] - 5-qatorda kompilyatsiya xatosi",
+        "B": "[100, 95, 90] - 5-qatorda runtime xatosi",
+        "C": "[100, 95] - 5-qatorda kompilyatsiya xatosi",
+        "D": "[100, 95] - Xato yo'q, qiymat 60 ga o'zgaradi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "Quyidagi Kotlin kodini ko'rib chiqing:\n\n```kotlin\nfun processData(data: String): Int {\n return data.length\n}\n\nfun main() {\n val nullableData: String? = null\n // print(processData(nullableData))\n val safeLength = nullableData?.length ?: 0\n println(safeLength)\n}\n```\n\n1. Faqat 10-qator ishlaganda chiqish qanday bo'ladi?\n2. Agar 8-qator kommentdan chiqarilsa natija qanday bo'ladi? Kotlinning Null Safety konsepsiyasidan foydalanib farqni izohlang.",
+      "options": {
+        "A": "0 - Kompilyatsiya xatosi",
+        "B": "null - Runtime NullPointerException",
+        "C": "0 - Runtime NullPointerException",
+        "D": "null - Kompilyatsiya xatosi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 3,
+      "question": "Kotlinda Listlar tartiblangan kolleksiyalar bo'lib, dublikat elementlarni ruxsat beradi, Setlar esa tartiblanmagan va faqat noyob elementlarni saqlaydi. Berilgan kod:\n\n```kotlin\nval listItems = listOf('Red', 'Green', 'Blue', 'Red', 'Green')\nval setItems = setOf('Red', 'Green', 'Blue', 'Red', 'Green')\nprintln(\"List: $listItems\")\nprintln(\"Set: $setItems\")\n```\n\nList va Set uchun aniq chiqish qanday bo'ladi?",
+      "options": {
+        "A": "List: [Red, Green, Blue] Set: [Red, Green, Blue]",
+        "B": "List: [Red, Green, Blue, Red, Green] Set: [Red, Green, Blue, Red, Green]",
+        "C": "List: [Red, Green, Blue, Red, Green] Set: [Red, Green, Blue]",
+        "D": "List: [Red, Green, Blue] Set: [Red, Green, Blue, Red, Green]"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 4,
+      "question": "Berilgan kod:\n\n```kotlin\nfun sendAlert(recipient: String, priority: Int = 1, message: String) {\n println(\"Alert to $recipient (P$priority): $message\")\n}\n\nfun main() {\n sendAlert(message = \"System Down\", recipient = \"Admin\", priority = 5)\n}\n```\n\n1. main funksiyasining chiqishi qanday bo'ladi?\n2. Argumentlar funksiya sarlavhasida e'lon qilingan tartibdan farqli tartibda taqdim etilgan bo'lsa ham, bu chaqiruv nima uchun muvaffaqiyatli amalga oshadi?",
+      "options": {
+        "A": "Alert to Admin (P5): System Down - Nomlangan argumentlar tufayli",
+        "B": "Alert to Admin (P1): System Down - Standart argumentlar tufayli",
+        "C": "Kompilyatsiya xatosi - Argumentlar tartibida bo'lishi kerak",
+        "D": "Alert to System Down (P5): Admin - Argumentlar almashtirilganligi tufayli"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 5,
+      "question": "Siz ikkita entity aniqlaysiz:\n\n```kotlin\nclass Employee(val name: String, val employeeId: Int)\ndata class User(val name: String, val id: Int)\n```\n\nAgar Employee va User namunasini to'g'ridan-to'g'ri chop etsangiz, qaysi biri avtomatik ravishda o'z xususiyatlarining o'qiladigan string ifodasini hosil qiladi va ushbu xususiyat uchun javobgar bo'lgan oldindan belgilangan a'zo funksiyasi nomi nima?",
+      "options": {
+        "A": "Employee - toString()",
+        "B": "User - equals()",
+        "C": "User - toString()",
+        "D": "Ikkalasi - toString()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 6,
+      "question": "Kotlin Control Flow da, while va do-while loop'lar shart asosida kodni bajaradi. Loop ichidagi kod bloki dastlabki shartning rost yoki yolg'onligidan qat'iy nazar, kamida bir marta bajarilishini kafolatlaydigan ushbu ikkita loop o'rtasidagi asosiy farqni tushuntiring.",
+      "options": {
+        "A": "do-while shartni blokni bajargan keyin tekshiradi",
+        "B": "while shartni blokni bajarishdan oldin tekshiradi",
+        "C": "Ikkalasi ham bajarishdan oldin shartni tekshiradi",
+        "D": "Ikkalasi ham bajarilgandan keyin shartni tekshiradi"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 7,
+      "question": "Android Studio (Android ilovalarini ishlab chiqish uchun rasmiy IDE) dan foydalanganda, ilova emulyator yoki qurilmada ishlayotganda real vaqt rejimida tizim xabarlari va debug log'larini ko'rish uchun qaysi maxsus Tool Window muhimdir?",
+      "options": {
+        "A": "Project Window",
+        "B": "Run Window",
+        "C": "Logcat",
+        "D": "Debug Window"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 8,
+      "question": "Git da, agar siz lokalda bir nechta o'zgarishlar qilgan bo'lsangiz va ularni mahalliy tarixga saqlashga tayyor bo'lsangiz, avval barcha o'zgartirilgan fayllarni tayyorlash, so'ngra ularni 'Feature complete' xabari bilan doimiy ravishda saqlash uchun zarur bo'lgan ketma-ket ikkita majburiy command-line interface (CLI) buyruqlari qaysilar?",
+      "options": {
+        "A": "git add . ; git commit -m 'Feature complete'",
+        "B": "git commit -m 'Feature complete' ; git push",
+        "C": "git stage . ; git commit 'Feature complete'",
+        "D": "git add . ; git push -m 'Feature complete'"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 9,
+      "question": "Kotlinda sealed class yoki sealed interface ning to'g'ridan-to'g'ri subclass'lari yoki implementatsiyalari uchun qaysi cheklov qo'llaniladi, bu esa bilvosita subclass'larga qo'llanilmaydi?",
+      "options": {
+        "A": "To'g'ridan-to'g'ri subclass'lar final deb belgilanishi kerak va keyinchalik kengaytirilishi mumkin emas.",
+        "B": "To'g'ridan-to'g'ri subclass'lar sealed tip bilan bir xil faylda e'lon qilinishi kerak.",
+        "C": "To'g'ridan-to'g'ri subclass'lar sealed tip bilan bir xil modul va paketda e'lon qilinishi kerak.",
+        "D": "To'g'ridan-to'g'ri subclass'lar hech qanday konstruktor o'z ichiga olmaydi, chunki sealed class tabiatan abstraktdir."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 10,
+      "question": "Clean Architecture da, ichki qatlam (A) tashqi qatlam (B) bilan muloqot qilishga muhtoj bo'lganda, bog'liqliklar ichkariga harakatlanishini ta'minlash uchun Dependency Rule qanday qat'iy amalga oshiriladi?",
+      "options": {
+        "A": "A qatlami B qatlamining klassini bevosita import qiladi, lekin B tashqi o'zgarishlarni oldini olish uchun internal sifatida belgilanadi.",
+        "B": "B qatlami har doim abstrakt asosiy klass sifatida amalga oshiriladi, va A qatlami undan meros oladi.",
+        "C": "A qatlami kerakli chiqish formatini belgilaydigan abstrakt Interface (C) ni aniqlaydi, va B qatlami ushbu Interface (C) ni amalga oshiradi, shu bilan B ni A ning shartnomasiga bog'liq qiladi.",
+        "D": "A qatlami B dan ma'lumotni statik utility klass orqali oladi, bu A va B o'rtasidagi aniq bog'liqlikni yo'q qiladi."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 11,
+      "question": "Sealed class'ning o'zi har doim abstrakt bo'lib, bevosita instansiya qilinishi mumkin emas. Uning konstruktorlarining ko'rinishiga kelsak, Kotlinda qaysi juftlik ko'rinish modifikatorlari aniq taqiqlangan va kompilyatsiya xatosini keltirib chiqaradi?",
+      "options": {
+        "A": "protected va private.",
+        "B": "internal va protected.",
+        "C": "private va public.",
+        "D": "public va internal."
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 12,
+      "question": "MVI (Model-View-Intent) arxitektura naqshining bashorat qilish va barqarorlikni ta'minlaydigan va uni MVVM dan kuchli ajratib turadigan ikkita asosiy tamoyili qaysilar?",
+      "options": {
+        "A": "Observable ViewModel qatlami va ikki tomonlama ma'lumot oqimi orqali bo'sh bog'lanish.",
+        "B": "Passive View foydalanuvchi harakatlarini Presenter'ga yo'naltirishi va qat'iy birga-bir View-Presenter munosabati.",
+        "C": "Bir tomonlama ma'lumot oqimi (UDF) va Model holatining o'zgarmasligi.",
+        "D": "Markaziy muloqot markazi sifatida Controller va View haqida hech qanday bilimga ega bo'lmagan Model."
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 13,
+      "question": "Android Clean Architecture implementatsiyasida, ham Repository, ham Data Source klasslari Data Layer da joylashgan. Quyidagi mas'uliyatlardan qaysi biri Repository klassiga tegishli bo'lib, uning abstraksiya qatlami sifatidagi rolini namoyish etadi?",
+      "options": {
+        "A": "Faqat bitta ma'lumot manbai bilan ishlash (masalan, tarmoq API).",
+        "B": "Ilova va tizim o'rtasida ma'lumot operatsiyalari uchun ko'prik vazifasini bajarish.",
+        "C": "Bir nechta ViewModel'lar tomonidan qayta ishlatiladigan qayta ishlatiladigan murakkab biznes logikasini o'z ichiga olish.",
+        "D": "Bir nechta ma'lumot manbalari o'rtasidagi ziddiyatlarni hal qilish."
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 14,
+      "question": "Siz bir nechta bog'liq bo'lmagan turlar (turli asosiy ierarxiyalardan klasslar) umumiy xususiyat yoki shartnomani amalga oshirishi kerak bo'lgan ierarxiyani aniqlashingiz kerak. Qaysi maxsus turdan foydalanishingiz kerak va nega?",
+      "options": {
+        "A": "enum class, chunki u belgilangan nomli konstantalar to'plamini taklif qiladi.",
+        "B": "sealed class, chunki u turli ma'lumotlarga ega bo'lgan yopiq klass ierarxiyalari uchun eng yaxshisidir.",
+        "C": "data class, chunki u oddiy ma'lumotlarni saqlash va olish imkonini beradi.",
+        "D": "sealed interface, chunki u turli ierarxiyalar bo'ylab bir nechta sealed interface'larni amalga oshirish imkonini berib, moslashuvchan kompozitsiyaga imkon beradi."
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 15,
+      "question": "MVVM arxitektura komponentini ilova oqimidagi asosiy roli bilan moslang:\n\n1. Vositachi sifatida harakat qiladi; biznes logikasini boshqaradi va UI ga kuzatiladigan ma'lumot oqimlarini taqdim etadi.\n2. Foydalanuvchi interfeys elementlarini ifodalaydi; ma'lumotlarni ko'rsatadi va foydalanuvchi o'zaro ta'sirini qayd etadi.\n3. Ma'lumot olish, saqlash va ma'lumotlar bazasi yoki tarmoq API'lari kabi ma'lumot manbalari bilan o'zaro ta'sirni boshqaradi.",
+      "options": {
+        "A": "1-ViewModel, 2-View, 3-Model",
+        "B": "1-Model, 2-View, 3-ViewModel",
+        "C": "1-View, 2-ViewModel, 3-Model",
+        "D": "1-ViewModel, 2-Model, 3-View"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 16,
+      "question": "Clean Architecture tamoyillariga amal qilgan holda Android ilovasining uchta standart qatlamini tartiblang, tashqi qatlamdan boshlab ichki qatlamga qarab.",
+      "options": {
+        "A": "Tashqi qatlam → UI qatlami",
+        "B": "O'rta qatlam → Domain qatlami",
+        "C": "Ichki qatlam → Ma'lumot qatlami",
+        "D": "Infratuzilma → Hardware qatlami"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 17,
+      "question": "Ilova konstantalari yoki holatlarini aniqlash talabi bilan eng mos Keladigan Kotlin maxsus klassini moslang:\n\n1. Xato darajasi darajalarini ifodalovchi belgilangan, oddiy, noyob konstantalar (MINOR, MAJOR, CRITICAL)\n2. Har bir muvaffaqiyat/muvaffaqiyatsizlik holati noyob, turli ma'lumot xususiyatlarini talab qiladigan tarmoq javoblarini ifodalash\n3. Turli to'lovni qayta ishlash klasslari uchun umumiy xatti-harakatlar to'plamini aniqlash",
+      "options": {
+        "A": "1-enum class, 2-sealed class, 3-sealed interface",
+        "B": "1-sealed class, 2-enum class, 3-sealed interface",
+        "C": "1-data class, 2-sealed class, 3-enum class",
+        "D": "1-sealed interface, 2-data class, 3-enum class"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 18,
+      "question": "MVP (Model-View-Presenter) naqshi haqidagi gaplarni to'ldiring:\n\n* A. ______ foydalanuvchi harakatlarini Presenter'ga yo'naltiradigan butunlay aqli zaif passiv interfeysdir.\n* B. View va Presenter o'rtasidagi ______ munosabati qat'iy.\n* C. ______ Model'dan ma'lumot olish va View ni yangilash uchun 'o'rta odam'dir.",
+      "options": {
+        "A": "A: View, B: birga-bir, C: Presenter",
+        "B": "A: Model, B: bir nechta-birga, C: View",
+        "C": "A: Presenter, B: birga-bir, C: Model",
+        "D": "A: View, B: bir nechta-bir nechta, C: Presenter"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 19,
+      "question": "Quyidagi kodni bajarishda nima sodir bo'ladi?\n\n```kotlin\nfun main() {\n val immutableList = listOf(1, 2, 3)\n immutableList.add(4) // 4-qator\n println(immutableList)\n}\n```",
+      "options": {
+        "A": "[1, 2, 3, 4] - Xato yo'q",
+        "B": "[1, 2, 3] - 4-qatorda kompilyatsiya xatosi",
+        "C": "[1, 2, 3] - 4-qatorda runtime xatosi",
+        "D": "NullPointerException"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 20,
+      "question": "Quyidagi kodning natijasi nima?\n\n```kotlin\nfun main() {\n val mutableSet = mutableSetOf(\"A\", \"B\", \"C\")\n val immutableSet = setOf(\"X\", \"Y\", \"Z\")\n \n mutableSet.add(\"D\")\n immutableSet.add(\"W\") // 6-qator\n \n println(\"Mutable: $mutableSet\")\n println(\"Immutable: $immutableSet\")\n}\n```",
+      "options": {
+        "A": "Ikkala set ham yangi elementlar qo'shiladi",
+        "B": "6-qatorda kompilyatsiya xatosi",
+        "C": "6-qatorda runtime xatosi",
+        "D": "Faqat mutable set yangi element oladi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 21,
+      "question": "Ushbu kodning chiqishi qanday?\n\n```kotlin\nfun main() {\n val numbers1 = mutableListOf(10, 20, 30)\n val numbers2 = numbers1.toList() // o'zgarmas nusxa\n \n numbers1.add(40)\n \n println(\"Mutable: $numbers1\")\n println(\"Immutable: $numbers2\")\n}\n```",
+      "options": {
+        "A": "Mutable: [10, 20, 30, 40] Immutable: [10, 20, 30, 40]",
+        "B": "Mutable: [10, 20, 30] Immutable: [10, 20, 30, 40]",
+        "C": "Mutable: [10, 20, 30, 40] Immutable: [10, 20, 30]",
+        "D": "Kompilyatsiya xatosi"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 22,
+      "question": "Ushbu kodni tahlil qiling:\n\n```kotlin\nfun main() {\n val originalMap = mutableMapOf(\"a\" to 1, \"b\" to 2)\n val readOnlyMap: Map<String, Int> = originalMap\n \n originalMap[\"c\"] = 3\n readOnlyMap[\"d\"] = 4 // 6-qator\n \n println(\"Original: $originalMap\")\n}\n```\n\n6-qatorda nima sodir bo'ladi?",
+      "options": {
+        "A": "\"d\"→4 xaritaga qo'shiladi",
+        "B": "Kompilyatsiya xatosi",
+        "C": "Runtime xatosi",
+        "D": "NullPointerException"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 23,
+      "question": "Ushbu dastur nima chop etadi?\n\n```kotlin\nfun main() {\n val mutableList = mutableListOf<Int>()\n val immutableList = listOf<Int>()\n \n mutableList.addAll(listOf(5, 10, 15))\n val newImmutableList = immutableList + 20\n \n println(\"Mutable: $mutableList\")\n println(\"New Immutable: $newImmutableList\")\n}\n```",
+      "options": {
+        "A": "Mutable: [5, 10, 15] New Immutable: [20]",
+        "B": "Mutable: [] New Immutable: [20]",
+        "C": "Kompilyatsiya xatosi",
+        "D": "Mutable: [5, 10, 15] New Immutable: []"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 24,
+      "question": "Kotlin kolleksiyalari haqida qaysi bayonot TO'G'RI?",
+      "options": {
+        "A": "mutableListOf() initsializatsiyadan keyin o'zgartirilishi mumkin bo'lmagan ro'yxat yaratadi",
+        "B": "listOf() add() usuli yordamida o'zgartirilishi mumkin bo'lgan ro'yxat yaratadi",
+        "C": "toMutableList() o'zgarmas ro'yxatni o'zgaruvchan ro'yxatga aylantiradi",
+        "D": "O'zgarmas kolleksiyalar barcha operatsiyalar uchun o'zgaruvchan kolleksiyalardan tezroq"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 25,
+      "question": "Ushbu kodning chiqishi qanday?\n\n```kotlin\nfun main() {\n val immutable = setOf(1, 2, 3, 2, 1)\n val mutable = mutableSetOf(1, 2, 3, 2, 1)\n \n println(\"Immutable size: ${immutable.size}\")\n println(\"Mutable size: ${mutable.size}\")\n}\n```",
+      "options": {
+        "A": "Immutable size: 5, Mutable size: 5",
+        "B": "Immutable size: 3, Mutable size: 5",
+        "C": "Immutable size: 3, Mutable size: 3",
+        "D": "Kompilyatsiya xatosi"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 26,
+      "question": "Ushbu kodni kompilyatsiya qilishga harakat qilganingizda nima sodir bo'ladi?\n\n```kotlin\nfun modifyCollection(collection: MutableList<String>) {\n collection.add(\"Modified\")\n}\n\nfun main() {\n val list1 = mutableListOf(\"Original\")\n val list2 = listOf(\"Original\")\n \n modifyCollection(list1)\n modifyCollection(list2) // 10-qator\n \n println(\"List1: $list1\")\n}\n```",
+      "options": {
+        "A": "Ikkala ro'yxat ham muvaffaqiyatli o'zgartiriladi",
+        "B": "10-qatorda kompilyatsiya xatosi",
+        "C": "10-qatorda runtime xatosi",
+        "D": "Faqat list1 o'zgartiriladi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 27,
+      "question": "Ushbu kodni bajarish natijasi nima?\n\n```kotlin\nfun main() {\n val builderList = buildList {\n add(\"First\")\n add(\"Second\")\n }\n \n println(\"Type: ${builderList::class.simpleName}\")\n println(\"Size: ${builderList.size}\")\n}\n```",
+      "options": {
+        "A": "Type: ArrayList, Size: 2",
+        "B": "Type: ImmutableCollections$ListN, Size: 2",
+        "C": "Kompilyatsiya xatosi",
+        "D": "Type: MutableList, Size: 2"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 28,
+      "question": "Qaysi kolleksiya yaratish funksiyasi qaytarilgan kolleksiyaning o'zgartirilmasligini kafolatlaydi?",
+      "options": {
+        "A": "mutableListOf()",
+        "B": "arrayListOf()",
+        "C": "listOf()",
+        "D": "toMutableList()"
+      },
+      "correct_answer": "C"
+    },
+    {
+    "id": 29,
+    "question": "Ushbu kod qanday chiqadi?\n\n```kotlin\nfun main() {\n    val numbers = listOf(1, 2, 3, 4, 5)\n    val result = numbers\n        .filter { it % 2 == 0 }\n        .map { it * it }\n        .reduce { acc, i -> acc + i }\n    \n    println(result)\n}\n```",
+    "options": {
+      "A": "20",
+      "B": "30",
+      "C": "55",
+      "D": "6"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 30,
+    "question": "Quyidagilardan qaysi biri Kotlin klassida ikkilamchi konstruktorni to'g'ri ishlatishni namoyish etadi?",
+    "options": {
+      "A": "```kotlin\nclass Person(name: String) {\n    constructor(name: String, age: Int) : this(name)\n}\n```",
+      "B": "```kotlin\nclass Person(name: String) {\n    constructor(name: String, age: Int)\n}\n```",
+      "C": "```kotlin\nclass Person {\n    constructor(name: String)\n    constructor(name: String, age: Int)\n}\n```",
+      "D": "```kotlin\nclass Person(name: String) {\n    secondary constructor(name: String, age: Int)\n}\n```"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 31,
+    "question": "Android dasturlashda, Fragment hayotiy siklini boshqarish uchun qaysi komponent javobgardir?",
+    "options": {
+      "A": "Activity",
+      "B": "ViewModel",
+      "C": "FragmentManager",
+      "D": "Application"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 32,
+    "question": "Jetpack Compose da `@Composable` annotatsiyasining maqsadi nima?",
+    "options": {
+      "A": "Funksiyani qayta tiklanishi mumkin bo'lgan UI komponenti sifatida belgilash",
+      "B": "Klass serializatsiya qilinishi mumkinligini ko'rsatish",
+      "C": "XML layout'larda ma'lumotlar bog'lashni yoqish",
+      "D": "Bog'liqlik inyeksiyasini yaratish"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 33,
+    "question": "WHERE bandi bilan elementlar ro'yxatini qaytaradigan metodni aniqlash uchun qaysi Room annotatsiyasi ishlatiladi?",
+    "options": {
+      "A": "@Query",
+      "B": "@Select",
+      "C": "@Where",
+      "D": "@Filter"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 34,
+    "question": "Kotlin korutinlaridan foydalanadigan quyidagi kod qanday chiqadi?\n\n```kotlin\nimport kotlinx.coroutines.*\n\nfun main() = runBlocking {\n    launch {\n        delay(1000L)\n        println(\"World!\")\n    }\n    println(\"Hello,\")\n}\n```",
+    "options": {
+      "A": "Hello,\nWorld!",
+      "B": "World!\nHello,",
+      "C": "Hello, World! (bir qatorda)",
+      "D": "Kompilyatsiya xatosi"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 35,
+    "question": "MVVM arxitekturasida, ViewModel ning View bilan muloqot qilishning tavsiya etilgan usuli qanday?",
+    "options": {
+      "A": "Bevosita metod chaqiruvlari",
+      "B": "Callback/interfeyslardan foydalanish",
+      "C": "LiveData yoki StateFlow orqali",
+      "D": "SharedPreferences dan foydalanish"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 36,
+    "question": "Android moduli uchun bog'liqliklarni aniqlash uchun qaysi Gradle konfiguratsiya fayli ishlatiladi?",
+    "options": {
+      "A": "settings.gradle",
+      "B": "build.gradle (Loyiha darajasi)",
+      "C": "build.gradle (Modul darajasi)",
+      "D": "gradle.properties"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 37,
+    "question": "Kotlinda `val` va `var` o'rtasidagi farq nima?",
+    "options": {
+      "A": "`val` o'zgaruvchilar uchun, `var` qiymatlar uchun",
+      "B": "`val` o'zgarmas (faqat o'qish uchun), `var` o'zgaruvchan",
+      "C": "`val` primitiv turlar uchun, `var` ob'ektlar uchun",
+      "D": "Farq yo'q"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 38,
+    "question": "Android da, internetga kirish uchun qaysi ruxsat kerak?",
+    "options": {
+      "A": "<uses-permission android:name=\"android.permission.INTERNET\" />",
+      "B": "<uses-permission android:name=\"android.permission.NETWORK\" />",
+      "C": "<uses-permission android:name=\"android.permission.WIFI\" />",
+      "D": "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 39,
+    "question": "Kotlin korutinlarida `suspend` modifikatori nima ma'noni anglatadi?",
+    "options": {
+      "A": "Funksiya to'xtatilishi va keyin davom ettirilishi mumkin",
+      "B": "Funksiya avtomatik ravishda bekor qilinadi",
+      "C": "Funksiya asosiy thread da ishlaydi",
+      "D": "Funksiya sinxron"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 40,
+    "question": "Activity foydalanuvchiga ko'rinadigan bo'lganda qaysi hayotiy sikli metodi chaqiriladi?",
+    "options": {
+      "A": "onCreate()",
+      "B": "onStart()",
+      "C": "onResume()",
+      "D": "onVisible()"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 41,
+    "question": "Kotlinda `by lazy` delegatining maqsadi nima?",
+    "options": {
+      "A": "Thread-safe singleton yaratish",
+      "B": "Xususiyatni faqat birinchi marta kirilganda initsializatsiya qilish",
+      "C": "Xususiyatni boshqa xususiyatga bog'lash",
+      "D": "Xususiyatni kuzatiladigan qilish"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 42,
+    "question": "Jetpack Compose da, `remember` va `rememberSaveable` o'rtasidagi farq nima?",
+    "options": {
+      "A": "`remember` konfiguratsiya o'zgarishlarida saqlanadi, `rememberSaveable` saqlamaydi",
+      "B": "`rememberSaveable` konfiguratsiya o'zgarishlarida saqlanadi, `remember` saqlamaydi",
+      "C": "Ular bir xil",
+      "D": "`remember` holat uchun, `rememberSaveable` effektlar uchun"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 43,
+    "question": "REST API larda qaysi HTTP status kodi muvaffaqiyatli so'rovni ko'rsatadi?",
+    "options": {
+      "A": "200 OK",
+      "B": "404 Not Found",
+      "C": "500 Internal Server Error",
+      "D": "301 Moved Permanently"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 44,
+    "question": "Kotlinda `Sealed` klassining maqsadi nima?",
+    "options": {
+      "A": "O'zgarmas klasslar yaratish",
+      "B": "Klass ierarxiyalarini belgilangan subtype'lar to'plamiga cheklash",
+      "C": "Klasslarni serializatsiya qilinishi mumkin qilish",
+      "D": "Bir nechta klasslardan meros olishni yoqish"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 45,
+    "question": "Android da, `dp` va `sp` birliklari o'rtasidagi farq nima?",
+    "options": {
+      "A": "`dp` zichlikdan mustaqil piksellar, `sp` masshtabdan mustaqil piksellar",
+      "B": "`dp` kenglik uchun, `sp` balandlik uchun",
+      "C": "`dp` qurilma piksellari, `sp` ekran piksellari",
+      "D": "Ular bir xil"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 46,
+    "question": "Kotlin bilan JUnit da funktsiyani test sifatida belgilash uchun qaysi annotatsiya ishlatiladi?",
+    "options": {
+      "A": "@Test",
+      "B": "@RunWith",
+      "C": "@Before",
+      "D": "@After"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 47,
+    "question": "Kotlin flow'laridan foydalanadigan quyidagi kod qanday chiqadi?\n\n```kotlin\nimport kotlinx.coroutines.*\nimport kotlinx.coroutines.flow.*\n\nfun main() = runBlocking {\n    flow {\n        emit(1)\n        emit(2)\n        emit(3)\n    }\n    .filter { it % 2 == 1 }\n    .collect { println(it) }\n}\n```",
+    "options": {
+      "A": "1\n3",
+      "B": "2",
+      "C": "1\n2\n3",
+      "D": "Kompilyatsiya xatosi"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 48,
+    "question": "Qaysi komponent Android Jetpack kutubxonalarining bir qismi EMAS?",
+    "options": {
+      "A": "Room",
+      "B": "LiveData",
+      "C": "Retrofit",
+      "D": "ViewModel"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 49,
+    "question": "Kotlin klasslarida `companion object` ning maqsadi nima?",
+    "options": {
+      "A": "Statik a'zolar yaratish",
+      "B": "Interfeyslarni amalga oshirish",
+      "C": "Meros olishni yoqish",
+      "D": "Klassni singleton qilish"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 50,
+    "question": "Clean Architecture da, ilovaning biznes logikasi qaysi qatlamda bo'lishi kerak?",
+    "options": {
+      "A": "Presentation Layer",
+      "B": "Domain Layer",
+      "C": "Data Layer",
+      "D": "Infrastructure Layer"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 51,
+    "question": "Ushbu null safety kodining chiqishi qanday?\n\n```kotlin\nfun main() {\n    val name: String? = null\n    val length = name?.length ?: 0\n    println(\"Length: $length\")\n}\n```",
+    "options": {
+      "A": "Length: null",
+      "B": "Length: 0",
+      "C": "NullPointerException",
+      "D": "Kompilyatsiya xatosi"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 52,
+    "question": "Kotlinda `!!` operatori nima qiladi?",
+    "options": {
+      "A": "Nullable turini non-nullable ga aylantiradi va null bo'lsa NPE tashlaydi",
+      "B": "Qiymat null ekanligini tekshiradi va standartni qaytaradi",
+      "C": "O'zgaruvchini o'zgarmas qiladi",
+      "D": "Xavfsiz chaqiruv yaratadi"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 53,
+    "question": "Quyidagilardan qaysi biri zanjirli xavfsiz chaqiruvlarni to'g'ri namoyish etadi?\n\n```kotlin\n// Faraz qilaylik: data class Person(val address: Address?)\n// data class Address(val street: Street?)\n// data class Street(val name: String?)\n```",
+    "options": {
+      "A": "```kotlin\nval streetName = person.address.street.name\n```",
+      "B": "```kotlin\nval streetName = person?.address?.street?.name\n```",
+      "C": "```kotlin\nval streetName = person!!.address!!.street!!.name\n```",
+      "D": "```kotlin\nval streetName = person.address?.street?.name\n```"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 54,
+    "question": "Ushbu kodning natijasi nima?\n\n```kotlin\nfun main() {\n    val str: String? = \"Hello\"\n    val result = str?.let {\n        it.length\n    } ?: run {\n        -1\n    }\n    println(result)\n}\n```",
+    "options": {
+      "A": "5",
+      "B": "-1",
+      "C": "null",
+      "D": "Kompilyatsiya xatosi"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 55,
+    "question": "`?:` (Elvis operatori) null tekshiruvlari uchun oddiy `if-else` dan qanday farq qiladi?",
+    "options": {
+      "A": "Elvis operatori faqat nullable turlar uchun, if-else umumiy",
+      "B": "Elvis operatori ifoda qaytaradi, if-else bayonot",
+      "C": "Elvis operatori samaraliroq",
+      "D": "Yuqoridagilarning barchasi"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 56,
+    "question": "Ushbu kod nima chop etadi?\n\n```kotlin\nfun process(value: String?) {\n    val result = value?.takeIf { it.isNotEmpty() } ?: \"Default\"\n    println(result)\n}\n\nfun main() {\n    process(null)\n    process(\"\")\n    process(\"Kotlin\")\n}\n```",
+    "options": {
+      "A": "Default\nDefault\nKotlin",
+      "B": "null\n\nKotlin",
+      "C": "Default\n\nKotlin",
+      "D": "Kompilyatsiya xatosi"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 57,
+    "question": "Qiymat null bo'lsa istisno tashlash uchun qaysi Kotlin funktsiyasi ishlatiladi?",
+    "options": {
+      "A": "requireNotNull()",
+      "B": "checkNotNull()",
+      "C": "error()",
+      "D": "Yuqoridagilarning barchasi"
+    },
+    "correct_answer": "D"
+  },
+  {
+    "id": 58,
+    "question": "Null boshqarish uchun `?.let` va `?:` o'rtasidagi farq nima?",
+    "options": {
+      "A": "`?.let` null bo'lmasa blokni bajaradi, `?:` null bo'lsa standart taqdim etadi",
+      "B": "Ular bir xil",
+      "C": "`?.let` funktsiyalar uchun, `?:` o'zgaruvchilar uchun",
+      "D": "`?.let` null qaytaradi, `?:` istisno tashlaydi"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 59,
+    "question": "Ushbu kod qanday chiqadi?\n\n```kotlin\nfun main() {\n    val numbers: List<Int>? = listOf(1, 2, 3)\n    val size = numbers?.size ?: 0\n    val sum = numbers?.sum() ?: 0\n    \n    println(\"Size: $size, Sum: $sum\")\n}\n```",
+    "options": {
+      "A": "Size: 3, Sum: 6",
+      "B": "Size: 0, Sum: 0",
+      "C": "Size: null, Sum: null",
+      "D": "NullPointerException"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 60,
+    "question": "Quyidagilardan qaysi biri Kotlinda kompilyatsiya xatosiga sabab bo'ladi?\n\n```kotlin\n// Faraz qilaylik: fun getLength(s: String): Int = s.length\n```",
+    "options": {
+      "A": "```kotlin\nval str: String? = null\nval length = getLength(str)\n```",
+      "B": "```kotlin\nval str: String? = null\nval length = str?.let { getLength(it) }\n```",
+      "C": "```kotlin\nval str: String? = null\nval length = str?.length ?: 0\n```",
+      "D": "```kotlin\nval str: String? = null\nval length = if (str != null) getLength(str) else 0\n```"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 61,
+    "question": "Kotlinda `as?` operatorining maqsadi nima?",
+    "options": {
+      "A": "Konvertatsiya muvaffaqiyatsiz bo'lsa null qaytaradigan xavfsiz tur konvertatsiyasi",
+      "B": "Istisno tashlaydigan xavfsiz bo'lmagan tur konvertatsiyasi",
+      "C": "Ob'ekt ma'lum turda ekanligini tekshiradi",
+      "D": "Nullable ni non-nullable ga aylantiradi"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 62,
+    "question": "Nima chop etiladi?\n\n```kotlin\nfun main() {\n    val map: Map<String, String?> = mapOf(\n        \"a\" to \"Apple\",\n        \"b\" to null,\n        \"c\" to \"Cherry\"\n    )\n    \n    val values = listOf(\"a\", \"b\", \"c\", \"d\")\n        .mapNotNull { key -> map[key] }\n    \n    println(values)\n}\n```",
+    "options": {
+      "A": "[Apple, null, Cherry]",
+      "B": "[Apple, Cherry]",
+      "C": "[Apple, null, Cherry, null]",
+      "D": "NullPointerException"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 63,
+    "question": "Nullable ro'yxat null yoki bo'sh bo'lganda qanday standart qiymat taqdim etish mumkin?",
+    "options": {
+      "A": "```kotlin\nlist?.ifEmpty { listOf(\"default\") } ?: listOf(\"default\")\n```",
+      "B": "```kotlin\nlist ?: emptyList<String>()\n```",
+      "C": "```kotlin\nlist.orEmpty().ifEmpty { listOf(\"default\") }\n```",
+      "D": "Yuqoridagilarning barchasi"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 64,
+    "question": "`?.` va `!!` operatorlari o'rtasidagi farq nima?",
+    "options": {
+      "A": "`?.` chap tomon null bo'lsa null qaytaradi, `!!` NPE tashlaydi",
+      "B": "`?.` funktsiyalar uchun, `!!` xususiyatlar uchun",
+      "C": "`?.` xavfsiz emas, `!!` xavfsiz",
+      "D": "Farq yo'q"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 65,
+    "question": "`also` va null safety dan foydalanadigan ushbu kod nima chop etadi?\n\n```kotlin\nfun main() {\n    var count: Int? = null\n    \n    count = count?.also {\n        it + 1\n    } ?: 1\n    \n    println(count)\n}\n```",
+    "options": {
+      "A": "null",
+      "B": "1",
+      "C": "0",
+      "D": "Kompilyatsiya xatosi"
+    },
+    "correct_answer": "B"
+  },
+  {
+      "id": 66,
+      "question": "Android XML layout'larida, Activity klassini `tools:context` atributida qanday to'g'ri murojaat qilish kerak?",
+      "options": {
+        "A": "tools:context=\".MainActivity\"",
+        "B": "tools:context=\"android.app.Activity\"",
+        "C": "tools:context=\"@string/app_name\"",
+        "D": "tools:context=\"MainActivity\""
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 67,
+      "question": "Navigation graph faylida ildiz element sifatida qaysi XML tegi ishlatilishi kerak?",
+      "options": {
+        "A": "<android.support.v4.app.Fragment>",
+        "B": "<navigation>",
+        "C": "<fragment-container>",
+        "D": "<graph>"
+      },
+      "correct_answer": "B"
+    },
+    
+
+    {
+      "id": 68,
+      "question": "Activity ni o'zining onCreate() metodidan boshlaganingizda nima sodir bo'ladi?",
+      "options": {
+        "A": "Activity yaratishning cheksiz tsiklini yaratadi",
+        "B": "Ilova darhol crash bo'ladi",
+        "C": "Hech nima sodir bo'lmaydi - e'tiborga olinmaydi",
+        "D": "Back stack da yangi instansiya yaratadi"
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 69,
+      "question": "Davom etishdan oldin EditText da kontent borligini qanday to'g'ri tekshirish mumkin?",
+      "options": {
+        "A": "if (editText.text.isNotEmpty()) { ... }",
+        "B": "if (editText != null) { ... }",
+        "C": "if (editText.text.toString() != \"\") { ... }",
+        "D": "A va C ikkalasi ham"
+      },
+      "correct_answer": "D"
+    },
+    
+
+    {
+      "id": 70,
+      "question": "Fragmentda to'g'ri hayotiy siklni boshqarish uchun ViewModel ni qayerda initsializatsiya qilish kerak?",
+      "options": {
+        "A": "onCreate() da",
+        "B": "onCreateView() da",
+        "C": "onViewCreated() da",
+        "D": "onStart() da"
+      },
+      "correct_answer": "C"
+    },
+    
+
+    {
+      "id": 71,
+      "question": "MVVM naqshida, Fragment ViewModel dan o'zgarishlarni qanday kuzatishi kerak?",
+      "options": {
+        "A": "Bevosita metod chaqiruvlaridan foydalangan holda",
+        "B": "onViewCreated() da LiveData ni kuzatish",
+        "C": "Callback/interfeyslardan foydalangan holda",
+        "D": "SharedPreferences orqali"
+      },
+      "correct_answer": "B"
+    },
+    
+
+    {
+      "id": 72,
+      "question": "LiveData<List<Item>> qaytaradigan metod uchun qaysi Room annotatsiyasi talab qilinadi?",
+      "options": {
+        "A": "@Query",
+        "B": "@Select",
+        "C": "@LiveData",
+        "D": "@Observe"
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 73,
+      "question": "SharedPreferences instansiyasini olishning to'g'ri usuli qaysi?",
+      "options": {
+        "A": "getSharedPreferences(\"my_prefs\", Context.MODE_PRIVATE)",
+        "B": "SharedPreferences.getInstance(\"my_prefs\")",
+        "C": "PreferenceManager.getDefaultSharedPreferences(context)",
+        "D": "A va C ikkalasi ham"
+      },
+      "correct_answer": "D"
+    },
+    
+
+    {
+      "id": 74,
+      "question": "SharedPreferences bilan ma'lumotlarni saqlashda, yaxshiroq performance uchun qaysi metod afzalroq?",
+      "options": {
+        "A": "editor.commit()",
+        "B": "editor.apply()",
+        "C": "editor.save()",
+        "D": "editor.flush()"
+      },
+      "correct_answer": "B"
+    },
+    
+    {
+      "id": 75,
+      "question": "Room Database klassi nimani extend qilishi kerak?",
+      "options": {
+        "A": "RoomDatabase",
+        "B": "SQLiteOpenHelper",
+        "C": "Database",
+        "D": "BaseDatabase"
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 76,
+      "question": "Quyidagilardan qaysi biri element kiritish uchun to'g'ri Room DAO metod imzosidir?",
+      "options": {
+        "A": "@Insert\nfun insert(item: Item): Long",
+        "B": "@Insert\nsuspend fun insert(item: Item)",
+        "C": "@Query(\"INSERT INTO items VALUES (:item)\")\nfun insert(item: Item)",
+        "D": "A va B ikkalasi ham"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 77,
+      "question": "Fragment UI interaktsiya uchun tayyor bo'lganda qaysi hayotiy sikli metodi chaqiriladi?",
+      "options": {
+        "A": "onCreate()",
+        "B": "onCreateView()",
+        "C": "onViewCreated()",
+        "D": "onResume()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 78,
+      "question": "Intent yordamida Activity'lar o'rtasida ma'lumotlarni qanday uzatish mumkin?",
+      "options": {
+        "A": "intent.putExtra(\"key\", value)",
+        "B": "intent.setData(value)",
+        "C": "intent.addArgument(\"key\", value)",
+        "D": "intent.storeExtra(\"key\", value)"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 79,
+      "question": "Android Architecture Components da ViewModel ning maqsadi nima?",
+      "options": {
+        "A": "Konfiguratsiya o'zgarishlarida saqlanadigan UI bilan bog'liq ma'lumotlarni saqlash",
+        "B": "Biznes logikani UI dan alohida boshqarish",
+        "C": "Ma'lumot o'zgarishlarini kuzatish va UI ni yangilash",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 80,
+      "question": "Quyidagilardan qaysi biri Fragment yaratishning yaroqli usuli EMAS?",
+      "options": {
+        "A": "MyFragment()",
+        "B": "MyFragment.newInstance()",
+        "C": "Fragment(MyFragment::class.java)",
+        "D": "supportFragmentManager.findFragmentById(R.id.fragment)"
+      },
+      "correct_answer": "C"
+    },
+     {
+      "id": 81,
+      "question": "Dependency Injection bilan Fragment Factory ni qanday to'g'ri ishlatish kerak?",
+      "options": {
+        "A": "Fragment da konstruktor inyeksiyasidan foydalaning va FragmentFactory taqdim eting",
+        "B": "Faqat Fragment argumentlari orqali bog'liqliklarni o'tkazing",
+        "C": "Fragment ichida ServiceLocator naqshidan foydalaning",
+        "D": "Barcha bog'liqliklar Application klassida bo'lishi kerak"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 82,
+      "question": "Jetpack Compose da, LaunchedEffect va rememberCoroutineScope o'rtasidagi farq nima?",
+      "options": {
+        "A": "LaunchedEffect - bir martalik side effectlar uchun, rememberCoroutineScope - davom etayotgan korutinlar uchun",
+        "B": "LaunchedEffect - kompozitsiyani tark etganda avtomatik bekor qilinadi, rememberCoroutineScope - qo'lda bekor qilish kerak",
+        "C": "Ikkalasi ham korutinlar uchun ishlatilishi mumkin, lekin turli stsenariylarda",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 83,
+      "question": "Clean Architecture ning qaysi qatlamida API modellari va ma'lumotlar bazasi entity'lari bo'lishi kerak?",
+      "options": {
+        "A": "Domain Layer",
+        "B": "Presentation Layer",
+        "C": "Data Layer",
+        "D": "Network Layer"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 84,
+      "question": "Android da BuildConfig klassining maqsadi nima?",
+      "options": {
+        "A": "Build-ga xos konfiguratsiyalarni saqlash",
+        "B": "Debug va release build'larini farqlash",
+        "C": "API kalitlari va muhit o'zgaruvchilarini saqlash",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 85,
+      "question": "Nima uchun findViewById o'rniga ViewBinding dan foydalanish kerak?",
+      "options": {
+        "A": "Tur xavfsizligi va null xavfsizligi",
+        "B": "Yaxshiroq performance",
+        "C": "Xotira oqimlarining oldini oladi",
+        "D": "A va B ikkalasi ham"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 86,
+      "question": "Kotlin Flow bilan MVVM da, ViewModel dan View ga xatolarni qanday taqdim etish kerak?",
+      "options": {
+        "A": "Xatolar uchun alohida LiveData/StateFlow ishlatish",
+        "B": "UI holati uchun sealed class wrapper ishlatish",
+        "C": "Istisnolarni tashlash va View da ushlash",
+        "D": "A va B ikkalasi ham"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 87,
+      "question": "suspendCoroutine va callbackFlow o'rtasidagi farq nima?",
+      "options": {
+        "A": "suspendCoroutine - bitta async operatsiya uchun, callbackFlow - ma'lumot oqimi uchun",
+        "B": "suspendCoroutine callback ni suspend funksiyaga aylantiradi",
+        "C": "callbackFlow callback-ga asoslangan API dan Flow yaratadi",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 88,
+      "question": "Nima uchun qo'lda Fragment transaktsiyalari o'rniga Navigation Component dan foydalanish kerak?",
+      "options": {
+        "A": "Back stack ni avtomatik boshqaradi",
+        "B": "Safe Args bilan tur xavfsiz argumentlar",
+        "C": "Android Studio da vizual navigation graph",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 89,
+      "question": "Hilt da @AssistedInject dan foydalanishning maqsadi nima?",
+      "options": {
+        "A": "Runtime da ma'lum bo'lgan bog'liqliklarni inyektsiya qilish",
+        "B": "SavedStateHandle bilan ViewModel inyeksiyasi uchun",
+        "C": "Ba'zi bog'liqliklar qo'lda o'tkazilishi kerak bo'lganda",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 90,
+      "question": "Room ma'lumotlar bazasi migratsiyalarini qanday boshqaradi?",
+      "options": {
+        "A": "SQL bayonotlari bilan Migration klassidan foydalanish",
+        "B": "Qo'shimcha o'zgarishlar uchun avtomatik",
+        "C": "Fallback bilan yo'q qilish va qayta yaratish mumkin",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 91,
+      "question": "Single Activity Architecture dan foydalanishning afzalligi qaysilar?",
+      "options": {
+        "A": "Navigation boshqaruvini soddalashtirish",
+        "B": "Fragment transaktsiyalari bilan yaxshiroq performance",
+        "C": "Deep linking ni osonroq amalga oshirish",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 92,
+      "question": "Compose da, derivedStateOf ni qachon ishlatish kerak?",
+      "options": {
+        "A": "Holat boshqa holatlardan hisoblanganda",
+        "B": "Keraksiz qayta tiklanishlarning oldini olish uchun",
+        "C": "Hisoblash qimmat bo'lganda",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 93,
+      "question": "API, Database va Domain qatlamlari uchun alohida data class'lar nega zarur?",
+      "options": {
+        "A": "Turli qatlamlar turli talablarni qo'yadi",
+        "B": "Qatlamlar o'rtasida qattiq bog'lanishning oldini oladi",
+        "C": "Qatlamlarni mustaqil rivojlanishiga imkon beradi",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 94,
+      "question": "MVVM da UI holati uchun sealed class'lardan foydalanishning maqsadi nima?",
+      "options": {
+        "A": "Barcha mumkin bo'lgan UI holatlarini ifodalash",
+        "B": "Kotlinda exhaustive when bayonotlari",
+        "C": "Aniq holat boshqaruv",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 95,
+      "question": "WorkManager AlarmManager dan qanday farq qiladi?",
+      "options": {
+        "A": "WorkManager kechiktiriladigan vazifalar uchun, AlarmManager aniq vaqt uchun",
+        "B": "WorkManager Doze rejimini boshqaradi, AlarmManager boshqarmaydi",
+        "C": "WorkManager ilova ishlamayotganda ham fon vazifalarini bajarishi mumkin",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 96,
+      "question": "Nima uchun SharedPreferences o'rniga DataStore dan foydalanish kerak?",
+      "options": {
+        "A": "DataStore Kotlin Coroutines va Flow dan foydalanadi",
+        "B": "Protocol Buffers bilan tur xavfsizligi",
+        "C": "Yaxshiroq xato boshqaruv",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 97,
+      "question": "Android da ConstraintLayout dan foydalanishning afzalligi qaysilar?",
+      "options": {
+        "A": "Yaxshiroq performance uchun tekis view ierarxiyasi",
+        "B": "Constraint'lar bilan moslashuvchan pozitsiyalash",
+        "C": "Yaxshiroq responsiv dizayn",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 98,
+      "question": "ViewModel da konfiguratsiya o'zgarishlarini qanday boshqarish kerak?",
+      "options": {
+        "A": "ViewModel konfiguratsiya o'zgarishlarida avtomatik saqlanadi",
+        "B": "Muhim ma'lumotlar uchun SavedStateHandle dan foydalaning",
+        "C": "onSaveInstanceState da ma'lumotlarni saqlash",
+        "D": "A va B ikkalasi ham"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 99,
+      "question": "Android da ProGuard/R8 dan foydalanishning maqsadi nima?",
+      "options": {
+        "A": "Xavfsizlik uchun kod obfuskatsiyasi",
+        "B": "APK hajmini qisqartirish",
+        "C": "Ishlatilmayotgan kodni olib tashlash",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 100,
+      "question": "Nima uchun katta ilovalarda modulli arxitektura amalga oshirish kerak?",
+      "options": {
+        "A": "Parallel kompilyatsiya bilan tezroq build vaqtlari",
+        "B": "Mas'uliyatlarni yaxshiroq ajratish",
+        "C": "Jamoa avtonomiyasi va mustaqil rivojlanish",
+        "D": "Yuqoridagilarning barchasi"
+      },
+      "correct_answer": "D"
+    }
+  ]
+}
