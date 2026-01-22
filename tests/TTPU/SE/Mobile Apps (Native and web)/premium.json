@@ -550,6 +550,575 @@
       "D": "Infrastructure Layer"
     },
     "correct_answer": "B"
-  }
+  },
+  {
+    "id": 51,
+    "question": "What is the output of this null safety code?\n\n```kotlin\nfun main() {\n    val name: String? = null\n    val length = name?.length ?: 0\n    println(\"Length: $length\")\n}\n```",
+    "options": {
+      "A": "Length: null",
+      "B": "Length: 0",
+      "C": "NullPointerException",
+      "D": "Compilation error"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 52,
+    "question": "What does the `!!` operator do in Kotlin?",
+    "options": {
+      "A": "Converts a nullable type to non-nullable and throws NPE if null",
+      "B": "Checks if a value is null and returns default",
+      "C": "Makes a variable immutable",
+      "D": "Creates a safe call"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 53,
+    "question": "Which of these correctly demonstrates safe calls with chaining?\n\n```kotlin\n// Assume: data class Person(val address: Address?)\n// data class Address(val street: Street?)\n// data class Street(val name: String?)\n```",
+    "options": {
+      "A": "```kotlin\nval streetName = person.address.street.name\n```",
+      "B": "```kotlin\nval streetName = person?.address?.street?.name\n```",
+      "C": "```kotlin\nval streetName = person!!.address!!.street!!.name\n```",
+      "D": "```kotlin\nval streetName = person.address?.street?.name\n```"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 54,
+    "question": "What is the result of this code?\n\n```kotlin\nfun main() {\n    val str: String? = \"Hello\"\n    val result = str?.let {\n        it.length\n    } ?: run {\n        -1\n    }\n    println(result)\n}\n```",
+    "options": {
+      "A": "5",
+      "B": "-1",
+      "C": "null",
+      "D": "Compilation error"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 55,
+    "question": "How does `?:` (Elvis operator) differ from regular `if-else` for null checks?",
+    "options": {
+      "A": "Elvis operator is only for nullable types, if-else is general",
+      "B": "Elvis operator returns an expression, if-else is a statement",
+      "C": "Elvis operator is more efficient",
+      "D": "All of the above"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 56,
+    "question": "What will this code print?\n\n```kotlin\nfun process(value: String?) {\n    val result = value?.takeIf { it.isNotEmpty() } ?: \"Default\"\n    println(result)\n}\n\nfun main() {\n    process(null)\n    process(\"\")\n    process(\"Kotlin\")\n}\n```",
+    "options": {
+      "A": "Default\nDefault\nKotlin",
+      "B": "null\n\nKotlin",
+      "C": "Default\n\nKotlin",
+      "D": "Compilation error"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 57,
+    "question": "Which Kotlin function is used to throw an exception if a value is null?",
+    "options": {
+      "A": "requireNotNull()",
+      "B": "checkNotNull()",
+      "C": "error()",
+      "D": "All of the above"
+    },
+    "correct_answer": "D"
+  },
+  {
+    "id": 58,
+    "question": "What is the difference between `?.let` and `?:` for null handling?",
+    "options": {
+      "A": "`?.let` executes block if not null, `?:` provides default if null",
+      "B": "They are identical",
+      "C": "`?.let` is for functions, `?:` is for variables",
+      "D": "`?.let` returns null, `?:` throws exception"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 59,
+    "question": "What does this code output?\n\n```kotlin\nfun main() {\n    val numbers: List<Int>? = listOf(1, 2, 3)\n    val size = numbers?.size ?: 0\n    val sum = numbers?.sum() ?: 0\n    \n    println(\"Size: $size, Sum: $sum\")\n}\n```",
+    "options": {
+      "A": "Size: 3, Sum: 6",
+      "B": "Size: 0, Sum: 0",
+      "C": "Size: null, Sum: null",
+      "D": "NullPointerException"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 60,
+    "question": "Which of these will cause a compilation error in Kotlin?\n\n```kotlin\n// Assume: fun getLength(s: String): Int = s.length\n```",
+    "options": {
+      "A": "```kotlin\nval str: String? = null\nval length = getLength(str)\n```",
+      "B": "```kotlin\nval str: String? = null\nval length = str?.let { getLength(it) }\n```",
+      "C": "```kotlin\nval str: String? = null\nval length = str?.length ?: 0\n```",
+      "D": "```kotlin\nval str: String? = null\nval length = if (str != null) getLength(str) else 0\n```"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 61,
+    "question": "What is the purpose of the `as?` operator in Kotlin?",
+    "options": {
+      "A": "Safe type cast that returns null if cast fails",
+      "B": "Unsafe type cast that throws exception",
+      "C": "Checks if object is of certain type",
+      "D": "Converts nullable to non-nullable"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 62,
+    "question": "What will be printed?\n\n```kotlin\nfun main() {\n    val map: Map<String, String?> = mapOf(\n        \"a\" to \"Apple\",\n        \"b\" to null,\n        \"c\" to \"Cherry\"\n    )\n    \n    val values = listOf(\"a\", \"b\", \"c\", \"d\")\n        .mapNotNull { key -> map[key] }\n    \n    println(values)\n}\n```",
+    "options": {
+      "A": "[Apple, null, Cherry]",
+      "B": "[Apple, Cherry]",
+      "C": "[Apple, null, Cherry, null]",
+      "D": "NullPointerException"
+    },
+    "correct_answer": "B"
+  },
+  {
+    "id": 63,
+    "question": "How can you provide a default value when a nullable list is null or empty?",
+    "options": {
+      "A": "```kotlin\nlist?.ifEmpty { listOf(\"default\") } ?: listOf(\"default\")\n```",
+      "B": "```kotlin\nlist ?: emptyList<String>()\n```",
+      "C": "```kotlin\nlist.orEmpty().ifEmpty { listOf(\"default\") }\n```",
+      "D": "All of the above"
+    },
+    "correct_answer": "C"
+  },
+  {
+    "id": 64,
+    "question": "What is the difference between `?.` and `!!` operators?",
+    "options": {
+      "A": "`?.` returns null if left side is null, `!!` throws NPE",
+      "B": "`?.` is for functions, `!!` is for properties",
+      "C": "`?.` is unsafe, `!!` is safe",
+      "D": "There is no difference"
+    },
+    "correct_answer": "A"
+  },
+  {
+    "id": 65,
+    "question": "What does this code using `also` and null safety print?\n\n```kotlin\nfun main() {\n    var count: Int? = null\n    \n    count = count?.also {\n        it + 1\n    } ?: 1\n    \n    println(count)\n}\n```",
+    "options": {
+      "A": "null",
+      "B": "1",
+      "C": "0",
+      "D": "Compilation error"
+    },
+    "correct_answer": "B"
+  },
+  {
+      "id": 66,
+      "question": "In Android XML layouts, what is the correct way to reference an Activity class in the `tools:context` attribute?",
+      "options": {
+        "A": "tools:context=\".MainActivity\"",
+        "B": "tools:context=\"android.app.Activity\"",
+        "C": "tools:context=\"@string/app_name\"",
+        "D": "tools:context=\"MainActivity\""
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 67,
+      "question": "Which XML tag should be used as the root element in a navigation graph file?",
+      "options": {
+        "A": "<android.support.v4.app.Fragment>",
+        "B": "<navigation>",
+        "C": "<fragment-container>",
+        "D": "<graph>"
+      },
+      "correct_answer": "B"
+    },
+    
+
+    {
+      "id": 68,
+      "question": "What happens when you start the same Activity from within its own onCreate() method?",
+      "options": {
+        "A": "Creates an infinite loop of Activity creation",
+        "B": "The app crashes immediately",
+        "C": "Nothing happens - it's ignored",
+        "D": "Creates a new instance in back stack"
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 69,
+      "question": "How do you properly check if an EditText has content before proceeding?",
+      "options": {
+        "A": "if (editText.text.isNotEmpty()) { ... }",
+        "B": "if (editText != null) { ... }",
+        "C": "if (editText.text.toString() != \"\") { ... }",
+        "D": "Both A and C"
+      },
+      "correct_answer": "D"
+    },
+    
+
+    {
+      "id": 70,
+      "question": "Where should you initialize a ViewModel in a Fragment for proper lifecycle management?",
+      "options": {
+        "A": "In onCreate()",
+        "B": "In onCreateView()",
+        "C": "In onViewCreated()",
+        "D": "In onStart()"
+      },
+      "correct_answer": "C"
+    },
+    
+
+    {
+      "id": 71,
+      "question": "In MVVM pattern, how should a Fragment observe changes from ViewModel?",
+      "options": {
+        "A": "Using direct method calls",
+        "B": "Observing LiveData in onViewCreated()",
+        "C": "Using callbacks/interfaces",
+        "D": "Through SharedPreferences"
+      },
+      "correct_answer": "B"
+    },
+    
+
+    {
+      "id": 72,
+      "question": "What Room annotation is required for a method that returns LiveData<List<Item>>?",
+      "options": {
+        "A": "@Query",
+        "B": "@Select",
+        "C": "@LiveData",
+        "D": "@Observe"
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 73,
+      "question": "What is the correct way to get SharedPreferences instance?",
+      "options": {
+        "A": "getSharedPreferences(\"my_prefs\", Context.MODE_PRIVATE)",
+        "B": "SharedPreferences.getInstance(\"my_prefs\")",
+        "C": "PreferenceManager.getDefaultSharedPreferences(context)",
+        "D": "Both A and C"
+      },
+      "correct_answer": "D"
+    },
+    
+
+    {
+      "id": 74,
+      "question": "When saving data with SharedPreferences, which method is preferred for better performance?",
+      "options": {
+        "A": "editor.commit()",
+        "B": "editor.apply()",
+        "C": "editor.save()",
+        "D": "editor.flush()"
+      },
+      "correct_answer": "B"
+    },
+    
+    {
+      "id": 75,
+      "question": "What should a Room Database class extend?",
+      "options": {
+        "A": "RoomDatabase",
+        "B": "SQLiteOpenHelper",
+        "C": "Database",
+        "D": "BaseDatabase"
+      },
+      "correct_answer": "A"
+    },
+    
+
+    {
+      "id": 76,
+      "question": "Which of these is a correct Room DAO method signature for inserting an item?",
+      "options": {
+        "A": "@Insert\nfun insert(item: Item): Long",
+        "B": "@Insert\nsuspend fun insert(item: Item)",
+        "C": "@Query(\"INSERT INTO items VALUES (:item)\")\nfun insert(item: Item)",
+        "D": "Both A and B"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 77,
+      "question": "What lifecycle method is called when a Fragment's UI is ready for interaction?",
+      "options": {
+        "A": "onCreate()",
+        "B": "onCreateView()",
+        "C": "onViewCreated()",
+        "D": "onResume()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 78,
+      "question": "How do you pass data between Activities using Intent?",
+      "options": {
+        "A": "intent.putExtra(\"key\", value)",
+        "B": "intent.setData(value)",
+        "C": "intent.addArgument(\"key\", value)",
+        "D": "intent.storeExtra(\"key\", value)"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 79,
+      "question": "What is the purpose of ViewModel in Android Architecture Components?",
+      "options": {
+        "A": "To store UI-related data that survives configuration changes",
+        "B": "To handle business logic separately from UI",
+        "C": "To observe data changes and update UI",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 80,
+      "question": "Which of these is NOT a valid way to create a Fragment?",
+      "options": {
+        "A": "MyFragment()",
+        "B": "MyFragment.newInstance()",
+        "C": "Fragment(MyFragment::class.java)",
+        "D": "supportFragmentManager.findFragmentById(R.id.fragment)"
+      },
+      "correct_answer": "C"
+    },
+     {
+      "id": 81,
+      "question": "What is the correct way to use Fragment Factory with Dependency Injection?",
+      "options": {
+        "A": "Use constructor injection in Fragment and provide FragmentFactory",
+        "B": "Pass dependencies through Fragment arguments only",
+        "C": "Use ServiceLocator pattern inside Fragment",
+        "D": "All dependencies should be in Application class"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 82,
+      "question": "In Jetpack Compose, what is the difference between LaunchedEffect and rememberCoroutineScope?",
+      "options": {
+        "A": "LaunchedEffect - for one-shot side effects, rememberCoroutineScope - for ongoing coroutines",
+        "B": "LaunchedEffect - automatically cancels when leaves composition, rememberCoroutineScope - manual cancellation needed",
+        "C": "Both can be used for coroutines but in different scenarios",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 83,
+      "question": "Which Clean Architecture layer should contain the API models and database entities?",
+      "options": {
+        "A": "Domain Layer",
+        "B": "Presentation Layer",
+        "C": "Data Layer",
+        "D": "Network Layer"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 84,
+      "question": "What is the purpose of the BuildConfig class in Android?",
+      "options": {
+        "A": "To store build-specific configurations",
+        "B": "To differentiate between debug and release builds",
+        "C": "To store API keys and environment variables",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 85,
+      "question": "Why should you use ViewBinding instead of findViewById?",
+      "options": {
+        "A": "Type safety and null safety",
+        "B": "Better performance",
+        "C": "Prevents memory leaks",
+        "D": "Both A and B"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 86,
+      "question": "In MVVM with Kotlin Flow, how should you expose errors from ViewModel to View?",
+      "options": {
+        "A": "Using a separate LiveData/StateFlow for errors",
+        "B": "Using sealed class wrapper for UI state",
+        "C": "Throwing exceptions and catching in View",
+        "D": "Both A and B"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 87,
+      "question": "What is the difference between suspendCoroutine and callbackFlow?",
+      "options": {
+        "A": "suspendCoroutine - for single async operation, callbackFlow - for stream of data",
+        "B": "suspendCoroutine converts callback to suspend function",
+        "C": "callbackFlow creates a Flow from callback-based API",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 88,
+      "question": "Why use Navigation Component instead of manual Fragment transactions?",
+      "options": {
+        "A": "Handles back stack automatically",
+        "B": "Type-safe arguments with Safe Args",
+        "C": "Visual navigation graph in Android Studio",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 89,
+      "question": "What is the purpose of using @AssistedInject in Hilt?",
+      "options": {
+        "A": "To inject dependencies that are known at runtime",
+        "B": "For ViewModel injection with SavedStateHandle",
+        "C": "When some dependencies need to be passed manually",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 90,
+      "question": "How does Room handle database migrations?",
+      "options": {
+        "A": "Using Migration class with SQL statements",
+        "B": "Automatically for additive changes",
+        "C": "Can destroy and recreate with fallback",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 91,
+      "question": "What is the benefit of using Single Activity Architecture?",
+      "options": {
+        "A": "Simpler navigation management",
+        "B": "Better performance with Fragment transactions",
+        "C": "Easier deep linking implementation",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 92,
+      "question": "In Compose, when should you use derivedStateOf?",
+      "options": {
+        "A": "When a state is calculated from other states",
+        "B": "To prevent unnecessary recompositions",
+        "C": "When computation is expensive",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 93,
+      "question": "Why separate data classes for API, Database, and Domain layers?",
+      "options": {
+        "A": "Different layers have different requirements",
+        "B": "Prevents tight coupling between layers",
+        "C": "Allows independent evolution of layers",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 94,
+      "question": "What is the purpose of using sealed classes for UI state in MVVM?",
+      "options": {
+        "A": "To represent all possible UI states",
+        "B": "Exhaustive when statements in Kotlin",
+        "C": "Clear state management",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 95,
+      "question": "How does WorkManager differ from AlarmManager?",
+      "options": {
+        "A": "WorkManager is for deferrable tasks, AlarmManager for exact timing",
+        "B": "WorkManager handles Doze mode, AlarmManager doesn't",
+        "C": "WorkManager can run tasks in background without app running",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 96,
+      "question": "Why use DataStore instead of SharedPreferences?",
+      "options": {
+        "A": "DataStore uses Kotlin Coroutines and Flow",
+        "B": "Type safety with Protocol Buffers",
+        "C": "Better error handling",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 97,
+      "question": "What is the benefit of using ConstraintLayout in Android?",
+      "options": {
+        "A": "Flat view hierarchy for better performance",
+        "B": "Flexible positioning with constraints",
+        "C": "Better responsive design",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 98,
+      "question": "How to handle configuration changes in ViewModel?",
+      "options": {
+        "A": "ViewModel survives configuration changes automatically",
+        "B": "Use SavedStateHandle for important data",
+        "C": "Store data in onSaveInstanceState",
+        "D": "Both A and B"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 99,
+      "question": "What is the purpose of using ProGuard/R8 in Android?",
+      "options": {
+        "A": "Code obfuscation for security",
+        "B": "APK size reduction",
+        "C": "Removing unused code",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 100,
+      "question": "Why implement modular architecture in large apps?",
+      "options": {
+        "A": "Faster build times with parallel compilation",
+        "B": "Better separation of concerns",
+        "C": "Team autonomy and independent development",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    }
   ]
 }
