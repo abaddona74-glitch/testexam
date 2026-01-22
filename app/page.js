@@ -2241,10 +2241,24 @@ export default function Home() {
 
         // Check if there is a translation available (auto-detect counterpart in same folder)
         let translationContent = null;
+
+        // Method 1: New API Grouping Logic (test.translations object)
+        if (test.translations) {
+            // Default to 'uz' if we are serving 'en', or 'en' if 'uz'.
+            // Since API defaults to EN as primary, we usually want UZ as translation.
+            if (test.translations['uz'] && test.translations['en']) {
+                // Determine which one is current? API serves primary as content.
+                // We'll just provide the 'other' one.
+                // Assuming we are viewing EN, provide UZ.
+                translationContent = test.translations['uz'];
+            }
+        }
+
+        // Method 2: Legacy File Matching (if test.id has _en.json/_uz.json suffix)
         const isEn = test.id.endsWith('en.json');
         const isUz = test.id.endsWith('uz.json');
 
-        if (isEn || isUz) {
+        if (!translationContent && (isEn || isUz)) {
             const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
             // Search in all available tests
             const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
@@ -4780,10 +4794,9 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
 }
 
 function TranslatableText({ text, translation, type = 'text' }) {
-    const content = (
-        <ReactMarkdown
-            rehypePlugins={[rehypeHighlight]}
-            components={useMemo(() => ({
+    const [isHovered, setIsHovered] = useState(false);
+
+    const components = useMemo(() => ({
                 pre: ({ node, ...props }) => <div className="my-3 rounded-lg overflow-hidden shadow-sm border border-gray-700 bg-[#282c34]" {...props} />,
                 code: ({ node, inline, className, children, ...props }) => {
                     if (inline) {
@@ -4847,24 +4860,26 @@ function TranslatableText({ text, translation, type = 'text' }) {
                 ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-2 space-y-1 block" {...props} />,
                 li: ({ node, ...props }) => <li className="pl-1" {...props} />,
                 strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 dark:text-gray-100" {...props} />
-            }), [])}
+            }), []);
+
+    const content = (displayText) => (
+        <ReactMarkdown
+            rehypePlugins={[rehypeHighlight]}
+            components={components}
         >
-            {text}
+            {displayText}
         </ReactMarkdown>
     );
 
-    if (!translation) return <div className="inline-block">{content}</div>;
+    if (!translation) return <div className="inline-block">{content(text)}</div>;
 
     return (
-        <div className="group relative inline-block cursor-help border-b border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-colors rounded px-1 -mx-1">
-            {content}
-            <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[300px] z-50 pointer-events-none">
-                <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-xl relative text-center leading-relaxed">
-                    <span className="text-[10px] uppercase text-gray-400 font-bold block mb-0.5 border-b border-gray-700 pb-1">Translation</span>
-                    {translation}
-                    <div className="w-2 h-2 bg-gray-900 absolute top-full left-1/2 -translate-x-1/2 -translate-y-1 rotate-45"></div>
-                </div>
-            </div>
+        <div 
+            className="group relative inline-block cursor-help border-b border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-colors rounded px-1 -mx-1"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {content(isHovered ? translation : text)}
         </div>
     );
 }
@@ -4888,16 +4903,47 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     const currentAnswerForQuestion = answers[currentIndex];
     // Parse Pairs from "A -> B" strings
     // Need state to track user's matches: { [leftText]: rightText }
-    // Problem: Page re-renders when `answers` changes, but we shouldn't submit answer until ALL pairs are matched.
-    // So we need local state here, and only call `handleAnswer` when done?
-    // BUT `handleAnswer` expects a single ID (e.g. "A"). For multiple choice we select one.
-    // The JSON says `correct_answer: "A, B, C, D"`. This implies we need to submit ALL of them?
-    // Or just submit "A_B_C_D"?
-    // The current engine checks `answers[currentIndex] === question.correct_answer`.
-    // So if correct_answer is "A, B, C, D", we need to construct exactly that string?
-    // Wait, the user's logic might be "Select all that apply" OR "Matching".
-    // For Matching, the "game" is to match Lefts to Rights.
-    // If we assume a "Matching" type, the concept of "Option ID" is reusable if we map pairs back to IDs.
+
+    // --- Translation Mapping Helpers ---
+    // 1. Map ID -> Translated Left/Right Parts
+    const translatedPairsMap = useMemo(() => {
+        if (!translatedQuestion?.options) return {};
+        const map = {};
+        
+        // Iterate original options to find corresponding translation
+        question.shuffledOptions.forEach(opt => {
+             const translatedText = translatedQuestion.options[opt.id];
+             if (translatedText) {
+                 const parts = translatedText.split('→').map(s => s.trim());
+                 if (parts.length === 2) {
+                     map[opt.id] = {
+                         left: parts[0],
+                         right: parts[1]
+                     };
+                 }
+             }
+        });
+        return map;
+    }, [translatedQuestion, question.shuffledOptions]);
+
+    // 2. Map Original Right Text -> Translated Right Text
+    const rightTranslationMap = useMemo(() => {
+        const map = {};
+        question.shuffledOptions.forEach(opt => {
+            const originalParts = opt.text.split('→').map(s => s.trim());
+            const transText = translatedQuestion?.options?.[opt.id];
+            
+            if (originalParts.length === 2 && transText) {
+                const transParts = transText.split('→').map(s => s.trim());
+                if (transParts.length === 2) {
+                    // Map original right -> translated right
+                    // Note: If multiple identical rights exist, they get same translation (expected)
+                    map[originalParts[1]] = transParts[1];
+                }
+            }
+        });
+        return map;
+    }, [question.shuffledOptions, translatedQuestion]);
 
     const isGodMode = activatedCheats?.includes('godmode');
 
@@ -5078,7 +5124,12 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                 <span className={clsx(
                                     "font-bold",
                                     godModeColor ? godModeColor.text : "text-gray-800 dark:text-gray-200"
-                                )}>{p.left}</span>
+                                )}>
+                                    <TranslatableText 
+                                        text={p.left} 
+                                        translation={translatedPairsMap[p.id]?.left} 
+                                    />
+                                </span>
                                 <div className={clsx("h-4 w-4", godModeColor ? godModeColor.text : "text-gray-400", activePairs.length === 3 && "rotate-90 md:rotate-0")}>
                                     <ArrowRight size={16} />
                                 </div>
@@ -5110,7 +5161,12 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                             "font-semibold",
                                             studyStyle ? studyStyle.text :
                                             godModeColor ? godModeColor.text : "text-blue-700 dark:text-blue-300"
-                                        )}>{filled}</span>
+                                        )}>
+                                            <TranslatableText 
+                                                text={filled} 
+                                                translation={rightTranslationMap[filled]} 
+                                            />
+                                        </span>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -5174,7 +5230,10 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                         : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-400 text-gray-700 dark:text-gray-300"
                                 )}
                             >
-                                {text}
+                                <TranslatableText 
+                                    text={text} 
+                                    translation={rightTranslationMap[text]} 
+                                />
                             </div>
                         );
                     })}
