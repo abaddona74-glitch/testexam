@@ -5546,6 +5546,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     // Voice Control State
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef(null);
+    const isListeningRef = useRef(false);
+
+    useEffect(() => {
+        isListeningRef.current = isListening;
+    }, [isListening]);
 
     const toggleVoiceControl = () => {
         if (!recognitionRef.current) {
@@ -6077,7 +6082,8 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 const recognition = new SpeechRecognition();
                 recognition.continuous = true;
                 recognition.interimResults = false;
-                recognition.lang = 'en-US';
+                recognition.lang = (navigator.language || 'en-US');
+                recognition.maxAlternatives = 1;
 
                 recognition.onresult = (event) => {
                     // Access latest state from ref
@@ -6140,10 +6146,26 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     console.error("Speech recognition error", event.error);
                     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
                         setIsListening(false);
+                        return;
+                    }
+                    if (isListeningRef.current && ['no-speech', 'aborted', 'audio-capture'].includes(event.error)) {
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            setIsListening(false);
+                        }
                     }
                 };
                 
                 recognition.onend = () => {
+                     if (isListeningRef.current) {
+                         try {
+                             recognition.start();
+                             return;
+                         } catch (e) {
+                             // fall through and stop listening
+                         }
+                     }
                      setIsListening(false);
                 };
 
