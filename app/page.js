@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Mic, MicOff } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -3950,6 +3950,7 @@ export default function Home() {
                             updateUserStars={updateUserStars}
                             updateUserUnlocks={updateUserUnlocks}
                             spendStars={spendStars}
+                            addToast={addToast}
                             onFinish={(results) => {
                                 setActiveTest(prev => ({ ...prev, isFinished: true, ...results }));
                                 clearProgress(activeTest.id); // Clear progress on finish
@@ -4855,7 +4856,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
                         </div>
                     );
                 },
-                p: ({ node, ...props }) => <p className="mb-2 last:mb-0 inline-block" {...props} />,
+                p: ({ node, ...props }) => <div className="mb-2 last:mb-0 inline-block" {...props} />,
                 ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-2 space-y-1 block" {...props} />,
                 ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-2 space-y-1 block" {...props} />,
                 li: ({ node, ...props }) => <li className="pl-1" {...props} />,
@@ -5246,7 +5247,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, playClickSound }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, playClickSound, addToast }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
@@ -5488,6 +5489,29 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     // AI Help State
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [isAiLoading, setIsAiLoading] = useState(false);
+    
+    // Voice Control State
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
+
+    const toggleVoiceControl = () => {
+        if (!recognitionRef.current) {
+            alert("Voice control is not supported in this browser.");
+            return;
+        }
+
+        if (isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        } else {
+            try {
+                recognitionRef.current.start();
+                setIsListening(true);
+            } catch (e) {
+                console.error("Failed to start speech recognition", e);
+            }
+        }
+    };
 
     // Reset AI analysis when question changes
     useEffect(() => {
@@ -5920,6 +5944,77 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         }
         proceedToNext();
     };
+
+    // Ref to hold latest state for voice loop without re-triggering effect
+    const voiceStateRef = useRef({ currentIndex, test, handleNext, handleAnswer, addToast });
+
+    // Update ref whenever relevant state changes
+    useEffect(() => {
+        voiceStateRef.current = { currentIndex, test, handleNext, handleAnswer, addToast };
+    }, [currentIndex, test, handleNext, handleAnswer, addToast]);
+
+    // Initialize Speech Recognition - ONCE on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event) => {
+                    // Access latest state from ref
+                    const { currentIndex, test, handleNext, handleAnswer, addToast } = voiceStateRef.current;
+
+                    const last = event.results.length - 1;
+                    const transcript = event.results[last][0].transcript.trim().toLowerCase().replace(/\./g, '');
+                    console.log("Voice Command:", transcript);
+                    if (addToast) addToast("Mic", `Heard: "${transcript}"`, "info");
+
+                    let selectedIndex = -1;
+
+                    if (['a', 'hey', 'ay', 'option a'].includes(transcript)) selectedIndex = 0;
+                    else if (['b', 'bee', 'be', 'bi', 'baby', 'option b'].includes(transcript)) selectedIndex = 1;
+                    else if (['c', 'see', 'sea', 'si', 'ci', 'option c'].includes(transcript)) selectedIndex = 2;
+                    else if (['d', 'dee', 'di', 'die', 'option d'].includes(transcript)) selectedIndex = 3;
+                    else if (['next', 'next question', 'go next', 'skip', 'continue'].includes(transcript)) {
+                        handleNext();
+                        return;
+                    }
+
+                    if (selectedIndex !== -1) {
+                         const options = test.questions[currentIndex]?.shuffledOptions;
+                         if (options && options[selectedIndex]) {
+                             handleAnswer(options[selectedIndex].id);
+                         }
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Speech recognition error", event.error);
+                    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                        setIsListening(false);
+                    }
+                };
+                
+                recognition.onend = () => {
+                     setIsListening(false);
+                };
+
+                recognitionRef.current = recognition;
+            }
+        }
+
+        return () => {
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.onend = null; 
+                    recognitionRef.current.stop();
+                } catch(e) {}
+            }
+        };
+    }, []); // Empty dependency array = Created once, never destroyed on question change!
 
     const proceedToNext = (remainingTimeOverride) => {
         // Time Banking Logic
@@ -6870,6 +6965,19 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         </button>
 
                         <div className="flex justify-end gap-2">
+                            <button
+                                onClick={toggleVoiceControl}
+                                className={clsx(
+                                    "px-3 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all border",
+                                    isListening 
+                                        ? "bg-red-100 text-red-600 border-red-200 animate-pulse" 
+                                        : "bg-white dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                )}
+                                title="Voice Control (Say A, B, C, D)"
+                            >
+                                {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                            </button>
+
                             {isStudyMode && (
                                 <button
                                     onClick={handleAskAI}
