@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -5485,6 +5485,46 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const [activeReportQuestion, setActiveReportQuestion] = useState(null);
     const [showConfirmSkip, setShowConfirmSkip] = useState(false);
 
+    // AI Help State
+    const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [isAiLoading, setIsAiLoading] = useState(false);
+
+    // Reset AI analysis when question changes
+    useEffect(() => {
+        setAiAnalysis(null);
+    }, [currentIndex]);
+
+    const handleAskAI = async () => {
+        const currentQ = test.questions[currentIndex];
+        if (!currentQ) return;
+        
+        setIsAiLoading(true);
+        setAiAnalysis(null);
+        
+        try {
+            const response = await fetch('/api/ai-help', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question: currentQ.question,
+                    options: currentQ.shuffledOptions.map(o => ({ id: o.id, text: o.text }))
+                })
+            });
+            
+            const data = await response.json();
+            if (data.analysis) {
+                setAiAnalysis(data.analysis);
+            } else {
+                 setAiAnalysis("Sorry, I couldn't analyze this question.");
+            }
+        } catch (error) {
+            console.error("Failed to get AI help", error);
+            setAiAnalysis("Error connecting to AI service.");
+        } finally {
+            setIsAiLoading(false);
+        }
+    };
+
     const [activeUsers, setActiveUsers] = useState([]);
 
     // User local country state isn't available inside TestRunner props unless passed.
@@ -6799,6 +6839,25 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         )}
                     </div>
 
+                    {isStudyMode && (aiAnalysis || isAiLoading) && (
+                        <div className="mt-6 p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-100 dark:border-indigo-800 animate-in fade-in slide-in-from-bottom-2">
+                             <div className="flex items-center gap-2 mb-2 text-indigo-700 dark:text-indigo-300 font-bold">
+                                 <Sparkles size={20} />
+                                 <span>AI Analysis</span>
+                             </div>
+                             {isAiLoading ? (
+                                 <div className="flex items-center gap-2 text-gray-500 italic">
+                                     <Loader2 size={16} className="animate-spin" />
+                                     Analyzing question...
+                                 </div>
+                             ) : (
+                                 <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
+                                     <ReactMarkdown>{aiAnalysis}</ReactMarkdown>
+                                 </div>
+                             )}
+                        </div>
+                    )}
+
                     <div className="mt-10 flex justify-between items-center">
                         <button
                             onClick={() => {
@@ -6811,6 +6870,17 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         </button>
 
                         <div className="flex justify-end gap-2">
+                            {isStudyMode && (
+                                <button
+                                    onClick={handleAskAI}
+                                    disabled={isAiLoading}
+                                    className="px-4 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50"
+                                    title="Get AI Help"
+                                >
+                                    {isAiLoading ? <Loader2 size={18} className="animate-spin" /> : <Bot size={18} />}
+                                    <span className="hidden sm:inline">Ask AI</span>
+                                </button>
+                            )}
                             {isStudyMode && isStudyComplete && currentIndex < totalQuestions - 1 && (
                                 <button
                                     onClick={() => { playClickSound?.(); handleStudyNext(); }}
