@@ -5975,6 +5975,23 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         }
     }, [currentIndex, question, playClickSound]);
 
+    const proceedToNext = (remainingTimeOverride) => {
+        // Time Banking Logic
+        if (test.difficultyMode === 'impossible' && baseTimeLimit !== null) {
+            // FIX: Use override if provided (e.g. 0 from timeout)
+            const finalTimeLabel = remainingTimeOverride !== undefined ? remainingTimeOverride : timeLeft;
+            const unusedTime = Math.max(0, finalTimeLabel);
+            setBankedTime(unusedTime);
+        }
+
+        if (currentIndex < totalQuestions - 1) {
+            setCurrentIndex(currentIndex + 1);
+            setShowConfirmSkip(false);
+        } else {
+            setShowConfirmFinish(true);
+        }
+    };
+
     const handleNext = () => {
         // Check if answered
         if (!answers[currentIndex]) {
@@ -5989,12 +6006,34 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     };
 
     // Ref to hold latest state for voice loop without re-triggering effect
-    const voiceStateRef = useRef({ currentIndex, test, handleNext, handleAnswer, addToast });
+    const voiceStateRef = useRef({ 
+        currentIndex, 
+        test, 
+        handleNext, 
+        handleAnswer, 
+        addToast, 
+        showConfirmSkip, 
+        setShowConfirmSkip, 
+        // proceedToNext not available yet locally, will be added by useEffect
+        setSkipConfirmationDisabled,
+        dontAskAgain
+    });
 
     // Update ref whenever relevant state changes
     useEffect(() => {
-        voiceStateRef.current = { currentIndex, test, handleNext, handleAnswer, addToast };
-    }, [currentIndex, test, handleNext, handleAnswer, addToast]);
+        voiceStateRef.current = { 
+            currentIndex, 
+            test, 
+            handleNext, 
+            handleAnswer, 
+            addToast, 
+            showConfirmSkip, 
+            setShowConfirmSkip, 
+            proceedToNext,
+            setSkipConfirmationDisabled,
+            dontAskAgain
+        };
+    }, [currentIndex, test, handleNext, handleAnswer, addToast, showConfirmSkip, setShowConfirmSkip, proceedToNext, setSkipConfirmationDisabled, dontAskAgain]);
 
     // Initialize Speech Recognition - ONCE on mount
     useEffect(() => {
@@ -6008,12 +6047,41 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                 recognition.onresult = (event) => {
                     // Access latest state from ref
-                    const { currentIndex, test, handleNext, handleAnswer, addToast } = voiceStateRef.current;
+                    const { 
+                        currentIndex, 
+                        test, 
+                        handleNext, 
+                        handleAnswer, 
+                        addToast, 
+                        showConfirmSkip, 
+                        setShowConfirmSkip, 
+                        proceedToNext,
+                        setSkipConfirmationDisabled,
+                        dontAskAgain
+                    } = voiceStateRef.current;
 
                     const last = event.results.length - 1;
                     const transcript = event.results[last][0].transcript.trim().toLowerCase().replace(/\./g, '');
                     console.log("Voice Command:", transcript);
                     if (addToast) addToast("Mic", `Heard: "${transcript}"`, "info");
+
+                    // Handle Skip Confirmation Modal
+                    if (showConfirmSkip) {
+                        if (['yes', 'skip', 'confirm', 'yeah', 'yep', 'okay', 'sure'].includes(transcript)) {
+                            // Yes, Skip
+                            if (dontAskAgain) {
+                                setSkipConfirmationDisabled(true);
+                            }
+                            setShowConfirmSkip(false);
+                            proceedToNext();
+                            return;
+                        } else if (['no', 'cancel', 'back', 'wait', 'stop', 'nope'].includes(transcript)) {
+                            // Cancel
+                            setShowConfirmSkip(false);
+                            return;
+                        }
+                        return; // Ignore other commands while modal is open
+                    }
 
                     let selectedIndex = -1;
 
@@ -6059,22 +6127,6 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         };
     }, []); // Empty dependency array = Created once, never destroyed on question change!
 
-    const proceedToNext = (remainingTimeOverride) => {
-        // Time Banking Logic
-        if (test.difficultyMode === 'impossible' && baseTimeLimit !== null) {
-            // FIX: Use override if provided (e.g. 0 from timeout)
-            const finalTimeLabel = remainingTimeOverride !== undefined ? remainingTimeOverride : timeLeft;
-            const unusedTime = Math.max(0, finalTimeLabel);
-            setBankedTime(unusedTime);
-        }
-
-        if (currentIndex < totalQuestions - 1) {
-            setCurrentIndex(currentIndex + 1);
-            setShowConfirmSkip(false);
-        } else {
-            setShowConfirmFinish(true);
-        }
-    };
 
     // Clear active user session on unmount or finish
     useEffect(() => {
