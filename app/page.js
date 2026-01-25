@@ -6101,7 +6101,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     } = voiceStateRef.current;
 
                     const last = event.results.length - 1;
-                    const transcript = event.results[last][0].transcript.trim().toLowerCase().replace(/\./g, '');
+                    const transcript = event.results[last][0].transcript
+                        .trim()
+                        .toLowerCase()
+                        .replace(/[.?!,]/g, '');
                     console.log("Voice Command:", transcript);
                     if (addToast) addToast("Mic", `Heard: "${transcript}"`, "info");
 
@@ -6125,10 +6128,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                     let selectedIndex = -1;
 
-                    if (['a', 'hey', 'ay', 'option a'].includes(transcript)) selectedIndex = 0;
-                    else if (['b', 'bee', 'be', 'bi', 'baby', 'option b'].includes(transcript)) selectedIndex = 1;
-                    else if (['c', 'see', 'sea', 'si', 'ci', 'option c'].includes(transcript)) selectedIndex = 2;
-                    else if (['d', 'dee', 'di', 'die', 'option d'].includes(transcript)) selectedIndex = 3;
+                    if (['a', 'hey', 'ay', 'option a', 'а', 'эй'].includes(transcript)) selectedIndex = 0;
+                    else if (['b', 'bee', 'be', 'bi', 'baby', 'option b', 'б', 'би', 'бе'].includes(transcript)) selectedIndex = 1;
+                    else if (['c', 'see', 'sea', 'si', 'ci', 'option c', 'с', 'си'].includes(transcript)) selectedIndex = 2;
+                    else if (['d', 'dee', 'di', 'die', 'option d', 'д', 'ди'].includes(transcript)) selectedIndex = 3;
                     else if (['next', 'next question', 'go next', 'skip', 'continue'].includes(transcript)) {
                         handleNext();
                         return;
