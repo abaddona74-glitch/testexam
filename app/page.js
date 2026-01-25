@@ -5603,8 +5603,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
             const data = await response.json();
             if (data.analysis) {
                 setAiAnalysis(data.analysis);
+            } else if (data.error) {
+                const details = data.details ? `\n\nDetails: ${data.details}${data.score !== undefined ? ` (score: ${data.score})` : ''}` : '';
+                setAiAnalysis(`${data.error}${details}`);
             } else {
-                 setAiAnalysis("Sorry, I couldn't analyze this question.");
+                setAiAnalysis("Sorry, I couldn't analyze this question.");
             }
         } catch (error) {
             console.error("Failed to get AI help", error);

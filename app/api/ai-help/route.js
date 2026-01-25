@@ -17,10 +17,13 @@ export async function POST(req) {
     const { question, options, recaptchaToken } = await req.json();
 
     // 1. Verify reCAPTCHA (if configured)
-    const recaptchaResult = await verifyRecaptcha(recaptchaToken);
-    if (!recaptchaResult.success) {
-       return NextResponse.json({ error: "Bot detected" }, { status: 403 });
-    }
+     const recaptchaResult = await verifyRecaptcha(recaptchaToken);
+     if (!recaptchaResult.success) {
+       return NextResponse.json(
+        { error: "Bot detected", details: recaptchaResult.error || "recaptcha_failed", score: recaptchaResult.score },
+        { status: 403 }
+       );
+     }
 
     const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) {
