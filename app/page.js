@@ -790,6 +790,21 @@ export default function Home() {
             return 0.8;
         }
     }); // 0..1
+
+    // Translation toggle state
+    const [showTranslation, setShowTranslation] = useState(() => {
+        if (typeof window === 'undefined') return true;
+        try {
+            const stored = localStorage.getItem('examApp_showTranslation');
+            return stored !== null ? JSON.parse(stored) : true;
+        } catch {
+            return true;
+        }
+    });
+
+    useEffect(() => {
+        localStorage.setItem('examApp_showTranslation', JSON.stringify(showTranslation));
+    }, [showTranslation]);
     const [showDonateModal, setShowDonateModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('uzum');
     const [cardCopied, setCardCopied] = useState(false);
@@ -2761,6 +2776,33 @@ export default function Home() {
                                     Applies to celebration + spin win sounds.
                                 </div>
                             </div>
+
+                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Show Translations
+                                        </label>
+                                        <div className="text-[11px] text-gray-400">
+                                            Display translations for questions and answers if available.
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowTranslation(!showTranslation)}
+                                        className={clsx(
+                                            "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                                            showTranslation ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={clsx(
+                                                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                                showTranslation ? "translate-x-6" : "translate-x-1"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -3936,6 +3978,7 @@ export default function Home() {
                             userCountry={userCountry}
                             activatedCheats={activatedCheats}
                             soundVolume={soundVolume}
+                            showTranslation={showTranslation}
                             playClickSound={playStartSound}
                             onBack={() => setView('list')}
                             onLeaveWithoutResult={() => {
@@ -4899,7 +4942,7 @@ const MATCH_COLORS = [
     { border: 'border-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' },
 ];
 
-function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion, handleVisualUpdate, difficultyMode }) {
+function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion, handleVisualUpdate, difficultyMode, showTranslation }) {
     // Determine the current confirmed answer from props (to avoid loop)
     const currentAnswerForQuestion = answers[currentIndex];
     // Parse Pairs from "A -> B" strings
@@ -5128,7 +5171,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                 )}>
                                     <TranslatableText 
                                         text={p.left} 
-                                        translation={translatedPairsMap[p.id]?.left} 
+                                        translation={showTranslation ? translatedPairsMap[p.id]?.left : null} 
                                     />
                                 </span>
                                 <div className={clsx("h-4 w-4", godModeColor ? godModeColor.text : "text-gray-400", activePairs.length === 3 && "rotate-90 md:rotate-0")}>
@@ -5165,7 +5208,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                                         )}>
                                             <TranslatableText 
                                                 text={filled} 
-                                                translation={rightTranslationMap[filled]} 
+                                                translation={showTranslation ? rightTranslationMap[filled] : null} 
                                             />
                                         </span>
                                         <button
@@ -5233,7 +5276,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
                             >
                                 <TranslatableText 
                                     text={text} 
-                                    translation={rightTranslationMap[text]} 
+                                    translation={showTranslation ? rightTranslationMap[text] : null} 
                                 />
                             </div>
                         );
@@ -5247,7 +5290,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, playClickSound, addToast }) {
+function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, showTranslation = true, playClickSound, addToast }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
@@ -6797,7 +6840,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 leading-relaxed">
                         <TranslatableText
                             text={question.question}
-                            translation={translatedQuestion?.question}
+                            translation={showTranslation ? translatedQuestion?.question : null}
                         />
                     </div>
 
@@ -6829,6 +6872,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                 activatedCheats={activatedCheats}
                                 translatedQuestion={translatedQuestion}
                                 difficultyMode={test.difficultyMode}
+                                showTranslation={showTranslation}
                             />
                         ) : (
                             <div className={clsx(
@@ -6924,7 +6968,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                                         <div className="font-medium text-left flex-1 min-w-0">
                                             <TranslatableText
                                                 text={option.text}
-                                                translation={translatedOptionText}
+                                                translation={showTranslation ? translatedOptionText : null}
                                             />
                                         </div>
                                     </button>
