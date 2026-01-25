@@ -54,7 +54,8 @@
         "D": "db.collection.append()",
         "E": "db.collection.insert()"
       },
-      "correct_answer": "E"
+      "correct_answer": "E",
+      "cheatSheet": "mongodb_crud.png"
     },
     {
       "id": 6,
@@ -98,7 +99,8 @@
         "C": "db.collection.fetch()",
         "D": "db.collection.find()"
       },
-      "correct_answer": "D"
+      "correct_answer": "D",
+      "cheatSheet": "mongodb_crud.png"
     },
     {
       "id": 10,
@@ -143,7 +145,8 @@
         "C": "db.Bookings.find({ init_fuel: \"<10\" }).count()",
         "D": "db.Bookings.count({ init_fuel < 10 })"
       },
-      "correct_answer": "B"
+      "correct_answer": "B",
+      "cheatSheet": "mongodb_crud.png"
     },
     {
       "id": 14,
@@ -198,7 +201,8 @@
         "C": "db.collection.fetchOne()",
         "D": "db.collection.getOne()"
       },
-      "correct_answer": "A"
+      "correct_answer": "A",
+      "cheatSheet": "mongodb_crud.png"
     },
     {
       "id": 19,
@@ -231,7 +235,8 @@
         "C": "db.Bookings.projection({ city: true, init_time: true })",
         "D": "db.Bookings.find({ city: 1, init_time: 1 })"
       },
-      "correct_answer": "A"
+      "correct_answer": "A",
+      "cheatSheet": "mongodb_crud.png"
     },
     {
       "id": 22,

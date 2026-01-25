@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -5256,6 +5256,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const [showLegendaryEffect, setShowLegendaryEffect] = useState(false);
     const celebrationAudioRef = useRef(null);
     const [needsSoundTap, setNeedsSoundTap] = useState(false);
+    const [showCheatSheet, setShowCheatSheet] = useState(false);
     const [expandedImage, setExpandedImage] = useState(null);
     const [skipConfirmationDisabled, setSkipConfirmationDisabled] = useState(false);
     const [dontAskAgain, setDontAskAgain] = useState(false);
@@ -6601,6 +6602,16 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         )}
 
                         <div className="flex items-center gap-2">
+                            {/* Helper Data Button (Using JSON Configuration) */}
+                            {question?.cheatSheet && (
+                                <button
+                                    onClick={() => setShowCheatSheet(true)}
+                                    className="p-1.5 rounded-full border-2 border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors mr-2 animate-pulse"
+                                    title="View Helper Material"
+                                >
+                                    <HelpCircle size={20} strokeWidth={2.5} />
+                                </button>
+                            )}
                             {/* Hint Button */}
                             {(hintsLeft > 0 || extraHints > 0 || activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode')) ? (
                                 <button
@@ -6964,6 +6975,35 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                     </div>
                 </div>
             )}
+
+            {/* Cheat Sheet Modal (Custom Feature) */}
+            <AnimatePresence>
+                {showCheatSheet && (
+                    <div 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in"
+                        onClick={() => setShowCheatSheet(false)}
+                    >
+                        <div 
+                            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-5xl w-full p-2 relative overflow-hidden flex flex-col items-center"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <button 
+                                onClick={() => setShowCheatSheet(false)}
+                                className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors backdrop-blur-md"
+                            >
+                                <X size={24} />
+                            </button>
+                            <div className="relative w-full h-[85vh] bg-gray-900/5 dark:bg-black/20 flex items-center justify-center rounded-xl overflow-auto select-none">
+                                <img 
+                                    src={`/${question?.cheatSheet || 'mongodb_crud.png'}`} 
+                                    alt="Helper Material"
+                                    className="max-w-full max-h-full object-contain shadow-sm"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </AnimatePresence>
 
 
             {/* Skip Confirmation Modal */}
