@@ -69,6 +69,12 @@ export async function POST(req) {
     return NextResponse.json({ analysis: text });
   } catch (error) {
     console.error("AI Error:", error);
+    if (error?.status === 429) {
+      return NextResponse.json(
+        { error: "AI limitga yetdi. Birozdan keyin qayta urinib ko'ring." },
+        { status: 429 }
+      );
+    }
     return NextResponse.json(
       { 
         error: "Failed to generate AI response", 

@@ -5605,7 +5605,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 })
             });
             
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok && response.status === 429) {
+                setAiAnalysis("AI limitga yetdi. Birozdan keyin qayta urinib ko'ring.");
+                return;
+            }
             if (data.analysis) {
                 setAiAnalysis(data.analysis);
             } else if (data.error) {
