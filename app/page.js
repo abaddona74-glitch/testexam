@@ -5579,12 +5579,23 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         setAiAnalysis(null);
         
         try {
+            // Get reCAPTCHA token if available
+            let token = null;
+            if (typeof window !== 'undefined' && window.grecaptcha && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+                try {
+                    token = await window.grecaptcha.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY, { action: 'ai_help' });
+                } catch (e) {
+                    console.error("Recaptcha execution failed", e);
+                }
+            }
+
             const response = await fetch('/api/ai-help', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     question: currentQ.question,
-                    options: currentQ.shuffledOptions.map(o => ({ id: o.id, text: o.text }))
+                    options: currentQ.shuffledOptions.map(o => ({ id: o.id, text: o.text })),
+                    recaptchaToken: token
                 })
             });
             

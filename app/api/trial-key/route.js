@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import LicenseKey from '@/models/LicenseKey';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(request) {
     try {
+        const ip = getClientIp(request);
+        // Limit: 3 requests per hour. Prevent mass generation of keys.
+        if (!rateLimit(ip, 3, 60 * 60 * 1000)) {
+            return NextResponse.json({ success: false, message: 'Too many requests' }, { status: 429 });
+        }
+
         await dbConnect();
         const { deviceId } = await request.json();
 

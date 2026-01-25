@@ -1,9 +1,26 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { verifyRecaptcha } from "@/lib/recaptcha";
 
 export async function POST(req) {
   try {
-    const { question, options } = await req.json();
+    const ip = getClientIp(req);
+    // Limit: 10 requests per minute
+    if (!rateLimit(ip, 10, 60 * 1000)) {
+        return NextResponse.json(
+            { error: "Too many requests. Please wait a minute." },
+            { status: 429 }
+        );
+    }
+
+    const { question, options, recaptchaToken } = await req.json();
+
+    // 1. Verify reCAPTCHA (if configured)
+    const recaptchaResult = await verifyRecaptcha(recaptchaToken);
+    if (!recaptchaResult.success) {
+       return NextResponse.json({ error: "Bot detected" }, { status: 403 });
+    }
 
     const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) {
