@@ -5590,6 +5590,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                 }
             }
 
+            if (!token && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+                setAiAnalysis("reCAPTCHA token olinmadi. Iltimos sahifani yangilang va qayta urinib ko'ring.");
+                return;
+            }
+
             const response = await fetch('/api/ai-help', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
