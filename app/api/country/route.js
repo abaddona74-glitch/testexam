@@ -18,32 +18,34 @@ export async function GET(request) {
       ip = ip.split(',')[0].trim();
     }
 
-    // If running solely on localhost, ip might be ::1 or 127.0.0.1
-    // ipapi.co returns info for the calling machine if no IP is provided.
-    // So for localhost dev, the previous behavior was fine. 
-    // But for production, we need the specific IP.
+    // If running solely on localhost, ip might be ::1 or 127.0.0.1 or ::ffff:127.0.0.1
+    const isLocal = !ip || ip === '::1' || ip === '127.0.0.1' || ip.includes('::ffff:');
 
-    const apiUrl = ip && ip !== '::1' && ip !== '127.0.0.1'
-      ? `https://ipapi.co/${ip}/json/`
-      : 'https://ipapi.co/json/';
+    // Use ipwho.is as primary - it's free, no key, and robust.
+    // Documentation: https://ipwhois.io/documentation
+    const apiUrl = isLocal 
+      ? 'https://ipwho.is/' 
+      : `https://ipwho.is/${ip}`;
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
+    console.log(`Fetching country for IP: ${isLocal ? 'Localhost' : ip} from ${apiUrl}`);
 
-    if (!response.ok) {
-      // Handle Rate Limit (429) specifically
-      // VPNs often hit this limit on free APIs. Fallback to 'UZ' so the app works smoothly.
-      if (response.status === 429) {
-        return NextResponse.json({ country_code: 'UZ' });
-      }
-      return NextResponse.json({ country_code: null }, { status: response.status });
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    if (!data.success) {
+        console.error("IPWhois failed:", data.message);
+        // Fallback to ipapi.co if ipwhois fails
+        const fallbackUrl = isLocal ? 'https://ipapi.co/json/' : `https://ipapi.co/${ip}/json/`;
+        const fallbackRes = await fetch(fallbackUrl);
+        if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            return NextResponse.json({ country_code: fallbackData.country_code || fallbackData.countryCode });
+        }
+        return NextResponse.json({ country_code: 'UZ' }); // Ultimate fallback
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json({ country_code: data.country_code });
+
   } catch (error) {
     console.error('Failed to fetch country:', error);
     return NextResponse.json({ country_code: null }, { status: 500 });

@@ -1385,21 +1385,31 @@ export default function Home() {
             } catch (e) { }
         }
 
-        // Fetch Country (with local storage caching to avoid 429 errors)
-        const storedCountry = localStorage.getItem('examApp_userCountry');
-        if (storedCountry) {
-            setUserCountry(storedCountry);
-        } else {
-            fetch('/api/country')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.country_code) {
-                        setUserCountry(data.country_code);
-                        localStorage.setItem('examApp_userCountry', data.country_code);
-                    }
-                })
-                .catch(err => console.error("Country fetch failed", err));
-        }
+        // Fetch Country directly from client to support Browser Extension VPNs
+        // We use ipwho.is directly because local API route (Node.js) won't see the Browser Extension VPN
+        fetch('https://ipwho.is/')
+            .then(res => res.json())
+            .then(data => {
+                if (data.country_code) {
+                    setUserCountry(data.country_code);
+                    localStorage.setItem('examApp_userCountry', data.country_code);
+                } else {
+                    // Fallback to our internal API if direct fetch fails (e.g. adblocker)
+                    return fetch('/api/country').then(res => res.json());
+                }
+            })
+            .then(data => {
+                if (data && data.country_code) {
+                     setUserCountry(data.country_code);
+                     localStorage.setItem('examApp_userCountry', data.country_code);
+                }
+            })
+            .catch(err => {
+                console.error("Country fetch failed", err);
+                // Fallback to cache if network fails
+                const storedCountry = localStorage.getItem('examApp_userCountry');
+                if (storedCountry) setUserCountry(storedCountry);
+            });
 
         // 4. Set up intervals
         const interval = setInterval(fetchGlobalActiveUsers, 5000);
