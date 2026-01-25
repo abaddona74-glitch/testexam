@@ -179,7 +179,8 @@
         "C": "db.Bookings.get(\"city\").unique()",
         "D": "db.Bookings.city.distinct()"
       },
-      "correct_answer": "B"
+      "correct_answer": "B",
+      "cheatSheet": "distinct_operation.png"
     },
     {
       "id": 17,
@@ -251,7 +252,7 @@
     },
     {
       "id": 23,
-      "question": "How to read the `covid.csv` file into a dataframe named `df` and include first column as the index column? (Alternative version)",
+      "question": "How to read the covid.csv file into a dataframe named df and include first column as the index column? (Alternative version)",
       "options": {
         "A": "df = pd.read_file('covid.csv', index_col=0)",
         "B": "df = pd.read_csv('covid.csv', index_col=0)",
