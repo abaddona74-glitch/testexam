@@ -340,3 +340,11 @@ body {
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+/* reCAPTCHA v3 badge: keep visible but smaller on mobile */
+@media (max-width: 640px) {
+  .grecaptcha-badge {
+    transform: scale(0.72);
+    transform-origin: bottom right;
+  }
+}
