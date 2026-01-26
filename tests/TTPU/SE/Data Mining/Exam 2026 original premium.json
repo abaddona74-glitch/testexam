@@ -160,16 +160,16 @@
       "correct_answer": "C"
     },
     {
-      "id": 15,
-      "question": "How to read the `covid.csv` file into a dataframe named `df` and include first column as the index column?",
-      "options": {
-        "A": "df = pd.read_csv('covid.csv', index_col=False)",
-        "B": "df = pd.read_csv('covid.csv', index_col=True)",
-        "C": "df = pd.read_file('covid.csv', index_col=False)",
-        "D": "df = pd.read_file('covid.csv', index_col=True)"
+        "id": 15,
+        "question": "How to read the `covid.csv` file into a dataframe named `df` and include first column as the index column?",
+        "options": {
+          "A": "df = pd.read_csv('covid.csv', index_col=0)",
+          "B": "df = pd.read_csv('covid.csv')",
+          "C": "df = pd.read_file('covid.csv', index_col=0)",
+          "D": "df = pd.read_csv('covid.csv', index_col=1)"
+        },
+        "correct_answer": "A"
       },
-      "correct_answer": "A"
-    },
     {
       "id": 16,
       "question": "Which command returns all distinct cities where bookings were made?",
