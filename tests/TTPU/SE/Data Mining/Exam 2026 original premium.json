@@ -184,7 +184,7 @@
     },
     {
       "id": 17,
-      "question": "Projection means selecting only the necessary data rather than selecting whole of the data of a document",
+      "question": "______ means selecting only the necessary data rather than selecting whole of the data of a document",
       "options": {
         "A": "Field",
         "B": "Cursor",
