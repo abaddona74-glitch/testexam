@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Mic, MicOff } from 'lucide-react';
+import Link from 'next/link';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -3092,25 +3093,33 @@ export default function Home() {
                                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                                         <List className="text-blue-500" /> Available Tests
                                     </h2>
-                                    <button
-                                        onClick={() => {
-                                            if (!canUploadTests) {
-                                                addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
-                                                return;
-                                            }
-                                            playStartSound();
-                                            setUploadFolder(folders[0] || '');
-                                            setShowUploadModal(true);
-                                        }}
-                                        disabled={!canUploadTests}
-                                        title={!canUploadTests ? 'Upload is temporarily disabled' : 'Upload a new test'}
-                                        className={clsx(
-                                            "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5",
-                                            !canUploadTests && "opacity-50 cursor-not-allowed hover:bg-blue-600 hover:shadow-md hover:translate-y-0"
-                                        )}
-                                    >
-                                        <Upload size={16} /> Upload Test
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <Link
+                                            href="/timetable"
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                        >
+                                            <Calendar size={16} /> Timetable
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                if (!canUploadTests) {
+                                                    addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
+                                                    return;
+                                                }
+                                                playStartSound();
+                                                setUploadFolder(folders[0] || '');
+                                                setShowUploadModal(true);
+                                            }}
+                                            disabled={!canUploadTests}
+                                            title={!canUploadTests ? 'Upload is temporarily disabled' : 'Upload a new test'}
+                                            className={clsx(
+                                                "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5",
+                                                !canUploadTests && "opacity-50 cursor-not-allowed hover:bg-blue-600 hover:shadow-md hover:translate-y-0"
+                                            )}
+                                        >
+                                            <Upload size={16} /> Upload Test
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* University Filter */}
