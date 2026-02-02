@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import clsx from 'clsx';
+import { Clock } from 'lucide-react';
 
 // Predefined color palettes suitable for both light and dark modes
 const COLOR_PALETTES = [
@@ -55,6 +56,14 @@ function getSubjectStyle(subjectName) {
 }
 
 export function TimetableView({ timetable }) {
+  const [currentDayIndex, setCurrentDayIndex] = useState(null);
+
+  useEffect(() => {
+    // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const today = new Date().getDay();
+    setCurrentDayIndex(today);
+  }, []);
+
   const { periods, rows } = useMemo(() => {
     if (!timetable || timetable.length === 0) return { periods: [], rows: [] };
 
@@ -124,54 +133,79 @@ export function TimetableView({ timetable }) {
                 </tr>
             </thead>
             <tbody>
-                {rows.map((row) => (
-                    <tr key={row.dayIndex} className="bg-card hover:bg-muted/5 transition-colors">
-                        <td className="border p-4 text-center italic font-serif text-2xl text-primary/80 bg-muted/5">
-                            <span title={row.fullName}>{row.shortName}</span>
-                        </td>
-                        {periods.map((p) => {
-                            const lessons = row.lessonsByPeriod[p.period];
-                            return (
-                                <td key={p.period} className="border p-1.5 align-top h-32 relative">
-                                    {lessons && lessons.length > 0 ? (
-                                        <div className="flex flex-col gap-2 h-full">
-                                            {lessons.map((lesson, idx) => (
-                                                <div 
-                                                    key={idx} 
-                                                    className={clsx(
-                                                        "p-3 rounded shadow-sm border h-full flex flex-col justify-between transition-all hover:shadow-md hover:scale-[1.01] duration-200",
-                                                        getSubjectStyle(lesson.subject)
-                                                    )}
-                                                >
-                                                    <div className="font-bold text-sm leading-tight mb-2">
-                                                        {lesson.subject}
-                                                    </div>
-                                                    
-                                                    <div className="flex flex-col gap-1 mt-auto">
-                                                        <div className="flex items-center gap-1.5 text-xs opacity-90 font-medium">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                                            <span className="truncate" title={lesson.teachers.join(', ')}>
-                                                                {lesson.teachers[0]}
-                                                            </span>
+                {rows.map((row) => {
+                    const isToday = row.dayIndex === currentDayIndex;
+                    return (
+                        <tr 
+                            key={row.dayIndex} 
+                            className={clsx(
+                                "transition-colors relative",
+                                isToday 
+                                    ? "bg-emerald-50/50 dark:bg-emerald-900/10 ring-2 ring-emerald-500/50 z-10" 
+                                    : "bg-card hover:bg-muted/5"
+                            )}
+                        >
+                            <td className={clsx(
+                                "border p-4 text-center italic font-serif text-2xl relative",
+                                isToday ? "text-emerald-700 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-900/20" : "text-primary/80 bg-muted/5"
+                            )}>
+                                <span title={row.fullName}>{row.shortName}</span>
+                                {isToday && (
+                                    <div className="absolute top-1 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                        <span className="bg-emerald-600 text-white text-[9px] font-sans font-bold px-1.5 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                                             Today
+                                        </span>
+                                    </div>
+                                )}
+                            </td>
+                            {periods.map((p) => {
+                                const lessons = row.lessonsByPeriod[p.period];
+                                return (
+                                    <td key={p.period} className={clsx("border p-1.5 align-top h-32 relative", isToday && "border-emerald-500/20")}>
+                                        {lessons && lessons.length > 0 ? (
+                                            <div className="flex flex-col gap-2 h-full">
+                                                {lessons.map((lesson, idx) => (
+                                                    <div 
+                                                        key={idx} 
+                                                        className={clsx(
+                                                            "p-3 rounded shadow-sm border h-full flex flex-col justify-between transition-all hover:shadow-md hover:scale-[1.01] duration-200",
+                                                            getSubjectStyle(lesson.subject)
+                                                        )}
+                                                    >
+                                                        <div className="font-bold text-sm leading-tight mb-2">
+                                                            {lesson.subject}
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 text-xs opacity-90 font-medium">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                                                            <span className="truncate" title={lesson.rooms.join(', ')}>
-                                                                {lesson.rooms.join(', ')}
-                                                            </span>
+                                                        
+                                                        <div className="flex flex-col gap-1 mt-auto">
+                                                            <div className="flex items-center gap-1.5 text-xs opacity-90 font-medium">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                                                <span className="truncate" title={lesson.teachers.join(', ')}>
+                                                                    {lesson.teachers[0]}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 text-xs opacity-90 font-medium">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                                                <span className="truncate" title={lesson.rooms.join(', ')}>
+                                                                    {lesson.rooms.join(', ')}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            isToday && (
+                                                <div className="h-full w-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                                    <div className="text-[10px] text-emerald-600/50 bg-emerald-50/50 px-2 py-1 rounded-full">Free Time</div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        null
-                                    )}
-                                </td>
-                            );
-                        })}
-                    </tr>
-                ))}
+                                            )
+                                        )}
+                                    </td>
+                                );
+                            })}
+                        </tr>
+                    );
+                })}
             </tbody>
         </table>
     </div>
