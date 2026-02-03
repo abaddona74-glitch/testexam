@@ -1914,8 +1914,15 @@ export default function Home() {
     const fetchTests = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
-            const showHidden = activatedCheats.includes('showhidden');
-            const res = await fetch(`/api/tests?showHidden=${showHidden}`);
+            const hasSecret = activatedCheats.includes('admin123'); // Cheat code matches backend secret
+            const showHidden = activatedCheats.includes('showhidden') || hasSecret;
+            
+            let url = `/api/tests?showHidden=${showHidden}`;
+            if (hasSecret) {
+                url += `&secret=admin123`;
+            }
+
+            const res = await fetch(url);
             const data = await res.json();
             setTests(data);
             if (data.universityStructure) {
@@ -2052,11 +2059,12 @@ export default function Home() {
         e.preventDefault();
         const code = promoInput.toLowerCase().trim();
 
-        let validCodes = ['dontgiveup', 'haveluckyday', 'godmode', 'showhidden'];
+        // 'admin123' is the server secret that unlocks hidden content
+        let validCodes = ['dontgiveup', 'haveluckyday', 'godmode', 'showhidden', 'admin123'];
 
         if (validCodes.includes(code)) {
-            // Special toggle logic for godmode or showhidden
-            if ((code === 'godmode' || code === 'showhidden') && activatedCheats.includes(code)) {
+            // Special toggle logic for godmode, showhidden, or the secret key
+            if ((code === 'godmode' || code === 'showhidden' || code === 'admin123') && activatedCheats.includes(code)) {
                 setActivatedCheats(prev => prev.filter(c => c !== code));
                 addToast('Cheat Deactivated', `${code} mode disabled`, 'info');
                 setPromoInput('');
@@ -2065,7 +2073,12 @@ export default function Home() {
 
             if (!activatedCheats.includes(code)) {
                 setActivatedCheats(prev => [...prev, code]);
-                addToast('Cheat Activated!', `${code} mode enabled`, 'success');
+                
+                if (code === 'admin123') {
+                     addToast('ACCESS GRANTED', 'Developer mode unlocked. Hidden tests visible.', 'success');
+                } else {
+                     addToast('Cheat Activated!', `${code} mode enabled`, 'success');
+                }
             } else {
                 addToast('Already Active', `${code} is already running`, 'info');
             }
