@@ -2150,30 +2150,29 @@ export default function Home() {
 
             // Start the test immediately if one was targeted
             if (targetTestForUnlock) {
-                const test = targetTestForUnlock;
-                let translationContent = null;
-                const isEn = test.id.endsWith('en.json');
-                const isUz = test.id.endsWith('uz.json');
+                const fetchedTest = await ensureTestContent(targetTestForUnlock);
+                if (fetchedTest) {
+                    const test = fetchedTest;
+                    let translationContent = null;
 
-                if (isEn || isUz) {
-                    const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
-                    const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
-                    const translation = allTests.find(t => t.id === targetId);
-                    if (translation) translationContent = translation.content;
-                }
+                    if (test.translations && test.translations['uz'] && test.translations['en']) {
+                        translationContent = test.translations['uz'];
+                    }
 
-                if (savedProgress[test.id]) {
-                    setActiveTest({
-                        ...test,
-                        ...savedProgress[test.id],
-                        translationContent,
-                        isResumed: true
-                    });
-                    playStartSound();
-                    setView('test');
-                } else {
-                    setSelectedTestForDifficulty({ ...test, translationContent });
-                    setShowDifficultyModal(true);
+                    if (savedProgress[test.id]) {
+                        setActiveTest({
+                            ...test,
+                            ...savedProgress[test.id],
+                            translationContent,
+                            isResumed: true
+                        });
+                        playStartSound();
+                        setView('test');
+                    } else {
+                        // Use consistent state setter (assuming pendingTest is the correct one for modal)
+                        setPendingTest({ ...test, translationContent });
+                        setShowDifficultyModal(true);
+                    }
                 }
             }
             return;
@@ -2228,30 +2227,30 @@ export default function Home() {
                 }
 
                 // Proceed to start test logic immediately
-                const test = targetTestForUnlock;
-                let translationContent = null;
-                const isEn = test.id.endsWith('en.json');
-                const isUz = test.id.endsWith('uz.json');
+                if (targetTestForUnlock) {
+                    const fetchedTest = await ensureTestContent(targetTestForUnlock);
+                    if (fetchedTest) {
+                         const test = fetchedTest;
+                         let translationContent = null;
+                         
+                         if (test.translations && test.translations['uz'] && test.translations['en']) {
+                            translationContent = test.translations['uz'];
+                         }
 
-                if (isEn || isUz) {
-                    const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
-                    const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
-                    const translation = allTests.find(t => t.id === targetId);
-                    if (translation) translationContent = translation.content;
-                }
-
-                if (savedProgress[test.id]) {
-                    setActiveTest({
-                        ...test,
-                        ...savedProgress[test.id],
-                        translationContent,
-                        isResumed: true
-                    });
-                    playStartSound();
-                    setView('test');
-                } else {
-                    setPendingTest({ ...test, translationContent });
-                    setShowDifficultyModal(true);
+                        if (savedProgress[test.id]) {
+                            setActiveTest({
+                                ...test,
+                                ...savedProgress[test.id],
+                                translationContent,
+                                isResumed: true
+                            });
+                            playStartSound();
+                            setView('test');
+                        } else {
+                            setPendingTest({ ...test, translationContent });
+                            setShowDifficultyModal(true);
+                        }
+                    }
                 }
 
                 setShowKeyModal(false);
@@ -2268,41 +2267,71 @@ export default function Home() {
         }
     };
 
-    const startTest = (test) => {
+    const ensureTestContent = async (test) => {
+        if (test.content) return test;
+        
+        try {
+             // addToast('Loading...', 'Downloading test data', 'info'); 
+             // (Optional: UI feedback if it takes time)
+             
+             const res = await fetch(`/api/tests/content?id=${encodeURIComponent(test.id)}`);
+             if (!res.ok) throw new Error("Failed to load content");
+             const data = await res.json();
+             
+             if (!data.content && !data.error) {
+                 throw new Error("Empty content received");
+             }
+
+             return {
+                 ...test,
+                 content: data.content,
+                 translations: data.translations
+             };
+        } catch (e) {
+             console.error(e);
+             addToast('Error', 'Failed to load test content. Check connection.', 'error');
+             return null;
+        }
+    };
+
+    const startTest = async (testMetadata) => {
         // Premium Check - use baseId if available (for translated tests)
-        const checkId = test.baseId || test.id;
-        if (test.isPremium && !allPremiumUnlocked && !unlockedTests.has(checkId)) {
+        const checkId = testMetadata.baseId || testMetadata.id;
+        if (testMetadata.isPremium && !allPremiumUnlocked && !unlockedTests.has(checkId)) {
             // Store the original test with baseId for unlock
-            setTargetTestForUnlock({ ...test, id: checkId });
+            setTargetTestForUnlock({ ...testMetadata, id: checkId });
             setShowKeyModal(true);
             return;
         }
 
+        // FETCH CONTENT NOW (Secure Mode)
+        const test = await ensureTestContent(testMetadata);
+        if (!test) return;
+
         // Check if there is a translation available (auto-detect counterpart in same folder)
         let translationContent = null;
+        
+        // Priority: Function argument preference -> explicit translations -> legacy
+        const langPref = testMetadata.preferredLanguage;
 
         // Method 1: New API Grouping Logic (test.translations object)
         if (test.translations) {
-            // Default to 'uz' if we are serving 'en', or 'en' if 'uz'.
-            // Since API defaults to EN as primary, we usually want UZ as translation.
-            if (test.translations['uz'] && test.translations['en']) {
-                // Determine which one is current? API serves primary as content.
-                // We'll just provide the 'other' one.
-                // Assuming we are viewing EN, provide UZ.
-                translationContent = test.translations['uz'];
+            if (langPref && test.translations[langPref]) {
+                translationContent = test.translations[langPref];
+            } else if (test.translations['uz'] && test.translations['en']) {
+                // Default fallback if no preference
+                translationContent = test.translations['uz']; 
             }
         }
 
-        // Method 2: Legacy File Matching (if test.id has _en.json/_uz.json suffix)
+        // Method 2: Legacy File Matching (Only needed if test.translations is missing, unlikely now)
         const isEn = test.id.endsWith('en.json');
         const isUz = test.id.endsWith('uz.json');
 
         if (!translationContent && (isEn || isUz)) {
-            const targetId = isEn ? test.id.replace('en.json', 'uz.json') : test.id.replace('uz.json', 'en.json');
-            // Search in all available tests
-            const allTests = [...(tests.defaultTests || []), ...(tests.uploadedTests || [])];
-            const translation = allTests.find(t => t.id === targetId);
-            if (translation) translationContent = translation.content;
+            // Attempt to find translation content if not in .translations
+            // But since we removed content from allTests, we can't find it there anymore!
+            // We rely on ensureTestContent populating test.translations.
         }
 
         // Check if we have saved progress for this test
@@ -2310,7 +2339,7 @@ export default function Home() {
             setActiveTest({
                 ...test,
                 ...savedProgress[test.id],
-                translationContent, // Add translation content to resumable state
+                translationContent,
                 isResumed: true
             });
             playStartSound();
@@ -4675,22 +4704,27 @@ export default function Home() {
 }
 
 function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked }) {
+    // START: Language logic (Support both loaded 'translations' and metadata 'availableLanguages')
+    const availableLangs = test.translations ? Object.keys(test.translations) : (test.availableLanguages || []);
+    
     const [selectedLang, setSelectedLang] = useState(() => {
-        if (!test.translations) return null;
-        return Object.keys(test.translations).includes('en') ? 'en' : Object.keys(test.translations)[0];
+        if (availableLangs.length === 0) return null;
+        return availableLangs.includes('en') ? 'en' : availableLangs[0];
     });
 
     let activeContent = selectedLang && test.translations ? test.translations[selectedLang] : test.content;
 
     // Normalize content for display
-    if (Array.isArray(activeContent)) {
+    if (activeContent && Array.isArray(activeContent)) {
         if (activeContent[0]?.test_questions) activeContent = activeContent[0];
         else if (activeContent[0]?.question) activeContent = { test_questions: activeContent };
     }
 
-    const questionCount = activeContent?.test_questions?.length || 0;
+    // Use metadata count if content is not loaded yet (Secure Mode)
+    const questionCount = activeContent?.test_questions?.length || test.questionsCount || 0;
 
-    const languages = test.translations ? Object.keys(test.translations) : [];
+    const languages = availableLangs;
+    // END: Language logic
 
     // Filter active users for this test
     const currentTestUsers = activeUsers.filter(u => u.testId === test.id && u.status === 'in-test');
@@ -4705,6 +4739,7 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
     const isOriginal = test.name?.toLowerCase().includes('original');
 
     const handleStart = () => {
+        // If content is loaded, we pass it directly
         if (selectedLang && test.translations) {
             onStart({
                 ...test,
@@ -4714,7 +4749,14 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                 language: selectedLang
             });
         } else {
-            onStart(test);
+            // Secure Mode: Content not loaded yet.
+            // Pass the user's preferred language so startTest knows what to serve/prioritize
+            onStart({
+                ...test,
+                id: selectedLang ? `${test.id}_${selectedLang}` : test.id,
+                baseId: baseTestId,
+                preferredLanguage: selectedLang
+            });
         }
     };
 

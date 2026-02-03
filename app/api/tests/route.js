@@ -163,6 +163,12 @@ export async function GET(request) {
                   return new Date(current) < new Date(earliest) ? current : earliest;
                 }, null);
 
+              // Calculate question count for metadata
+              let qCount = 0;
+              if (variants[primaryLang] && Array.isArray(variants[primaryLang].test_questions)) {
+                  qCount = variants[primaryLang].test_questions.length;
+              }
+
               defaultTests.push({
                   id: group.id,
                   name: group.name,
@@ -171,8 +177,10 @@ export async function GET(request) {
                   direction: group.direction,
                   type: group.type,
                   isPremium: group.isPremium,
-                  content: variants[primaryLang],
-                  translations: variants,
+                  questionsCount: qCount, // Pass count to frontend
+                  availableLanguages: langs, // Pass available languages to frontend
+                  content: null, // Content moved to /api/tests/content?id=...
+                  translations: null, // Content moved to /api/tests/content?id=...
                   updatedAt: groupUpdatedAt,
                   createdAt: groupCreatedAt
               });
@@ -194,6 +202,21 @@ export async function GET(request) {
   try {
     const dbTests = await Test.find({});
     dbTests.forEach(test => {
+        let qCount = 0;
+        // Handle various legacy structures in DB
+        if (test.content) {
+             if (Array.isArray(test.content.test_questions)) {
+                 qCount = test.content.test_questions.length;
+             } else if (Array.isArray(test.content)) {
+                 // Check if it's an array of questions directly or array of objects with test_questions
+                 if (test.content[0]?.test_questions) {
+                     qCount = test.content[0].test_questions.length;
+                 } else {
+                     qCount = test.content.length;
+                 }
+             }
+        }
+
         defaultTests.push({
             id: test._id.toString(),
             name: test.name,
@@ -201,7 +224,8 @@ export async function GET(request) {
             university: 'Uploaded', // Group Uploaded tests separately
             direction: 'General', 
             type: 'uploaded', 
-            content: test.content,
+            questionsCount: qCount,
+            content: null, // Content moved to /api/tests/content?id=...
             updatedAt: test.updatedAt || test.createdAt
         });
         if (test.folder) folders.add(test.folder);
