@@ -14,7 +14,13 @@ export async function GET(request) {
   await dbConnect();
 
   const { searchParams } = new URL(request.url);
-  const showHidden = searchParams.get('showHidden') === 'true';
+  
+  // Security: Require 'secret' param to view hidden tests. 
+  // Example usage: /api/tests?showHidden=true&secret=admin123
+  const secret = searchParams.get('secret');
+  const isAuthorized = secret === 'admin123'; // Using same weak secret as admin endpoint for consistency
+  
+  const showHidden = searchParams.get('showHidden') === 'true' && isAuthorized;
 
   const uploadMode = getTestUploadMode();
 
