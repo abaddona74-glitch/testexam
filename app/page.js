@@ -2270,11 +2270,13 @@ export default function Home() {
     const ensureTestContent = async (test) => {
         if (test.content) return test;
         
+        // Use baseId if available to avoid looking for "TestID_en" when file is "TestID.json"
+        const fetchId = test.baseId || test.id;
+
         try {
              // addToast('Loading...', 'Downloading test data', 'info'); 
-             // (Optional: UI feedback if it takes time)
              
-             const res = await fetch(`/api/tests/content?id=${encodeURIComponent(test.id)}`);
+             const res = await fetch(`/api/tests/content?id=${encodeURIComponent(fetchId)}`);
              if (!res.ok) throw new Error("Failed to load content");
              const data = await res.json();
              
