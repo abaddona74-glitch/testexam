@@ -43,7 +43,7 @@ export const metadata = {
     images: ['/og-image.jpg'], // Same as OG
   },
   verification: {
-    google: "google-site-verification-kodini-shu-yerga-qoyasiz",
+    google: "hpurLIYBvtzbS5FFKoaBdlaMRdFgTbeaHzt-ag4Ss1w",
   },
   robots: {
     index: true,
