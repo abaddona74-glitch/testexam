@@ -7,11 +7,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   metadataBase: new URL('https://test-exam.uz'),
   title: {
-    default: "Test Exam Platform - Online Tests & Quizzes",
-    template: "%s | Test Exam Platform"
+    default: "Test Exam Uz - Online Tests Platform Uzbekistan",
+    template: "%s | Test Exam Uz"
   },
-  description: "Take comprehensive online exams, quizzes, and practice tests. Improve your knowledge in Data Mining, Digitalization, Project Management, and more.",
-  keywords: ["exam", "test", "quiz", "online testing", "education", "student", "practice test", "data mining", "software project management"],
+  description: "Test-exam.uz - O'zbekistondagi eng yaxshi onlayn test platformasi. Data Mining, Project Management va boshqa fanlardan bilimingizni sinab ko'ring. Test exam uz.",
+  keywords: ["test exam uz", "test-exam.uz", "online test uz", "testlar", "quiz", "education", "student", "practice test", "exam platform", "test yechish"],
   authors: [{ name: "Exam Platform Team" }],
   creator: "Exam Platform Team",
   publisher: "Test Exam Platform",
@@ -21,26 +21,29 @@ export const metadata = {
     apple: "/logo.png",
   },
   openGraph: {
-    title: "Test Exam Platform - Professional Online Testing",
-    description: "Join thousands of students testing their knowledge. Real-time results, leaderboards, and detailed analytics.",
+    title: "Test Exam Uz - Online Tests Platform",
+    description: "Test-exam.uz orqali bilimingizni sinang. Real vaqt rejimida natijalar va reytinglar.",
     url: 'https://test-exam.uz',
-    siteName: 'Test Exam Platform',
-    locale: 'en_US',
+    siteName: 'Test Exam Uz',
+    locale: 'uz_UZ',
     type: 'website',
     images: [
       {
         url: '/og-image.jpg', // You should create this image or use logo
         width: 1200,
         height: 630,
-        alt: 'Test Exam Platform Preview',
+        alt: 'Test Exam Uz Platform Preview',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Test Exam Platform",
-    description: "Take comprehensive online exams and track your progress.",
+    title: "Test Exam Uz",
+    description: "O'zbekistondagi onlayn test platformasi.",
     images: ['/og-image.jpg'], // Same as OG
+  },
+  verification: {
+    google: "google-site-verification-kodini-shu-yerga-qoyasiz",
   },
   robots: {
     index: true,

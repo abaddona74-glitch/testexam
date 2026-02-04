@@ -2558,7 +2558,7 @@ export default function Home() {
                         <div className="bg-blue-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-blue-600">
                             <User size={32} />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Welcome!</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Test Exam Uz - Xush kelibsiz!</h1>
                         <p className="text-gray-500 mt-2">Please enter your name to start.</p>
                     </div>
                     <form onSubmit={handleNameSubmit}>
