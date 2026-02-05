@@ -56,6 +56,11 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
+  manifest: "/manifest.json",
+};
+
+export const viewport = {
+  themeColor: "#000000",
 };
 
 import { ThemeProvider } from "@/components/theme-provider";
