@@ -65,6 +65,7 @@ export const viewport = {
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { InstallPrompt } from "@/components/install-prompt";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function RootLayout({ children }) {
   return (
@@ -85,6 +86,7 @@ export default function RootLayout({ children }) {
         >
           {children}
           <InstallPrompt />
+          <SpeedInsights />
           <footer className="py-8 mt-8 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800">
             <div className="container mx-auto px-4">
                <p className="font-medium">© {new Date().getFullYear()} Test Exam Uz - Online Tests Platform Uzbekistan.</p>

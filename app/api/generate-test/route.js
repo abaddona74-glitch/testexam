@@ -1,21 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
-import { isTestUploadEnabled, isGodmodeUploadEnabled } from "@/lib/featureFlags.server";
 
 export async function POST(req) {
   try {
     const body = await req.json();
     const { lectureText, godmode } = body;
 
-    const uploadsEnabled = isTestUploadEnabled();
-    const godmodeOverrideAllowed = isGodmodeUploadEnabled();
-    const godmodeOverrideRequested = godmode === true;
-
-    if (!uploadsEnabled && !(godmodeOverrideAllowed && godmodeOverrideRequested)) {
+    // Only godmode users can generate tests
+    if (godmode !== true) {
       return NextResponse.json(
-        { error: "Test generation is temporarily disabled." },
-        { status: 503 }
+        { error: "Unauthorized. Godmode required." },
+        { status: 403 }
       );
     }
 
@@ -27,8 +23,8 @@ export async function POST(req) {
     }
 
     const ip = getClientIp(req);
-    // Stricter rate limit for generation
-    if (!godmodeOverrideRequested && !rateLimit(ip, 3, 60 * 1000)) {
+    // Rate limit even for godmode (prevent abuse)
+    if (!rateLimit(ip, 5, 60 * 1000)) {
         return NextResponse.json(
             { error: "Too many generation requests. Please wait a minute." },
             { status: 429 }
