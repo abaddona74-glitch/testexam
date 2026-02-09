@@ -1133,6 +1133,10 @@ export default function Home() {
     // Upload State
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadFolder, setUploadFolder] = useState('');
+    const [uploadMode, setUploadMode] = useState('file'); // 'file' | 'text'
+    const [lectureText, setLectureText] = useState('');
+    const [testName, setTestName] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
     const [jsonError, setJsonError] = useState(null);
 
     // Upload feature flag (server-driven via GET /api/tests)
@@ -2447,6 +2451,22 @@ export default function Home() {
         });
     };
 
+    const handleDeleteTest = async (testId, testName) => {
+        if (!confirm(`Delete "${testName}" from database? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`/api/tests?id=${testId}&godmode=true`, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                addToast('Deleted', `"${testName}" has been removed.`, 'success');
+                await fetchTests();
+            } else {
+                addToast('Error', data.error || 'Failed to delete test.', 'error');
+            }
+        } catch (err) {
+            addToast('Error', 'Failed to delete test.', 'error');
+        }
+    };
+
     const handleUploadSubmit = async (e) => {
         e.preventDefault();
 
@@ -2499,6 +2519,74 @@ export default function Home() {
             }
         };
         reader.readAsText(file);
+    };
+
+    const handleGenerateSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!canUploadTests) {
+            setJsonError('Test upload is temporarily disabled.');
+            addToast('Upload disabled', 'Test upload is temporarily disabled.', 'info');
+            return;
+        }
+        
+        if (!testName.trim() || !lectureText.trim()) {
+            setJsonError("Name and Lecture content are required.");
+            return;
+        }
+
+        setIsGenerating(true);
+        setJsonError(null);
+
+        try {
+             // 1. Generate JSON from text
+            const genRes = await fetch('/api/generate-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lectureText,
+                    godmode: isGodmode
+                })
+            });
+
+            const genData = await genRes.json();
+
+            if (!genRes.ok) {
+                setJsonError(genData.error || "Generation failed.");
+                setIsGenerating(false);
+                return;
+            }
+
+            // 2. Upload the generated JSON
+            const res = await fetch('/api/tests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: testName,
+                    content: genData.content,
+                    folder: uploadFolder,
+                    godmode: isGodmode
+                })
+            });
+
+            if (res.ok) {
+                await fetchTests();
+                setShowUploadModal(false);
+                setUploadFolder('');
+                setLectureText('');
+                setTestName('');
+                setUploadMode('file');
+                addToast('Success', 'Test generated and uploaded successfully!', 'success');
+            } else {
+                const errData = await res.json();
+                setJsonError(errData.error || "Failed to save generated test");
+            }
+        } catch (error) {
+            console.error(error);
+            setJsonError("An error occurred during generation.");
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     useEffect(() => {
@@ -3091,39 +3179,117 @@ export default function Home() {
                             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                                 <Upload className="text-blue-600" /> Upload Test
                             </h2>
-                            <form onSubmit={handleUploadSubmit}>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Subject</label>
-                                <select
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                    value={uploadFolder}
-                                    onChange={(e) => setUploadFolder(e.target.value)}
-                                >
-                                    <option value="">General (Root)</option>
-                                    {folders.map(f => (
-                                        <option key={f} value={f}>{f}</option>
-                                    ))}
-                                </select>
 
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Test File (JSON)</label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 dark:bg-gray-950 transition-colors mb-6 relative">
-                                    <input
-                                        type="file"
-                                        name="fileInput"
-                                        accept=".json"
-                                        required
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    />
-                                    <Upload className="mx-auto text-gray-400 mb-2" />
-                                    <p className="text-sm text-gray-500">Click or Drag JSON file here</p>
-                                </div>
-
+                            {/* Mode Switcher */}
+                            <div className="flex gap-2 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                 <button
-                                    type="submit"
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+                                    onClick={() => setUploadMode('file')}
+                                    className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                                        uploadMode === 'file'
+                                            ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                    }`}
                                 >
-                                    Upload Test
+                                    JSON File
                                 </button>
-                            </form>
+                                <button
+                                    onClick={() => setUploadMode('text')}
+                                    className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                                        uploadMode === 'text'
+                                            ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                    }`}
+                                >
+                                    Generate from Text
+                                </button>
+                            </div>
+
+                            {uploadMode === 'file' ? (
+                                <form onSubmit={handleUploadSubmit}>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Subject</label>
+                                    <select
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                        value={uploadFolder}
+                                        onChange={(e) => setUploadFolder(e.target.value)}
+                                    >
+                                        <option value="">General (Root)</option>
+                                        {folders.map(f => (
+                                            <option key={f} value={f}>{f}</option>
+                                        ))}
+                                    </select>
+
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Test File (JSON)</label>
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 dark:bg-gray-950 transition-colors mb-6 relative">
+                                        <input
+                                            type="file"
+                                            name="fileInput"
+                                            accept=".json"
+                                            required
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        />
+                                        <Upload className="mx-auto text-gray-400 mb-2" />
+                                        <p className="text-sm text-gray-500">Click or Drag JSON file here</p>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+                                    >
+                                        Upload Test
+                                    </button>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleGenerateSubmit}>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Test Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                        placeholder="e.g. History Final Exam"
+                                        value={testName}
+                                        onChange={(e) => setTestName(e.target.value)}
+                                        required
+                                    />
+
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Subject</label>
+                                    <select
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                        value={uploadFolder}
+                                        onChange={(e) => setUploadFolder(e.target.value)}
+                                    >
+                                        <option value="">General (Root)</option>
+                                        {folders.map(f => (
+                                            <option key={f} value={f}>{f}</option>
+                                        ))}
+                                    </select>
+
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Lecture/Topic Content</label>
+                                    <textarea
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-h-[150px] resize-y"
+                                        placeholder="Paste your lecture notes, article, or topic summary here..."
+                                        value={lectureText}
+                                        onChange={(e) => setLectureText(e.target.value)}
+                                        required
+                                        minLength={50}
+                                    />
+
+                                    <button
+                                        type="submit"
+                                        disabled={isGenerating}
+                                        className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${isGenerating ? 'opacity-70 cursor-wait' : ''}`}
+                                    >
+                                        {isGenerating ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Generating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles size={18} /> Generate & Upload
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            )}
                         </div>
                     </div>
                 )}
@@ -3365,6 +3531,7 @@ export default function Home() {
                                                             test={test}
                                                             activeUsers={globalActiveUsers}
                                                             onStart={(t) => startTest(t || test)}
+                                                            onDelete={handleDeleteTest}
                                                             badge={badgeLabel}
                                                             badgeColor={badgeColor}
                                                             isUpdated={isUpdated}
@@ -3372,6 +3539,7 @@ export default function Home() {
                                                             hasProgress={!!savedProgress[test.id]}
                                                             isLocked={test.isPremium && !testIsUnlocked}
                                                             isUnlocked={test.isPremium && testIsUnlocked}
+                                                            isGodmode={isGodmode}
                                                         />
                                                     );
                                                 }) : (
@@ -3412,11 +3580,13 @@ export default function Home() {
                                                         test={test}
                                                         activeUsers={globalActiveUsers}
                                                         onStart={(t) => startTest(t || test)}
+                                                        onDelete={handleDeleteTest}
                                                         badge="Community"
                                                         badgeColor="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                                                         hasProgress={!!savedProgress[test.id]}
-                                                        isLocked={false} // Community tests are never locked
+                                                        isLocked={false}
                                                         isUnlocked={false}
+                                                        isGodmode={isGodmode}
                                                     />
                                                 ))}
                                             </div>
@@ -4705,7 +4875,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked }) {
+function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked, isGodmode = false }) {
     // START: Language logic (Support both loaded 'translations' and metadata 'availableLanguages')
     const availableLangs = test.translations ? Object.keys(test.translations) : (test.availableLanguages || []);
     
@@ -4891,10 +5061,18 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
                     )}
                 </div>
             </div>
+            {isGodmode && onDelete && test.mongoId && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onDelete(test.mongoId, test.name); }}
+                    className="mt-3 w-full py-2 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 font-medium transition-all flex items-center justify-center gap-2 text-sm"
+                >
+                    <XCircle size={16} /> Remove
+                </button>
+            )}
             <button
                 onClick={handleStart}
                 className={clsx(
-                    "mt-4 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
+                    "mt-2 w-full py-2.5 rounded-lg border font-medium transition-all flex items-center justify-center gap-2",
                     isLocked
                         ? "bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-100 hover:border-amber-300 shadow-sm"
                         : (isUnlocked
@@ -4915,6 +5093,10 @@ function TestCard({ test, onStart, badge, badgeColor = "bg-blue-100 text-blue-70
 
 function TranslatableText({ text, translation, type = 'text' }) {
     const [isHovered, setIsHovered] = useState(false);
+
+    // Ensure text is always a string
+    const safeText = (typeof text === 'object' && text !== null) ? JSON.stringify(text) : String(text ?? '');
+    const safeTranslation = translation ? ((typeof translation === 'object' && translation !== null) ? JSON.stringify(translation) : String(translation)) : null;
 
     const components = useMemo(() => ({
                 pre: ({ node, ...props }) => <div className="my-3 rounded-lg overflow-hidden shadow-sm border border-gray-700 bg-[#282c34]" {...props} />,
@@ -4991,7 +5173,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
         </ReactMarkdown>
     );
 
-    if (!translation) return <div className="inline-block">{content(text)}</div>;
+    if (!safeTranslation) return <div className="inline-block">{content(safeText)}</div>;
 
     return (
         <div 
@@ -4999,7 +5181,7 @@ function TranslatableText({ text, translation, type = 'text' }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {content(isHovered ? translation : text)}
+            {content(isHovered ? safeTranslation : safeText)}
         </div>
     );
 }
@@ -6278,11 +6460,11 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     // NEW: Logic for "Checkboxes" (Multi-Select) in Study Mode
     // 1. Next button only appears when ALL correct answers are selected.
     // 2. Wrong answers are marked red immediately, but do NOT stop the user from finding the rest.
-    const isMultiSelect = (question.correct_answer && question.correct_answer.includes(',')) || 
+    const isMultiSelect = (question.correct_answer && String(question.correct_answer).includes(',')) || 
                           (question.question && question.question.toLowerCase().includes('select all'));
                           
-    const correctIds = (question.correct_answer && question.correct_answer.includes(',')) ? question.correct_answer.split(',').map(s => s.trim()) : [question.correct_answer || ""];
-    const isMatching = question.shuffledOptions.every(o => o.text.includes('→'));
+    const correctIds = (question.correct_answer && String(question.correct_answer).includes(',')) ? String(question.correct_answer).split(',').map(s => s.trim()) : [String(question.correct_answer || "")];
+    const isMatching = question.shuffledOptions?.every(o => String(o.text || '').includes('→')) ?? false;
 
     let isStudyComplete = false;
     
@@ -7037,7 +7219,7 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
                     <div className="space-y-3 flex-1">
                         {/* Check if it's a Matching Question (contains '→') */}
-                        {question.shuffledOptions.every(o => o.text.includes('→')) ? (
+                        {question.shuffledOptions?.every(o => String(o.text || '').includes('→')) ? (
                             <MatchingQuestionComponent
                                 key={question.id} // Reset state on new question
                                 question={question}

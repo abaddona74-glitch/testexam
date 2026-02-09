@@ -219,6 +219,7 @@ export async function GET(request) {
 
         defaultTests.push({
             id: test._id.toString(),
+            mongoId: test._id.toString(),
             name: test.name,
             category: test.folder || 'General',
             university: 'Uploaded', // Group Uploaded tests separately
@@ -313,5 +314,34 @@ export async function POST(request) {
   } catch (error) {
     console.error("Upload error", error);
     return NextResponse.json({ error: "Failed to process upload" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  await dbConnect();
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const testId = searchParams.get('id');
+    const godmode = searchParams.get('godmode');
+
+    if (godmode !== 'true') {
+      return NextResponse.json({ error: "Unauthorized. Godmode required." }, { status: 403 });
+    }
+
+    if (!testId) {
+      return NextResponse.json({ error: "Test ID is required." }, { status: 400 });
+    }
+
+    const deleted = await Test.findByIdAndDelete(testId);
+
+    if (!deleted) {
+      return NextResponse.json({ error: "Test not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: "Test deleted." });
+  } catch (error) {
+    console.error("Delete error", error);
+    return NextResponse.json({ error: "Failed to delete test." }, { status: 500 });
   }
 }
