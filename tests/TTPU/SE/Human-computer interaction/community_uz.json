@@ -1,0 +1,180 @@
+{
+"test_questions": [
+{
+"id": 1,
+"question": "HCI qisqartmasi nimani anglatadi?",
+"options": {
+"A": "Human-Computer Interface",
+"B": "Human-Computer Interaction",
+"C": "Human-Centric Interface",
+"D": "Hardware-Computer Interaction"
+},
+"correct_answer": "B"
+},
+{
+"id": 2,
+"question": "Normanning interaktsiya modelida 'Ijro oroli' (Gulf of Execution) nimani ifodalaydi?",
+"options": {
+"A": "Foydalanuvchi maqsadini qanday amalga oshirishni bilmasligi",
+"B": "Tizim holatini qanday baholashni bilmasligi",
+"C": "Foydalanuvchi harakatini tizim qanday qabul qilishi",
+"D": "Interfeysning samaradorligi"
+},
+"correct_answer": "A"
+},
+{
+"id": 3,
+"question": "Quyidagilardan qaysi biri HCI ning multidisiplinar sohalaridan emas?",
+"options": {
+"A": "Psixologiya",
+"B": "Kompyuter injiniringi",
+"C": "Geologiya",
+"D": "Grafik dizayn"
+},
+"correct_answer": "C"
+},
+{
+"id": 4,
+"question": "'Foydalanuvchi markazlashgan dizayn' (User-Centered Design) asosiy maqsadi nima?",
+"options": {
+"A": "Dastur kodini optimallashtirish",
+"B": "Dasturiy ta'minot ishlab chiqish jarayonini qisqartirish",
+"C": "Yakuniy foydalanuvchining ehtiyoj, istak va cheklovlarini hisobga olish",
+"D": "Interfeysning vizual jozibadorligini oshirish"
+},
+"correct_answer": "C"
+},
+{
+"id": 4,
+"question": "ISO standartiga ko'ra, 'foydalaniluvchanlik' (usability) nimani anglatadi?",
+"options": {
+"A": "Tizimning tezligi va ishonchliligi",
+"B": "Berilgan foydalanuvchilar maqsadlarga samaradorlik, samaralilik va qoniqish bilan erishish darajasi",
+"C": "Interfeysning zamonaviyligi",
+"D": "Dasturning funksional boyaligi"
+},
+"correct_answer": "B"
+},
+{
+"id": 5,
+"question": "Abowd va Beale modelida, tizimning 'yadro tili' (core language) va foydalanuvchining 'vazifa tili' (task language) o'rtasidagi vositachi nima?",
+"options": {
+"A": "Kompyuter apparati",
+"B": "Foydalanuvchi interfeysi (UI)",
+"C": "Operatsion tizim",
+"D": "Dasturiy ta'minot arxitekturasi"
+},
+"correct_answer": "B"
+},
+{
+"id": 6,
+"question": "Dizayn jarayonida tez-tez, arzon prototiplar yaratish va ularni sinab ko'rish qaysi yondashuvga tegishli?",
+"options": {
+"A": "Suv ombori modeli (Waterfall)",
+"B": "Aktiv dizayn (Agile Interaction Design)",
+"C": "Ierarxik dizayn",
+"D": "Monolit arxitektura"
+},
+"correct_answer": "B"
+},
+{
+"id": 7,
+"question": "'Xizmat dizayni' (Service Design) asosan nimaga qaratilgan?",
+"options": {
+"A": "Faqat veb-sayt interfeyslariga",
+"B": "Mijozga mahsulot o'rniga butun tajribani yetkazishga",
+"C": "Dasturiy ta'minot litsenziyalash modellariga",
+"D": "Server qurilmalarining fizik joylashuviga"
+},
+"correct_answer": "B"
+},
+{
+"id": 8,
+"question": "Foydalanuvchi noto'g'ri tugmani bosganida, bu Norman modeliga ko'ra qanday xato turi hisoblanadi?",
+"options": {
+"A": "Tizim xatosi (System error)",
+"B": "Sovuq xato (Slip)",
+"C": "Noto'g'ri tushuncha (Mistake)",
+"D": "Dizayn nuqsoni (Design flaw)"
+},
+"correct_answer": "B"
+},
+{
+"id": 9,
+"question": "Dizayn jarayonining 'Empathize' bosqichi nimani o'z ichiga oladi?",
+"options": {
+"A": "Yechimlar yaratish",
+"B": "Foydalanuvchi ehtiyojlarini o'rganish",
+"C": "Prototipni sinab ko'rish",
+"D": "Biznes talablarini belgilash"
+},
+"correct_answer": "B"
+},
+{
+"id": 10,
+"question": "HCI kontekstida 'interaktsiya' nima degani?",
+"options": {
+"A": "Faqat ekranda narsalarni siltash va bosish",
+"B": "Inson va kompyuterning vaqt o'tishi bilan bir-birining xatti-harakatlarini belgilashi",
+"C": "Tarmoq orqali ma'lumot almashish",
+"D": "Dasturiy ta'minot komponentlari o'rtasidagi aloqa"
+},
+"correct_answer": "B"
+},
+{
+"id": 11,
+"question": "'Ishonchlilik' (Learnability) foydalaniluvchanlikning qaysi o'lchovidir?",
+"options": {
+"A": "Tizimni o'rganish qanchalik osonligi",
+"B": "O'rganganidan keyin eslab qolish qanchalik osonligi",
+"C": "Maqsadga erishish qobiliyati",
+"D": "Foydalanishdan qoniqish darajasi"
+},
+"correct_answer": "A"
+},
+{
+"id": 12,
+"question": "Dasturiy ta'minot ishlab chiqish jarayonida HCI baholash qadamlarini qachon o'tkazish eng yaxshi amaliyot hisoblanadi?",
+"options": {
+"A": "Faqat loyiha tugagandan keyin",
+"B": "Har bir dizayn va amalga oshirish qadamidan oldin va keyin",
+"C": "Faqat dastlabki talablarni aniqlash bosqichida",
+"D": "Faqat testlash bosqichida"
+},
+"correct_answer": "B"
+},
+{
+"id": 13,
+"question": "Interfeys dizaynida 'foydalanuvchi xatolari' haqida to'g'ri fikr qaysi?",
+"options": {
+"A": "Har doim foydalanuvchining aybi",
+"B": "Odatda yomon dizayn natijasidir",
+"C": "Dasturiy ta'minot bug'larining bir turi",
+"D": "Faqat yangi foydalanuvchilar uchun muammo"
+},
+"correct_answer": "B"
+},
+{
+"id": 14,
+"question": "'Ishtirokchilar dizayni' (Participatory Design) ning asosiy xususiyati nima?",
+"options": {
+"A": "Faqat mutaxassislar dizayn qiladi",
+"B": "Foydalanuvchilar to'g'ridan-to'g'ri dizayn jarayonida ishtirok etadi",
+"C": "Dizayn qarorlari tasodifiylik asosida qabul qilinadi",
+"D": "Faqat yuqori darajadagi menejerlar ishtirok etadi"
+},
+"correct_answer": "B"
+},
+{
+"id": 15,
+"question": "Foydalaniluvchanlikni baholashda 'samaradorlik' (Effectiveness) nimani o'lchaydi?",
+"options": {
+"A": "Vazifani bajarish uchun sarflangan vaqt",
+"B": "Foydalanuvchi maqsadiga erishish darajasi",
+"C": "Foydalanish jarayonidagi xatolar soni",
+"D": "Interfeysni o'rganish qiyinligi"
+},
+"correct_answer": "B"
+}
+]
+}

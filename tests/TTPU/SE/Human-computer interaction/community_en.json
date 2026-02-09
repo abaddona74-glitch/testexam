@@ -1,0 +1,180 @@
+{
+"test_questions": [
+{
+"id": 1,
+"question": "What does the acronym HCI stand for?",
+"options": {
+"A": "Human-Computer Interface",
+"B": "Human-Computer Interaction",
+"C": "Human-Centric Interface",
+"D": "Hardware-Computer Interaction"
+},
+"correct_answer": "B"
+},
+{
+"id": 2,
+"question": "In Norman's model of interaction, what does the 'Gulf of Execution' represent?",
+"options": {
+"A": "The user's inability to figure out how to perform an action",
+"B": "The user's inability to evaluate the system's state",
+"C": "How the system receives the user's action",
+"D": "The efficiency of the interface"
+},
+"correct_answer": "A"
+},
+{
+"id": 3,
+"question": "Which of the following is NOT a multidisciplinary field contributing to HCI?",
+"options": {
+"A": "Psychology",
+"B": "Computer Engineering",
+"C": "Geology",
+"D": "Graphic Design"
+},
+"correct_answer": "C"
+},
+{
+"id": 4,
+"question": "What is the primary goal of 'User-Centered Design' (UCD)?",
+"options": {
+"A": "To optimize program code",
+"B": "To shorten the software development cycle",
+"C": "To take into account the needs, wants, and limitations of end users",
+"D": "To increase the visual appeal of the interface"
+},
+"correct_answer": "C"
+},
+{
+"id": 5,
+"question": "According to the ISO standard, what does 'usability' mean?",
+"options": {
+"A": "The speed and reliability of a system",
+"B": "The extent to which specified users can achieve goals with effectiveness, efficiency, and satisfaction",
+"C": "The modernity of the interface",
+"D": "The functional richness of the software"
+},
+"correct_answer": "B"
+},
+{
+"id": 6,
+"question": "In the Abowd and Beale model, what mediates between the system's 'core language' and the user's 'task language'?",
+"options": {
+"A": "The computer hardware",
+"B": "The User Interface (UI)",
+"C": "The operating system",
+"D": "The software architecture"
+},
+"correct_answer": "B"
+},
+{
+"id": 7,
+"question": "Which approach in the design process emphasizes creating many low-cost prototypes and testing them rapidly?",
+"options": {
+"A": "Waterfall model",
+"B": "Agile Interaction Design",
+"C": "Hierarchical design",
+"D": "Monolithic architecture"
+},
+"correct_answer": "B"
+},
+{
+"id": 8,
+"question": "What is 'Service Design' primarily focused on?",
+"options": {
+"A": "Only website interfaces",
+"B": "Delivering a complete experience to the customer rather than just a product",
+"C": "Software licensing models",
+"D": "The physical placement of server equipment"
+},
+"correct_answer": "B"
+},
+{
+"id": 9,
+"question": "In Norman's model, a user pressing the wrong button is an example of what type of error?",
+"options": {
+"A": "System error",
+"B": "Slip",
+"C": "Mistake",
+"D": "Design flaw"
+},
+"correct_answer": "B"
+},
+{
+"id": 10,
+"question": "What does the 'Empathize' phase in the design thinking process involve?",
+"options": {
+"A": "Creating solutions",
+"B": "Researching user needs",
+"C": "Testing a prototype",
+"D": "Defining business requirements"
+},
+"correct_answer": "B"
+},
+{
+"id": 11,
+"question": "In the context of HCI, what is 'interaction'?",
+"options": {
+"A": "Only swiping and tapping on a screen",
+"B": "Humans and computers determining each other's behavior over time",
+"C": "Exchanging data over a network",
+"D": "Communication between software components"
+},
+"correct_answer": "B"
+},
+{
+"id": 12,
+"question": "'Learnability' is a dimension of usability that refers to what?",
+"options": {
+"A": "How easy the system is to learn",
+"B": "How easy it is to remember how to use it after learning",
+"C": "The ability to achieve the goal",
+"D": "The level of satisfaction from use"
+},
+"correct_answer": "A"
+},
+{
+"id": 13,
+"question": "When is it considered best practice to conduct HCI evaluation steps in a software development process?",
+"options": {
+"A": "Only after the project is complete",
+"B": "Before and after each design and implementation step",
+"C": "Only during the initial requirements phase",
+"D": "Only during the testing phase"
+},
+"correct_answer": "B"
+},
+{
+"id": 14,
+"question": "What is the correct perspective on 'user errors' in interface design?",
+"options": {
+"A": "They are always the user's fault",
+"B": "They are usually a result of bad design",
+"C": "They are a type of software bug",
+"D": "They are only a problem for novice users"
+},
+"correct_answer": "B"
+},
+{
+"id": 15,
+"question": "What is a key characteristic of 'Participatory Design'?",
+"options": {
+"A": "Only experts do the design",
+"B": "Users are directly involved in the design process",
+"C": "Design decisions are made randomly",
+"D": "Only high-level managers participate"
+},
+"correct_answer": "B"
+},
+{
+"id": 16,
+"question": "When evaluating usability, what does 'Effectiveness' measure?",
+"options": {
+"A": "The time taken to complete a task",
+"B": "The degree to which the user achieves their goal",
+"C": "The number of errors made during use",
+"D": "The difficulty of learning the interface"
+},
+"correct_answer": "B"
+}
+]
+}
