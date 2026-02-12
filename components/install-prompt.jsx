@@ -6,8 +6,22 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
+    // Check local storage for dismissal
+    const isForeverDismissed = localStorage.getItem('installPromptDismissedForever');
+    const dismissedUntil = localStorage.getItem('installPromptDismissedUntil');
+    const now = new Date().getTime();
+
+    if (isForeverDismissed === 'true') {
+      return;
+    }
+
+    if (dismissedUntil && now < parseInt(dismissedUntil)) {
+      return;
+    }
+
     // Check if device is iOS
     const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     setIsIOS(isIosDevice);
@@ -48,6 +62,16 @@ export function InstallPrompt() {
     setDeferredPrompt(null);
   };
 
+  const handleDismiss = () => {
+    if (dontShowAgain) {
+      localStorage.setItem('installPromptDismissedForever', 'true');
+    } else {
+      const tomorrow = new Date().getTime() + 24 * 60 * 60 * 1000;
+      localStorage.setItem('installPromptDismissedUntil', tomorrow.toString());
+    }
+    setIsVisible(false);
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -72,6 +96,19 @@ export function InstallPrompt() {
         </button>
       </div>
 
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <input
+          type="checkbox"
+          id="dont-show"
+          checked={dontShowAgain}
+          onChange={(e) => setDontShowAgain(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+        />
+        <label htmlFor="dont-show" className="text-xs text-gray-600 dark:text-gray-300 cursor-pointer select-none">
+          Boshqa ko‘rsatilmasin
+        </label>
+      </div>
+
       <div className="flex gap-2">
         <button
           onClick={handleInstallClick}
@@ -81,7 +118,7 @@ export function InstallPrompt() {
           O‘rnatish
         </button>
         <button
-          onClick={() => setIsVisible(false)}
+          onClick={handleDismiss}
           className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
         >
           Keyinroq

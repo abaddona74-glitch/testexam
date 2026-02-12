@@ -1,0 +1,554 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Which of the following best defines Information Technology (IT)?",
+      "options": {
+        "A": "Study of physical sciences",
+        "B": "Use of computers and software to process and manage information",
+        "C": "Repairing electrical machines",
+        "D": "Programming only"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "question": "Which device is used to convert data into a form understandable by a computer?",
+      "options": {
+        "A": "Monitor",
+        "B": "Printer",
+        "C": "Keyboard",
+        "D": "Speaker"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 3,
+      "question": "Which of the following is NOT an example of IT application?",
+      "options": {
+        "A": "Online banking",
+        "B": "E-commerce",
+        "C": "Hospital management systems",
+        "D": "Cooking food"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 4,
+      "question": "The main purpose of an operating system is to:",
+      "options": {
+        "A": "Design graphics",
+        "B": "Manage computer hardware and software resources",
+        "C": "Create web pages",
+        "D": "Protect data from viruses"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 5,
+      "question": "Which of the following is an example of hardware?",
+      "options": {
+        "A": "MS Word",
+        "B": "Chrome Browser",
+        "C": "Monitor",
+        "D": "Windows 11"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 6,
+      "question": "Software that controls and manages the computer hardware is called:",
+      "options": {
+        "A": "Application software",
+        "B": "System software",
+        "C": "Utility software",
+        "D": "Device driver"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 7,
+      "question": "Which component is known as the “brain” of the computer?",
+      "options": {
+        "A": "RAM",
+        "B": "Hard Disk",
+        "C": "CPU (Central Processing Unit)",
+        "D": "Power Supply"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 8,
+      "question": "Which memory is volatile and loses data when power is off?",
+      "options": {
+        "A": "ROM",
+        "B": "RAM",
+        "C": "Hard Disk",
+        "D": "Pen Drive"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "Which of the following software is used for word processing?",
+      "options": {
+        "A": "Adobe Photoshop",
+        "B": "MS Excel",
+        "C": "MS Word",
+        "D": "AutoCAD"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 10,
+      "question": "Which of the following is an example of an output device?",
+      "options": {
+        "A": "Monitor",
+        "B": "Keyboard",
+        "C": "Scanner",
+        "D": "Microphone"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 11,
+      "question": "The binary number system uses which two digits?",
+      "options": {
+        "A": "0 and 9",
+        "B": "1 and 2",
+        "C": "0 and 1",
+        "D": "8 and 9"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 12,
+      "question": "The base of the binary system is:",
+      "options": {
+        "A": "8",
+        "B": "2",
+        "C": "10",
+        "D": "16"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 13,
+      "question": "Which of the following represents the decimal number 5 in binary?",
+      "options": {
+        "A": "111",
+        "B": "110",
+        "C": "101",
+        "D": "1001"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 14,
+      "question": "Which of these binary numbers equals 8 in decimal?",
+      "options": {
+        "A": "1101",
+        "B": "111",
+        "C": "1000",
+        "D": "101"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 15,
+      "question": "What does the binary number 1111 equal in decimal?",
+      "options": {
+        "A": "12",
+        "B": "15",
+        "C": "14",
+        "D": "16"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 16,
+      "question": "Convert (25)₁₀ to binary.",
+      "options": {
+        "A": "11001",
+        "B": "10101",
+        "C": "11100",
+        "D": "10011"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 17,
+      "question": "Convert (1010)₂ to decimal.",
+      "options": {
+        "A": "8",
+        "B": "10",
+        "C": "12",
+        "D": "6"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 18,
+      "question": "Convert (1111)₂ to hexadecimal.",
+      "options": {
+        "A": "C",
+        "B": "E",
+        "C": "F",
+        "D": "D"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 19,
+      "question": "Convert (100000)₂ to decimal.",
+      "options": {
+        "A": "15",
+        "B": "31",
+        "C": "32",
+        "D": "64"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 20,
+      "question": "What is the binary equivalent of decimal 9?",
+      "options": {
+        "A": "1001",
+        "B": "1010",
+        "C": "1100",
+        "D": "1110"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 21,
+      "question": "In the sign-magnitude system, the leftmost bit is used to represent:",
+      "options": {
+        "A": "Data parity",
+        "B": "The sign of the number",
+        "C": "The least significant bit",
+        "D": "The exponent"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 22,
+      "question": "In sign-magnitude representation, what does a “0” in the sign bit mean?",
+      "options": {
+        "A": "Negative number",
+        "B": "Overflow",
+        "C": "Positive number",
+        "D": "Invalid number"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 23,
+      "question": "In 8-bit sign-magnitude form, how is -25 represented?",
+      "options": {
+        "A": "00011001",
+        "B": "10011001",
+        "C": "11100101",
+        "D": "10100110"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 24,
+      "question": "Which of the following correctly represents +13 in sign-magnitude using 8 bits?",
+      "options": {
+        "A": "00001101",
+        "B": "10001101",
+        "C": "11110000",
+        "D": "1100110"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 25,
+      "question": "Which of the following represents a negative number in sign-magnitude form?",
+      "options": {
+        "A": "01101001",
+        "B": "11101001",
+        "C": "00101001",
+        "D": "00001001"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 26,
+      "question": "How many bits are used to store the sign in an 8-bit sign-magnitude number?",
+      "options": {
+        "A": "8",
+        "B": "7",
+        "C": "1",
+        "D": "2"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 27,
+      "question": "How many bits are used to store the sign in an 8-bit sign-magnitude number?",
+      "options": {
+        "A": "8",
+        "B": "7",
+        "C": "1",
+        "D": "2"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 28,
+      "question": "If the sign bit is 1 and the magnitude bits are 00000101, what is the number?",
+      "options": {
+        "A": "-5",
+        "B": "+5",
+        "C": "-6",
+        "D": "0"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 29,
+      "question": "In sign-magnitude representation, what is the largest positive number that can be represented with 8 bits?",
+      "options": {
+        "A": "255",
+        "B": "128",
+        "C": "127",
+        "D": "126"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 30,
+      "question": "If an 8-bit number is 10000000 in sign-magnitude form, what does it represent?",
+      "options": {
+        "A": "-0",
+        "B": "+0",
+        "C": "-128",
+        "D": "+128"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 31,
+      "question": "What is the result of (1 + 1) in binary?",
+      "options": {
+        "A": "0",
+        "B": "10",
+        "C": "11",
+        "D": "1"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 32,
+      "question": "In binary addition, 1 + 1 + 1 equals:",
+      "options": {
+        "A": "10",
+        "B": "11",
+        "C": "11 (carry 1, result 1)",
+        "D": "100"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 33,
+      "question": "Calculate: 1010₂ + 0110₂ = ?",
+      "options": {
+        "A": "1100₂",
+        "B": "1110₂",
+        "C": "10000₂",
+        "D": "1011₂"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 34,
+      "question": "What is the sum of 1111₂ + 0001₂?",
+      "options": {
+        "A": "1111₂",
+        "B": "10000₂",
+        "C": "10001₂",
+        "D": "1110₂"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 35,
+      "question": "Which binary addition rule is correct?",
+      "options": {
+        "A": "1 + 0 = 0",
+        "B": "0 + 0 = 1",
+        "C": "1 + 0 = 1",
+        "D": "1 + 1 = 1"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 36,
+      "question": "In binary subtraction, 1 − 1 = ?",
+      "options": {
+        "A": "0",
+        "B": "1",
+        "C": "10",
+        "D": "11"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 37,
+      "question": "In binary subtraction, if you need to subtract 1 from 0, you must:",
+      "options": {
+        "A": "Add 1",
+        "B": "Borrow 1 from the next higher bit",
+        "C": "Ignore the bit",
+        "D": "Change to decimal"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 38,
+      "question": "Compute: 1010₂ − 0101₂ = ?",
+      "options": {
+        "A": "1011₂",
+        "B": "0101₂",
+        "C": "0011₂",
+        "D": "1111₂"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 39,
+      "question": "What is the result of 1000₂ − 0001₂?",
+      "options": {
+        "A": "1001₂",
+        "B": "1111₂",
+        "C": "0111₂",
+        "D": "0101₂"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 40,
+      "question": "Compute: 11₂ × 11₂ = ?",
+      "options": {
+        "A": "1011₂",
+        "B": "1111₂",
+        "C": "1001₂",
+        "D": "1100₂"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 41,
+      "question": "A Boolean variable can have how many possible values?",
+      "options": {
+        "A": "3",
+        "B": "10",
+        "C": "2",
+        "D": "4"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 42,
+      "question": "What is the binary equivalent of the Boolean value “True”?",
+      "options": {
+        "A": "2",
+        "B": "-1",
+        "C": "1",
+        "D": "0"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 43,
+      "question": "If a Boolean variable named “doorOpen” is false, it means:",
+      "options": {
+        "A": "The door is open",
+        "B": "The door is closed",
+        "C": "The door is locked",
+        "D": "The door is broken"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 44,
+      "question": "Which Boolean operator returns True only if both operands are True?",
+      "options": {
+        "A": "OR",
+        "B": "AND",
+        "C": "NOT",
+        "D": "XOR"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 45,
+      "question": "Which Boolean operator returns True if at least one operand is True?",
+      "options": {
+        "A": "OR",
+        "B": "AND",
+        "C": "NOT",
+        "D": "NAND"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 46,
+      "question": "What is the result of True AND False?",
+      "options": {
+        "A": "True",
+        "B": "False",
+        "C": "1",
+        "D": "Undefined"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 47,
+      "question": "What is the result of True OR False?",
+      "options": {
+        "A": "False",
+        "B": "True",
+        "C": "0",
+        "D": "Error"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 48,
+      "question": "What is the result of NOT True?",
+      "options": {
+        "A": "True",
+        "B": "False",
+        "C": "1",
+        "D": "0"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 49,
+      "question": "Which of the following is a correct Boolean expression?",
+      "options": {
+        "A": "5 + 5",
+        "B": "“hello”",
+        "C": "A AND B",
+        "D": "3 * 9"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 50,
+      "question": "If A = True and B = False, then (A OR B) AND NOT(B) = ?",
+      "options": {
+        "A": "False",
+        "B": "True",
+        "C": "0",
+        "D": "1"
+      },
+      "correct_answer": "B"
+    }
+  ]
+}
