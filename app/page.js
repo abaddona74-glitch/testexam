@@ -1165,6 +1165,9 @@ export default function Home() {
         if (!firstVisit) {
             firstVisit = Date.now().toString();
             localStorage.setItem('examApp_firstVisit', firstVisit);
+            // Give 100 bonus stars on first visit
+            localStorage.setItem('examApp_stars', '100');
+            setUserStars(100);
         }
         
         // Check functionality: Hides button 3 days after first visit
