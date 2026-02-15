@@ -1908,6 +1908,8 @@ export default function Home() {
     }, [view, isGodmode]);
 
     const fetchGlobalActiveUsers = async () => {
+        // Only fetch active users if user has entered their name
+        if (!isNameSet) return;
         try {
             const res = await fetch('/api/active');
             if (res.ok) {
@@ -2018,14 +2020,14 @@ export default function Home() {
     }, [activatedCheats, isCheatsLoaded]);
 
     useEffect(() => {
-        if (process.env.NODE_ENV === 'development' && isCheatsLoaded) {
+        if (process.env.NODE_ENV === 'development' && isCheatsLoaded && isNameSet) {
             const interval = setInterval(() => {
                 fetchTests(true);
             }, 1000);
             return () => clearInterval(interval);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isCheatsLoaded, activatedCheats]);
+    }, [isCheatsLoaded, activatedCheats, isNameSet]);
 
     useEffect(() => {
         if (isCheatsLoaded) {
@@ -2038,6 +2040,7 @@ export default function Home() {
     const [leaderboardTotal, setLeaderboardTotal] = useState(0);
 
     const fetchLeaderboard = async () => {
+        if (!isNameSet) return;
         try {
             const showHiddenParams = activatedCheats.includes('showhidden') ? '&showHidden=true' : '';
             const res = await fetch(`/api/leaderboard?period=${filterPeriod}&page=${leaderboardPage}&limit=${leaderboardLimit}${showHiddenParams}`);
