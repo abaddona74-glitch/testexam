@@ -29,6 +29,8 @@ body {
       transparent,
       rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden; /* Fix layout shift scrollbar */
+  width: 100%;
 }
 
 
@@ -348,3 +350,4 @@ body {
     transform-origin: bottom right;
   }
 }
+@keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-15px) scale(1.2); opacity: 0.8; } 100% { transform: translateY(-30px) scale(1); opacity: 0; } }

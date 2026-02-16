@@ -1517,11 +1517,21 @@ export default function Home() {
         }
     };
 
+    const [starFloaters, setStarFloaters] = useState([]);
+
     const spendStars = (amount) => {
         if (userStars >= amount) {
             const newTotal = userStars - amount;
             setUserStars(newTotal);
             localStorage.setItem('examApp_stars', newTotal.toString());
+
+            // Add floating text animation
+            const id = Date.now();
+            setStarFloaters(prev => [...prev, { id, text: `-${amount}` }]);
+            setTimeout(() => {
+                setStarFloaters(prev => prev.filter(f => f.id !== id));
+            }, 1000); // Animation duration
+
             return true;
         }
         return false;
@@ -2801,9 +2811,20 @@ export default function Home() {
 
                             {/* Stars Icon */}
                             <div className="relative group">
-                                <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10 px-1.5 py-1 md:px-2 md:py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700/30 cursor-help">
+                                <div className="relative flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10 px-1.5 py-1 md:px-2 md:py-1.5 rounded-lg border border-yellow-200 dark:border-yellow-700/30 cursor-help">
                                     <img src="/star.gif" alt="Star" className="w-[18px] h-[18px] md:w-6 md:h-6 object-contain" />
                                     <span className="text-xs md:text-sm font-bold text-yellow-700 dark:text-yellow-500">{userStars}</span>
+                                    
+                                    {/* Floating Damage Text */}
+                                    {starFloaters.map(floater => (
+                                        <div
+                                            key={floater.id}
+                                            className="absolute -top-4 right-0 text-red-600 font-bold text-sm select-none pointer-events-none animate-bounce"
+                                            style={{ animation: 'floatUp 1s ease-out forwards' }} 
+                                        >
+                                            {floater.text}
+                                        </div>
+                                    ))}
                                 </div>
 
                                 {/* Boost Status Tooltip */}
@@ -3630,9 +3651,9 @@ export default function Home() {
                             </section>
 
                             {/* Leaderboard Section */}
-                            <section className="relative overflow-hidden rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl p-6 transition-all duration-300">
+                            <section className="relative rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl p-6 transition-all duration-300">
                                 {/* Liquid Background */}
-                                <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+                                <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden rounded-2xl">
                                     <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
                                     {/* Golden/Yellow blobs for Leaderboard Trophy Theme */}
                                     <div className="absolute -top-32 -right-32 w-80 h-80 bg-yellow-400/10 rounded-full blur-3xl animate-blob"></div>
@@ -3698,8 +3719,8 @@ export default function Home() {
                                 {leaderboard.length === 0 ? (
                                     <div className="relative z-10 text-center py-8 text-gray-400 italic">No results yet. Be the first!</div>
                                 ) : (
-                                    <div className="relative z-10 overflow-x-auto">
-                                        <table className="w-full text-center">
+                                    <div className="relative z-10 overflow-x-hidden hover:overflow-x-auto transition-all scrollbar-hide">
+                                        <table className="w-full text-center table-fixed min-w-[800px]">
                                             <thead>
                                                 <tr className="border-b border-gray-100 dark:border-gray-800/50 text-xs uppercase text-gray-400 font-semibold tracking-wider">
                                                     <th className="pb-3 w-16 px-1">Rank</th>
