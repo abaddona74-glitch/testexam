@@ -47,11 +47,22 @@ export async function GET(request) {
       dateQuery.difficulty = { $ne: 'study' };
 
       // Region/Country filter
+      // Also include old entries that don't have country/region fields yet
         if (country) {
-            dateQuery.country = country;
+            dateQuery.$or = [
+                { country: country },
+                { country: { $exists: false } },
+                { country: null },
+                { country: 'Unknown' }
+            ];
         }
         if (region) {
-            dateQuery.region = region;
+            dateQuery.$or = [
+                { region: region },
+                { region: { $exists: false } },
+                { region: null },
+                { region: 'Unknown' }
+            ];
         }
 
       // Get Total Count for Pagination

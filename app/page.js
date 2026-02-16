@@ -1152,6 +1152,25 @@ export default function Home() {
     const [showDemoButton, setShowDemoButton] = useState(false);
 
     useEffect(() => {
+        // --- VERSION CONTROL & RESET ---
+        // Change this string to force a wipe for all users on next visit
+        const CURRENT_VERSION = 'v1.1-reset'; 
+        const savedVersion = localStorage.getItem('examApp_version');
+        
+        if (savedVersion !== CURRENT_VERSION) {
+            console.log("New version detected. Clearing old data.");
+            
+            // Wipe everything to start fresh
+            localStorage.clear(); 
+            
+            // Set the new version immediately
+            localStorage.setItem('examApp_version', CURRENT_VERSION);
+
+            // Reload to ensure state is clean (optional but safer)
+            window.location.reload();
+            return;
+        }
+
         // 0. Initialize User ID
         let currentUserId = localStorage.getItem('examApp_userId');
         if (!currentUserId) {
