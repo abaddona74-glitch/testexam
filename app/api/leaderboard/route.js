@@ -117,7 +117,7 @@ export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { name, testName, testId, score, total, duration, questions, answers, difficulty } = body;
+    const { name, testName, testId, score, total, duration, questions, answers, difficulty, country: bodyCountry, city: bodyCity, region: bodyRegion } = body;
     
     // Do not save 'study' mode results to leaderboard
     if (difficulty === 'study') {
@@ -128,10 +128,10 @@ export async function POST(request) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
     
-    // Get region from headers (added by Vercel or Middleware)
-    const country = request.headers.get('x-vercel-ip-country') || 'Unknown';
-    const city = request.headers.get('x-vercel-ip-city') || 'Unknown';
-    const region = request.headers.get('x-vercel-ip-region') || 'Unknown';
+    // Get region from body (Client detected) OR headers (Vercel/Middleware)
+    const country = bodyCountry || request.headers.get('x-vercel-ip-country') || 'Unknown';
+    const city = bodyCity || request.headers.get('x-vercel-ip-city') || 'Unknown';
+    const region = bodyRegion || request.headers.get('x-vercel-ip-region') || 'Unknown';
 
     const newEntry = await Leaderboard.create({
         name,

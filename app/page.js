@@ -327,6 +327,27 @@ const SPINNER_ITEMS = [
     { id: 'e8', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
 ];
 
+/* Helper to prevent IDM (Internet Download Manager) from hijacking audio files */
+const createSafeAudio = (url) => {
+    return new Promise((resolve) => {
+        if (typeof window === 'undefined') {
+            resolve(null);
+            return;
+        }
+        fetch(url)
+            .then(res => res.blob())
+            .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                const audio = new Audio(blobUrl);
+                resolve(audio);
+            })
+            .catch(err => {
+                console.warn('Audio fetch failed, falling back to direct URL', err);
+                resolve(new Audio(url));
+            });
+    });
+};
+
 function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, nextSpin, forceLucky, soundVolume = 0.8 }) {
     const [spinning, setSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
@@ -340,24 +361,26 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
     useEffect(() => {
         if (typeof window === 'undefined') return;
         if (winAudioRef.current) return;
-        try {
-            const audio = new Audio('/congratulations-you-are-the-winner.mp3');
-            audio.preload = 'auto';
-            audio.volume = Math.max(0, Math.min(1, soundVolume));
-            winAudioRef.current = audio;
-        } catch { }
+        createSafeAudio('/congratulations-you-are-the-winner.mp3').then(audio => {
+            if (audio) {
+                audio.preload = 'auto';
+                audio.volume = Math.max(0, Math.min(1, soundVolume));
+                winAudioRef.current = audio;
+            }
+        });
     }, []);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
         if (spinAudioRef.current) return;
-        try {
-            const audio = new Audio('/electric-slot-machine.mp3');
-            audio.preload = 'auto';
-            audio.loop = true;
-            audio.volume = Math.max(0, Math.min(1, soundVolume));
-            spinAudioRef.current = audio;
-        } catch { }
+        createSafeAudio('/electric-slot-machine.mp3').then(audio => {
+            if (audio) {
+                audio.preload = 'auto';
+                audio.loop = true;
+                audio.volume = Math.max(0, Math.min(1, soundVolume));
+                spinAudioRef.current = audio;
+            }
+        });
     }, []);
 
     useEffect(() => {
@@ -435,12 +458,14 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
         let audio = spinAudioRef.current;
         if (!audio && typeof window !== 'undefined') {
             try {
-                const created = new Audio('/electric-slot-machine.mp3');
-                created.preload = 'auto';
-                created.loop = true;
-                created.volume = Math.max(0, Math.min(1, soundVolume));
-                spinAudioRef.current = created;
-                audio = created;
+                const created = await createSafeAudio('/electric-slot-machine.mp3');
+                if (created) {
+                    created.preload = 'auto';
+                    created.loop = true;
+                    created.volume = Math.max(0, Math.min(1, soundVolume));
+                    spinAudioRef.current = created;
+                    audio = created;
+                }
             } catch { }
         }
         if (!audio) return;
@@ -1078,12 +1103,16 @@ export default function Home() {
     useEffect(() => {
         if (typeof window === 'undefined') return;
         if (startAudioRef.current) return;
-        try {
-            const audio = new Audio('/start.mp3');
-            audio.preload = 'auto';
-            audio.volume = Math.max(0, Math.min(1, soundVolume));
-            startAudioRef.current = audio;
-        } catch { }
+        
+        createSafeAudio('/start.mp3').then(audio => {
+            if (audio) {
+                try {
+                    audio.preload = 'auto';
+                    audio.volume = Math.max(0, Math.min(1, soundVolume));
+                    startAudioRef.current = audio;
+                } catch { }
+            }
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -4317,6 +4346,7 @@ export default function Home() {
                             userName={userName}
                             userId={userId}
                             userCountry={userCountry}
+                            userLocation={userLocation}
                             activatedCheats={activatedCheats}
                             soundVolume={soundVolume}
                             showTranslation={showTranslation}
@@ -5656,7 +5686,7 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, showTranslation = true, playClickSound, addToast }) {
+function TestRunner({ test, userName, userId, userCountry, userLocation, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, showTranslation = true, playClickSound, addToast }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
@@ -5697,12 +5727,16 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     useEffect(() => {
         if (typeof window === 'undefined') return;
         if (celebrationAudioRef.current) return;
-        try {
-            const audio = new Audio('/Celebration_Sound_Effect.mp3');
-            audio.preload = 'auto';
-            audio.volume = Math.max(0, Math.min(1, soundVolume));
-            celebrationAudioRef.current = audio;
-        } catch { }
+        createSafeAudio('/Celebration_Sound_Effect.mp3').then(audio => {
+            if (audio) {
+                // eslint-disable-next-line
+                try {
+                    audio.preload = 'auto';
+                    audio.volume = Math.max(0, Math.min(1, soundVolume));
+                    celebrationAudioRef.current = audio;
+                } catch { }
+            }
+        });
 
         return () => {
             stopCelebrationSound();
@@ -6706,7 +6740,10 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                         duration: durationMs,
                         questions: test.questions, // Store snapshot
                         answers: answers,
-                        difficulty: test.difficultyMode // Save Difficulty to Leaderboard
+                        difficulty: test.difficultyMode, // Save Difficulty to Leaderboard
+                        country: (userLocation && userLocation.country_code) || userCountry || 'Unknown',
+                        city: (userLocation && userLocation.city) || 'Unknown',
+                        region: (userLocation && userLocation.region) || 'Unknown'
                     })
                 });
             }

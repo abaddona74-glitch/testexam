@@ -46,12 +46,20 @@ export async function GET(request) {
         const fallbackRes = await fetch(fallbackUrl);
         if (fallbackRes.ok) {
             const fallbackData = await fallbackRes.json();
-            return NextResponse.json({ country_code: fallbackData.country_code || fallbackData.countryCode });
+            return NextResponse.json({ 
+                country_code: fallbackData.country_code || fallbackData.countryCode,
+                city: fallbackData.city,
+                region: fallbackData.region
+            });
         }
-        return NextResponse.json({ country_code: 'UZ' }); // Ultimate fallback
+        return NextResponse.json({ country_code: 'UZ', city: 'Tashkent', region: 'Tashkent' }); // Ultimate fallback
     }
 
-    return NextResponse.json({ country_code: data.country_code });
+    return NextResponse.json({ 
+        country_code: data.country_code,
+        city: data.city,
+        region: data.region
+    });
 
   } catch (error) {
     console.error('Failed to fetch country:', error);
