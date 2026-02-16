@@ -5978,9 +5978,32 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
     const question = test.questions[currentIndex];
 
     // Hint Logic
-    const handleUseHint = () => {
+    const handleUseHint = (shouldBuy = false) => {
         const infiniteHints = activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode');
-        if ((hintsLeft <= 0 && extraHints <= 0 && !infiniteHints) || isFinished) return;
+        
+        let purchased = false;
+
+        // Check if we have hints available
+        const hasHints = hintsLeft > 0 || extraHints > 0 || infiniteHints;
+
+        if (!hasHints) {
+            if (shouldBuy) {
+               if (userStars >= 5) {
+                   if (spendStars(5)) {
+                       purchased = true;
+                   } else {
+                       return; // Transaction failed
+                   }
+               } else {
+                   alert("Not enough stars! You need 5 stars for a hint.");
+                   return;
+               }
+            } else {
+                return; // No hints and no purchase
+            }
+        }
+        
+        if (isFinished) return;
 
         const currentRevealed = revealedHints[currentIndex] || [];
 
@@ -6004,6 +6027,9 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
 
             // Consume hint
             if (infiniteHints) return;
+            
+            if (purchased) return; // Consumed stars instead of hint count
+
             if (hintsLeft > 0) {
                 setHintsLeft(prev => prev - 1);
             } else if (extraHints > 0) {
@@ -6055,6 +6081,8 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
         }
 
         if (infiniteHints) return; // Don't consume hints
+        
+        if (purchased) return; // Consumed stars
 
         if (hintsLeft > 0) {
             setHintsLeft(prev => prev - 1);
@@ -7168,26 +7196,18 @@ function TestRunner({ test, userName, userId, userCountry, onFinish, onRetake, o
                             ) : (
                                 /* Buy Hint Button */
                                 <button
-                                    onClick={() => {
-                                        if (spendStars && userStars >= 5) {
-                                            if (spendStars(5)) {
-                                                setHintsLeft(prev => prev + 1);
-                                            }
-                                        } else {
-                                            alert("Not enough stars! You need 5 stars for a hint.");
-                                        }
-                                    }}
+                                    onClick={() => handleUseHint(true)}
                                     className={clsx(
                                         "flex items-center gap-1.5 px-3 py-1.5 border rounded-lg transition-colors text-xs font-bold mr-2",
                                         userStars >= 5
                                             ? "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 cursor-pointer"
                                             : "bg-gray-50 dark:bg-gray-950 text-gray-400 border-gray-200 cursor-not-allowed"
                                     )}
-                                    title="Buy a hint for 5 stars"
+                                    title="Buy a hint (5 stars) and use immediately"
                                 >
                                     <div className='flex items-center gap-1'>
                                         <span>⭐ 5</span>
-                                        <span>Buy Hint</span>
+                                        <span>Use Hint</span>
                                     </div>
                                 </button>
                             )}
