@@ -40,6 +40,18 @@ const LeaderboardSchema = new mongoose.Schema({
   answers: {
     type: Object, // Stores the user's answers {index: optionId}
     required: false,
+  },
+  country: {
+    type: String,
+    required: false,
+  },
+  city: {
+    type: String,
+    required: false,
+  },
+  region: {
+    type: String,
+    required: false,
   }
 });
 

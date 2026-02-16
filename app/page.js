@@ -2038,12 +2038,34 @@ export default function Home() {
     const [leaderboardPage, setLeaderboardPage] = useState(1);
     const [leaderboardLimit, setLeaderboardLimit] = useState(10);
     const [leaderboardTotal, setLeaderboardTotal] = useState(0);
+    const [leaderboardLocation, setLeaderboardLocation] = useState('global'); // 'global', 'country', 'region'
+    const [userLocation, setUserLocation] = useState(null);
+
+    // Fetch user location
+    useEffect(() => {
+        fetch('/api/country')
+            .then(res => res.json())
+            .then(data => {
+                if (data.country_code) {
+                    setUserLocation(data);
+                }
+            })
+            .catch(err => console.error("Location fetch error:", err));
+    }, []);
 
     const fetchLeaderboard = async () => {
         if (!isNameSet) return;
         try {
             const showHiddenParams = activatedCheats.includes('showhidden') ? '&showHidden=true' : '';
-            const res = await fetch(`/api/leaderboard?period=${filterPeriod}&page=${leaderboardPage}&limit=${leaderboardLimit}${showHiddenParams}`);
+            
+            let locParams = '';
+            if (leaderboardLocation === 'country' && userLocation?.country_code) {
+                locParams = `&country=${userLocation.country_code}`;
+            } else if (leaderboardLocation === 'region' && userLocation?.region) {
+                locParams = `&region=${userLocation.region}`;
+            }
+
+            const res = await fetch(`/api/leaderboard?period=${filterPeriod}&page=${leaderboardPage}&limit=${leaderboardLimit}${showHiddenParams}${locParams}`);
             if (res.ok) {
                 const json = await res.json();
                 if (json.data) {
@@ -2063,7 +2085,7 @@ export default function Home() {
         fetchLeaderboard();
         const interval = setInterval(fetchLeaderboard, 5000);
         return () => clearInterval(interval);
-    }, [filterPeriod, leaderboardPage, leaderboardLimit, activatedCheats]);
+    }, [filterPeriod, leaderboardPage, leaderboardLimit, activatedCheats, leaderboardLocation, userLocation]);
 
     const handlePromoSubmit = (e) => {
         e.preventDefault();
@@ -3630,21 +3652,46 @@ export default function Home() {
                                             <Crown size={14} /> Achievements Rules
                                         </button>
 
-                                        <div className="flex justify-center gap-2 bg-gray-50/50 dark:bg-gray-950/50 p-1 rounded-xl border border-gray-100 dark:border-gray-800/50 backdrop-blur-sm">
-                                            {['today', '3days', '7days', 'all'].map((p) => (
-                                                <button
-                                                    key={p}
-                                                    onClick={() => setFilterPeriod(p)}
-                                                    className={clsx(
-                                                        "px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all",
-                                                        filterPeriod === p
-                                                            ? "bg-white dark:bg-gray-800 text-blue-600 shadow-sm border border-gray-100 dark:border-gray-800/50"
-                                                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                    )}
-                                                >
-                                                    {p === 'all' ? 'All Time' : p === '3days' ? '3 Days' : p === '7days' ? '7 Days' : 'Today'}
-                                                </button>
-                                            ))}
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex justify-center gap-2 bg-gray-50/50 dark:bg-gray-950/50 p-1 rounded-xl border border-gray-100 dark:border-gray-800/50 backdrop-blur-sm">
+                                                {['today', '3days', '7days', 'all'].map((p) => (
+                                                    <button
+                                                        key={p}
+                                                        onClick={() => setFilterPeriod(p)}
+                                                        className={clsx(
+                                                            "px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all",
+                                                            filterPeriod === p
+                                                                ? "bg-white dark:bg-gray-800 text-blue-600 shadow-sm border border-gray-100 dark:border-gray-800/50"
+                                                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                        )}
+                                                    >
+                                                        {p === 'all' ? 'All Time' : p === '3days' ? '3 Days' : p === '7days' ? '7 Days' : 'Today'}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Location Filter */}
+                                            <div className="flex justify-center gap-2 bg-gray-50/50 dark:bg-gray-950/50 p-1 rounded-xl border border-gray-100 dark:border-gray-800/50 backdrop-blur-sm self-end">
+                                                {['global', 'country', 'region'].map((loc) => (
+                                                    <button
+                                                        key={loc}
+                                                        onClick={() => setLeaderboardLocation(loc)}
+                                                        disabled={!userLocation && loc !== 'global'}
+                                                        className={clsx(
+                                                            "px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all flex items-center gap-1",
+                                                            leaderboardLocation === loc
+                                                                ? "bg-white dark:bg-gray-800 text-purple-600 shadow-sm border border-gray-100 dark:border-gray-800/50"
+                                                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
+                                                            (!userLocation && loc !== 'global') && "opacity-50 cursor-not-allowed"
+                                                        )}
+                                                        title={(!userLocation && loc !== 'global') ? "Location not available" : ""}
+                                                    >
+                                                        {loc === 'global' ? <span>🌍 Global</span> : 
+                                                         loc === 'country' ? <span>🏳️ {userLocation?.country_code || 'Country'}</span> : 
+                                                         <span>📍 {userLocation?.region || 'Region'}</span>}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3691,7 +3738,7 @@ export default function Home() {
                                                                 )}
                                                             </td>
                                                             <td className="py-3 px-2">
-                                                                <div className="flex flex-col">
+                                                                <div className="flex flex-col items-center">
                                                                     {league.name === 'Mythic' ? (
                                                                         <span className="text-base font-extrabold flex justify-center">
                                                                             {entry.name.split('').map((char, i) => (
@@ -3703,6 +3750,11 @@ export default function Home() {
                                                                     ) : (
                                                                         <span className={clsx("text-base font-medium", league.textClass)}>
                                                                             {entry.name}
+                                                                        </span>
+                                                                    )}
+                                                                    {entry.country && (
+                                                                        <span className="text-[10px] uppercase tracking-wide text-gray-400 bg-gray-50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded border border-gray-100 dark:border-gray-700/50 mt-1">
+                                                                            {entry.country} {entry.region ? `· ${entry.region.split('-')[1] || entry.region}` : ''}
                                                                         </span>
                                                                     )}
                                                                 </div>

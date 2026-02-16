@@ -10,6 +10,8 @@ export async function GET(request) {
       const page = parseInt(searchParams.get('page')) || 1;
       const limit = parseInt(searchParams.get('limit')) || 100;
       const showHidden = searchParams.get('showHidden') === 'true';
+      const country = searchParams.get('country');
+      const region = searchParams.get('region');
       const skip = (page - 1) * limit;
 
       let dateQuery = {};
@@ -43,6 +45,14 @@ export async function GET(request) {
 
       // Exclude study mode from leaderboard
       dateQuery.difficulty = { $ne: 'study' };
+
+      // Region/Country filter
+        if (country) {
+            dateQuery.country = country;
+        }
+        if (region) {
+            dateQuery.region = region;
+        }
 
       // Get Total Count for Pagination
       const totalDocs = await Leaderboard.countDocuments(dateQuery);
@@ -106,6 +116,11 @@ export async function POST(request) {
     if (!name || score === undefined || !total) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
+    
+    // Get region from headers (added by Vercel or Middleware)
+    const country = request.headers.get('x-vercel-ip-country') || 'Unknown';
+    const city = request.headers.get('x-vercel-ip-city') || 'Unknown';
+    const region = request.headers.get('x-vercel-ip-region') || 'Unknown';
 
     const newEntry = await Leaderboard.create({
         name,
@@ -117,7 +132,10 @@ export async function POST(request) {
         duration,
         questions, 
         answers,
-        difficulty
+        difficulty,
+        country,
+        city,
+        region
     });
     
     return NextResponse.json(newEntry);

@@ -6,8 +6,15 @@ export async function GET(request) {
   try {
     // 1. Try Vercel's specific header (Fastest & Free)
     const vercelCountry = request.headers.get('x-vercel-ip-country');
+    const vercelCity = request.headers.get('x-vercel-ip-city');
+    const vercelRegion = request.headers.get('x-vercel-ip-region');
+
     if (vercelCountry) {
-      return NextResponse.json({ country_code: vercelCountry });
+      return NextResponse.json({ 
+          country_code: vercelCountry,
+          city: vercelCity,
+          region: vercelRegion
+      });
     }
 
     // 2. Fallback: Identify Client IP
