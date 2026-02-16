@@ -2079,11 +2079,21 @@ export default function Home() {
             if (res.ok) {
                 const json = await res.json();
                 if (json.data) {
-                    setLeaderboard(json.data);
-                    setLeaderboardTotal(json.pagination.total);
+                    // Only update state if data actually changed to prevent layout shift
+                    const newData = JSON.stringify(json.data);
+                    const oldData = JSON.stringify(leaderboard);
+                    if (newData !== oldData) {
+                        setLeaderboard(json.data);
+                    }
+                    if (json.pagination.total !== leaderboardTotal) {
+                        setLeaderboardTotal(json.pagination.total);
+                    }
                 } else {
                     // Fallback for old API response format if cached or error
-                    setLeaderboard(Array.isArray(json) ? json : []);
+                    const arr = Array.isArray(json) ? json : [];
+                    if (JSON.stringify(arr) !== JSON.stringify(leaderboard)) {
+                        setLeaderboard(arr);
+                    }
                 }
             }
         } catch (e) {
