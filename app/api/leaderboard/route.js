@@ -155,3 +155,21 @@ export async function POST(request) {
     return NextResponse.json({ error: "Internal Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  await dbConnect();
+  try {
+    const { searchParams } = new URL(request.url);
+    const name = searchParams.get('name');
+
+    if (!name) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+    }
+
+    const result = await Leaderboard.deleteMany({ name });
+    return NextResponse.json({ deleted: result.deletedCount });
+  } catch (error) {
+    console.error("Leaderboard DELETE Error:", error);
+    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+  }
+}

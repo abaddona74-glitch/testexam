@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Mic, MicOff } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
@@ -845,6 +845,19 @@ export default function Home() {
     const [selectedDirection, setSelectedDirection] = useState('All');
     const [isFiltersInitialized, setIsFiltersInitialized] = useState(false);
 
+    // Chat State
+    const [chatMessages, setChatMessages] = useState([]);
+    const [chatInput, setChatInput] = useState('');
+    const [chatMode, setChatMode] = useState('public'); // 'public' | 'dm'
+    const [chatDmPartner, setChatDmPartner] = useState(null);
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const chatEndRef = useRef(null);
+    const chatPollRef = useRef(null);
+
+    // Profile State
+    const [showProfile, setShowProfile] = useState(false);
+    const [profileData, setProfileData] = useState([]);
+
     // Persistence for Filters
     useEffect(() => {
         const savedUni = localStorage.getItem('examApp_selectedUniversity');
@@ -859,6 +872,93 @@ export default function Home() {
         localStorage.setItem('examApp_selectedUniversity', selectedUniversity);
         localStorage.setItem('examApp_selectedDirection', selectedDirection);
     }, [selectedUniversity, selectedDirection, isFiltersInitialized]);
+
+    // Chat Functions
+    const fetchChatMessages = useCallback(async () => {
+        try {
+            const params = new URLSearchParams();
+            if (chatMode === 'dm' && chatDmPartner) {
+                params.set('type', 'dm');
+                params.set('user', userName);
+                params.set('partner', chatDmPartner);
+            } else {
+                params.set('type', 'public');
+            }
+            const res = await fetch(`/api/chat?${params}`);
+            if (res.ok) {
+                const data = await res.json();
+                setChatMessages(data);
+            }
+        } catch (e) {
+            console.error('Chat fetch error', e);
+        }
+    }, [chatMode, chatDmPartner, userName]);
+
+    const sendChatMessage = async () => {
+        if (!chatInput.trim() || !userName) return;
+        try {
+            const body = {
+                sender: userName,
+                message: chatInput.trim(),
+                type: chatMode,
+                recipient: chatMode === 'dm' ? chatDmPartner : 'all',
+            };
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            if (res.ok) {
+                setChatInput('');
+                fetchChatMessages();
+            }
+        } catch (e) {
+            console.error('Chat send error', e);
+        }
+    };
+
+    // Chat polling
+    useEffect(() => {
+        if (view === 'list') {
+            fetchChatMessages();
+            chatPollRef.current = setInterval(fetchChatMessages, 5000);
+        }
+        return () => {
+            if (chatPollRef.current) clearInterval(chatPollRef.current);
+        };
+    }, [view, fetchChatMessages]);
+
+    // Scroll chat to bottom on new messages
+    useEffect(() => {
+        if (chatEndRef.current) {
+            chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [chatMessages]);
+
+    // Profile: fetch user history from leaderboard
+    const fetchProfileData = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/leaderboard?period=all&limit=500`);
+            if (res.ok) {
+                const json = await res.json();
+                const data = json.data || json;
+                const userEntries = (Array.isArray(data) ? data : []).filter(e => e.name === userName);
+                // Group by testName and compute best score percentage
+                const grouped = {};
+                userEntries.forEach(e => {
+                    const key = e.testName || 'Unknown';
+                    const pct = e.total > 0 ? Math.round((e.score / e.total) * 100) : 0;
+                    if (!grouped[key] || grouped[key] < pct) {
+                        grouped[key] = pct;
+                    }
+                });
+                const profileArr = Object.entries(grouped).map(([name, pct]) => ({ name, pct }));
+                setProfileData(profileArr);
+            }
+        } catch (e) {
+            console.error('Profile fetch error', e);
+        }
+    }, [userName]);
 
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
@@ -2827,13 +2927,14 @@ export default function Home() {
                                 )}
                             </button>
 
-                            <button
+                            {/* Support Project - Hidden for now */}
+                            {/* <button
                                 onClick={() => { playStartSound(); setShowDonateModal(true); }}
                                 className="p-1.5 md:p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors animate-pulse"
                                 title="Support Project"
                             >
                                 <Heart size={18} className="md:w-5 md:h-5" />
-                            </button>
+                            </button> */}
                             <button
                                 onClick={() => { playStartSound(); setView('history'); }}
                                 className={clsx(
@@ -2911,6 +3012,20 @@ export default function Home() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Profile Button */}
+                            <button
+                                onClick={() => {
+                                    playStartSound();
+                                    fetchProfileData();
+                                    setShowProfile(true);
+                                }}
+                                className="p-1.5 md:p-2 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                                title="My Profile"
+                            >
+                                <User size={18} className="md:w-5 md:h-5" />
+                            </button>
+
                             {view !== 'list' && (
                                 <button
                                     onClick={() => {
@@ -3148,6 +3263,203 @@ export default function Home() {
                         forceLucky={activatedCheats.includes('haveluckyday') || activatedCheats.includes('godmode')}
                         soundVolume={soundVolume}
                     />
+                )}
+
+                {/* Profile Modal with Radar Chart */}
+                {showProfile && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full p-6 relative overflow-hidden max-h-[90vh] overflow-y-auto">
+                            {/* Decorative Background */}
+                            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-500 to-purple-600 opacity-10 rounded-b-[3rem] pointer-events-none" />
+
+                            <button
+                                onClick={() => setShowProfile(false)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-50"
+                            >
+                                <XCircle size={24} />
+                            </button>
+
+                            <div className="relative z-10 text-center mb-6">
+                                <div className="bg-indigo-100 dark:bg-indigo-900/30 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-indigo-600 dark:text-indigo-400 ring-4 ring-indigo-50 dark:ring-indigo-900/20">
+                                    <User size={32} />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">{userName}</h2>
+                                <p className="text-gray-500 text-sm flex items-center justify-center gap-2">
+                                    <Star size={14} className="text-yellow-500" /> {userStars} stars earned
+                                </p>
+                            </div>
+
+                            {/* Radar Chart */}
+                            {profileData.length > 0 ? (
+                                <div className="mb-6">
+                                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 text-center">Performance by Subject</h3>
+                                    <div className="flex justify-center">
+                                        <svg viewBox="0 0 400 400" className="w-full max-w-[320px]">
+                                            {(() => {
+                                                const cx = 200, cy = 200, maxR = 150;
+                                                const items = profileData.slice(0, 8); // Max 8 subjects for readability
+                                                const n = items.length;
+                                                const angleStep = (2 * Math.PI) / n;
+
+                                                // Concentric rings
+                                                const rings = [0.25, 0.5, 0.75, 1.0];
+
+                                                // Points for the data polygon
+                                                const points = items.map((item, i) => {
+                                                    const angle = i * angleStep - Math.PI / 2;
+                                                    const r = (item.pct / 100) * maxR;
+                                                    return {
+                                                        x: cx + r * Math.cos(angle),
+                                                        y: cy + r * Math.sin(angle),
+                                                        labelX: cx + (maxR + 25) * Math.cos(angle),
+                                                        labelY: cy + (maxR + 25) * Math.sin(angle),
+                                                        axisX: cx + maxR * Math.cos(angle),
+                                                        axisY: cy + maxR * Math.sin(angle),
+                                                    };
+                                                });
+
+                                                const polygonPoints = points.map(p => `${p.x},${p.y}`).join(' ');
+
+                                                return (
+                                                    <>
+                                                        {/* Background rings */}
+                                                        {rings.map((r, i) => (
+                                                            <polygon
+                                                                key={i}
+                                                                points={Array.from({ length: n }, (_, j) => {
+                                                                    const angle = j * angleStep - Math.PI / 2;
+                                                                    return `${cx + maxR * r * Math.cos(angle)},${cy + maxR * r * Math.sin(angle)}`;
+                                                                }).join(' ')}
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                className="text-gray-200 dark:text-gray-700"
+                                                                strokeWidth="1"
+                                                            />
+                                                        ))}
+
+                                                        {/* Axis lines */}
+                                                        {points.map((p, i) => (
+                                                            <line key={i} x1={cx} y1={cy} x2={p.axisX} y2={p.axisY} stroke="currentColor" className="text-gray-200 dark:text-gray-700" strokeWidth="1" />
+                                                        ))}
+
+                                                        {/* Data polygon */}
+                                                        <polygon
+                                                            points={polygonPoints}
+                                                            fill="rgba(99, 102, 241, 0.2)"
+                                                            stroke="#6366f1"
+                                                            strokeWidth="2"
+                                                        />
+
+                                                        {/* Data points */}
+                                                        {points.map((p, i) => (
+                                                            <circle key={i} cx={p.x} cy={p.y} r="4" fill="#6366f1" stroke="white" strokeWidth="2" />
+                                                        ))}
+
+                                                        {/* Labels */}
+                                                        {items.map((item, i) => {
+                                                            const angle = i * angleStep - Math.PI / 2;
+                                                            const lx = cx + (maxR + 30) * Math.cos(angle);
+                                                            const ly = cy + (maxR + 30) * Math.sin(angle);
+                                                            // Truncate long names
+                                                            const shortName = item.name.length > 15 ? item.name.slice(0, 13) + '...' : item.name;
+                                                            return (
+                                                                <text
+                                                                    key={i}
+                                                                    x={lx}
+                                                                    y={ly}
+                                                                    textAnchor="middle"
+                                                                    dominantBaseline="middle"
+                                                                    className="fill-gray-600 dark:fill-gray-400"
+                                                                    style={{ fontSize: '10px', fontWeight: 600 }}
+                                                                >
+                                                                    {shortName}
+                                                                    <tspan x={lx} dy="12" className="fill-indigo-500" style={{ fontSize: '9px' }}>{item.pct}%</tspan>
+                                                                </text>
+                                                            );
+                                                        })}
+
+                                                        {/* Center ring percentage labels */}
+                                                        {rings.map((r, i) => (
+                                                            <text
+                                                                key={i}
+                                                                x={cx + 5}
+                                                                y={cy - maxR * r + 4}
+                                                                className="fill-gray-400"
+                                                                style={{ fontSize: '8px' }}
+                                                            >
+                                                                {Math.round(r * 100)}%
+                                                            </text>
+                                                        ))}
+                                                    </>
+                                                );
+                                            })()}
+                                        </svg>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-400">
+                                    <Trophy size={32} className="mx-auto mb-2 opacity-20" />
+                                    <p className="text-sm">No test results yet. Take some tests to see your radar!</p>
+                                </div>
+                            )}
+
+                            {/* Stats Table */}
+                            {profileData.length > 0 && (
+                                <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+                                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">All Subjects</h3>
+                                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                                        {profileData.sort((a, b) => b.pct - a.pct).map((item, idx) => (
+                                            <div key={idx} className="flex items-center gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{item.name}</span>
+                                                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{item.pct}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full rounded-full transition-all duration-500"
+                                                            style={{
+                                                                width: `${item.pct}%`,
+                                                                background: item.pct >= 85 ? '#22c55e' : item.pct >= 70 ? '#3b82f6' : item.pct >= 50 ? '#eab308' : '#ef4444'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Reset Progress */}
+                            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <button
+                                    onClick={async () => {
+                                        if (!confirm('Haqiqatan ham barcha progressingizni tozalamoqchimisiz? Bu amalni qaytarib bo\'lmaydi!')) return;
+                                        try {
+                                            // Delete leaderboard entries
+                                            await fetch(`/api/leaderboard?name=${encodeURIComponent(userName)}`, { method: 'DELETE' });
+                                            // Reset local state
+                                            setUserStars(0);
+                                            setUnlockedLeagues([]);
+                                            setProfileData([]);
+                                            localStorage.setItem('examApp_userStars', '0');
+                                            localStorage.setItem('examApp_unlockedLeagues', '[]');
+                                            addToast('Reset', 'Progress has been cleared!', 'info');
+                                            setShowProfile(false);
+                                        } catch (e) {
+                                            console.error('Reset error', e);
+                                            addToast('Error', 'Failed to reset progress', 'error');
+                                        }
+                                    }}
+                                    className="w-full py-2.5 rounded-xl border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <RefreshCcw size={16} /> Reset All Progress
+                                </button>
+                                <p className="text-[10px] text-gray-400 text-center mt-2">Bu barcha natijalaringiz va yulduzlaringizni o'chiradi</p>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {showDonateModal && (
@@ -3647,6 +3959,7 @@ export default function Home() {
                                                             isLocked={test.isPremium && !testIsUnlocked}
                                                             isUnlocked={test.isPremium && testIsUnlocked}
                                                             isGodmode={isGodmode}
+                                                            userName={userName}
                                                         />
                                                     );
                                                 }) : (
@@ -3694,6 +4007,7 @@ export default function Home() {
                                                         isLocked={false}
                                                         isUnlocked={false}
                                                         isGodmode={isGodmode}
+                                                        userName={userName}
                                                     />
                                                 ))}
                                             </div>
@@ -4082,7 +4396,8 @@ export default function Home() {
                                     </div>
                                 </div>
 
-                                {/* Exam Schedule Widget */}
+                                {/* Exam Schedule Widget - Hidden */}
+                                {false && (
                                 <div className="relative rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl">
                                     {/* Liquid Background */}
                                     <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
@@ -4208,6 +4523,120 @@ export default function Home() {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                </div>
+                                )}
+
+                                {/* Live Chat Widget */}
+                                <div className="relative rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl">
+                                    {/* Liquid Background */}
+                                    <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden rounded-2xl">
+                                        <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
+                                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-xl animate-blob"></div>
+                                        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-xl animate-blob animation-delay-2000"></div>
+                                    </div>
+
+                                    <div className="relative z-10 p-4 border-b border-gray-100 dark:border-gray-800/50">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                                <MessageCircle className="text-blue-500 dark:text-blue-400" size={18} /> Live Chat
+                                            </h3>
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => { setChatMode('public'); setChatDmPartner(null); }}
+                                                    className={clsx(
+                                                        "text-[10px] font-bold px-2 py-1 rounded-lg transition-colors",
+                                                        chatMode === 'public' ? "bg-blue-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200"
+                                                    )}
+                                                >
+                                                    <Users size={12} className="inline mr-1" />All
+                                                </button>
+                                                {chatDmPartner && (
+                                                    <button
+                                                        onClick={() => setChatMode('dm')}
+                                                        className={clsx(
+                                                            "text-[10px] font-bold px-2 py-1 rounded-lg transition-colors",
+                                                            chatMode === 'dm' ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200"
+                                                        )}
+                                                    >
+                                                        DM: {chatDmPartner}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative z-10 flex flex-col" style={{ height: '350px' }}>
+                                        {/* Messages */}
+                                        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                            {chatMessages.length === 0 ? (
+                                                <div className="text-center text-gray-400 text-xs py-8">
+                                                    <MessageCircle size={32} className="mx-auto mb-2 opacity-20" />
+                                                    <p>No messages yet. Say hello!</p>
+                                                </div>
+                                            ) : (
+                                                chatMessages.map((msg, idx) => {
+                                                    const isMe = msg.sender === userName;
+                                                    return (
+                                                        <div key={msg._id || idx} className={clsx("flex", isMe ? "justify-end" : "justify-start")}>
+                                                            <div className={clsx(
+                                                                "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                                                                isMe
+                                                                    ? "bg-blue-500 text-white rounded-br-md"
+                                                                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-md"
+                                                            )}>
+                                                                {!isMe && (
+                                                                    <p
+                                                                        className="text-[10px] font-bold text-blue-600 dark:text-blue-400 mb-0.5 cursor-pointer hover:underline"
+                                                                        onClick={() => {
+                                                                            setChatDmPartner(msg.sender);
+                                                                            setChatMode('dm');
+                                                                        }}
+                                                                    >
+                                                                        {msg.sender}
+                                                                    </p>
+                                                                )}
+                                                                <p className="break-words whitespace-pre-wrap">{msg.message}</p>
+                                                                <p className={clsx("text-[9px] mt-1", isMe ? "text-blue-200" : "text-gray-400")}>
+                                                                    {timeAgo(msg.createdAt)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                            <div ref={chatEndRef} />
+                                        </div>
+
+                                        {/* Input */}
+                                        <div className="p-3 border-t border-gray-100 dark:border-gray-800/50">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={chatInput}
+                                                    onChange={(e) => setChatInput(e.target.value)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
+                                                    placeholder={chatMode === 'dm' ? `Message ${chatDmPartner}...` : "Message everyone..."}
+                                                    className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100"
+                                                    maxLength={500}
+                                                />
+                                                <button
+                                                    onClick={sendChatMessage}
+                                                    disabled={!chatInput.trim()}
+                                                    className="px-3 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <Send size={16} />
+                                                </button>
+                                            </div>
+                                            {chatMode === 'dm' && (
+                                                <button
+                                                    onClick={() => { setChatMode('public'); setChatDmPartner(null); }}
+                                                    className="text-[10px] text-gray-400 hover:text-gray-600 mt-1"
+                                                >
+                                                    ← Back to public chat
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -5013,7 +5442,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked, isGodmode = false }) {
+function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked, isGodmode = false, userName }) {
     // START: Language logic (Support both loaded 'translations' and metadata 'availableLanguages')
     const availableLangs = test.translations ? Object.keys(test.translations) : (test.availableLanguages || []);
     
@@ -5035,6 +5464,17 @@ function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 te
 
     const languages = availableLangs;
     // END: Language logic
+
+    const [showCardComments, setShowCardComments] = useState(false);
+    const [cardCommentCount, setCardCommentCount] = useState(0);
+
+    // Fetch comment count for this test
+    useEffect(() => {
+        fetch(`/api/comments?testId=${encodeURIComponent(test.id)}&countOnly=true`)
+            .then(r => r.json())
+            .then(d => setCardCommentCount(d.count || 0))
+            .catch(() => {});
+    }, [test.id, showCardComments]);
 
     // Filter active users for this test
     const currentTestUsers = activeUsers.filter(u => u.testId === test.id && u.status === 'in-test');
@@ -5225,6 +5665,25 @@ function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 te
                 {isLocked ? <Lock size={18} /> : <Play size={18} className={isUnlocked ? "fill-white" : ""} />}
                 {isLocked ? "Unlock Access" : (hasProgress ? "Resume Attempt" : (isUnlocked ? "Start Premium Attempt" : "Start Attempt"))}
             </button>
+
+            {/* Comments toggle */}
+            <button
+                onClick={(e) => { e.stopPropagation(); setShowCardComments(!showCardComments); }}
+                className="mt-2 w-full py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-all flex items-center justify-center gap-2 text-sm"
+            >
+                <MessageCircle size={16} />
+                {showCardComments ? "Hide Comments" : "Comments"}
+                {cardCommentCount > 0 && (
+                    <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs px-1.5 py-0.5 rounded-full">{cardCommentCount}</span>
+                )}
+            </button>
+
+            {/* Comments section */}
+            {showCardComments && (
+                <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                    <TestComments testId={test.id} userName={userName || 'Anonymous'} />
+                </div>
+            )}
         </div>
     );
 }
@@ -5686,6 +6145,125 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     );
 }
 
+// Public Comments Component for Tests
+function TestComments({ testId, userName }) {
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const fetchComments = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/comments?testId=${encodeURIComponent(testId)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setComments(data);
+            }
+        } catch (e) {
+            console.error('Failed to fetch comments', e);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [testId]);
+
+    useEffect(() => {
+        fetchComments();
+    }, [fetchComments]);
+
+    const handleSubmitComment = async () => {
+        if (!newComment.trim() || isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            const res = await fetch('/api/comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ testId, userName, text: newComment.trim() }),
+            });
+            if (res.ok) {
+                setNewComment('');
+                fetchComments();
+            }
+        } catch (e) {
+            console.error('Failed to post comment', e);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800/50 overflow-hidden">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center gap-2">
+                <MessageSquare className="text-blue-500" size={18} />
+                <h3 className="font-bold text-gray-800 dark:text-gray-200">Comments ({comments.length})</h3>
+            </div>
+
+            {/* Comment Input */}
+            <div className="p-4 border-b border-gray-50 dark:border-gray-700/30">
+                <div className="flex gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">
+                        {userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                        <textarea
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Share your thoughts about this test..."
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900 dark:text-gray-100"
+                            rows={2}
+                            maxLength={1000}
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                            <span className="text-[10px] text-gray-400">{newComment.length}/1000</span>
+                            <button
+                                onClick={handleSubmitComment}
+                                disabled={!newComment.trim() || isSubmitting}
+                                className="px-4 py-1.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                            >
+                                {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Comments List */}
+            <div className="max-h-[400px] overflow-y-auto">
+                {isLoading ? (
+                    <div className="p-6 text-center text-gray-400">
+                        <Loader2 size={24} className="animate-spin mx-auto mb-2" />
+                        <p className="text-sm">Loading comments...</p>
+                    </div>
+                ) : comments.length === 0 ? (
+                    <div className="p-6 text-center text-gray-400">
+                        <MessageSquare size={32} className="mx-auto mb-2 opacity-20" />
+                        <p className="text-sm">No comments yet. Be the first to comment!</p>
+                    </div>
+                ) : (
+                    <div className="divide-y divide-gray-50 dark:divide-gray-700/30">
+                        {comments.map((comment) => (
+                            <div key={comment._id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors">
+                                <div className="flex gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
+                                        {comment.userName.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{comment.userName}</span>
+                                            <span className="text-[10px] text-gray-400">{timeAgo(comment.createdAt)}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">{comment.text}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function TestRunner({ test, userName, userId, userCountry, userLocation, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, showTranslation = true, playClickSound, addToast }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
@@ -5933,33 +6511,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [isAiLoading, setIsAiLoading] = useState(false);
     
-    // Voice Control State
-    const [isListening, setIsListening] = useState(false);
-    const recognitionRef = useRef(null);
-    const isListeningRef = useRef(false);
 
-    useEffect(() => {
-        isListeningRef.current = isListening;
-    }, [isListening]);
-
-    const toggleVoiceControl = () => {
-        if (!recognitionRef.current) {
-            alert("Voice control is not supported in this browser.");
-            return;
-        }
-
-        if (isListening) {
-            recognitionRef.current.stop();
-            setIsListening(false);
-        } else {
-            try {
-                recognitionRef.current.start();
-                setIsListening(true);
-            } catch (e) {
-                console.error("Failed to start speech recognition", e);
-            }
-        }
-    };
 
     // Reset AI analysis when question changes
     useEffect(() => {
@@ -6462,147 +7014,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
         proceedToNext();
     };
 
-    // Ref to hold latest state for voice loop without re-triggering effect
-    const voiceStateRef = useRef({ 
-        currentIndex, 
-        test, 
-        handleNext, 
-        handleAnswer, 
-        addToast, 
-        showConfirmSkip, 
-        setShowConfirmSkip, 
-        // proceedToNext not available yet locally, will be added by useEffect
-        setSkipConfirmationDisabled,
-        dontAskAgain
-    });
 
-    // Update ref whenever relevant state changes
-    useEffect(() => {
-        voiceStateRef.current = { 
-            currentIndex, 
-            test, 
-            handleNext, 
-            handleAnswer, 
-            addToast, 
-            showConfirmSkip, 
-            setShowConfirmSkip, 
-            proceedToNext,
-            setSkipConfirmationDisabled,
-            dontAskAgain
-        };
-    }, [currentIndex, test, handleNext, handleAnswer, addToast, showConfirmSkip, setShowConfirmSkip, proceedToNext, setSkipConfirmationDisabled, dontAskAgain]);
-
-    // Initialize Speech Recognition - ONCE on mount
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                const recognition = new SpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = false;
-                recognition.lang = (navigator.language || 'en-US');
-                recognition.maxAlternatives = 1;
-
-                recognition.onresult = (event) => {
-                    // Access latest state from ref
-                    const { 
-                        currentIndex, 
-                        test, 
-                        handleNext, 
-                        handleAnswer, 
-                        addToast, 
-                        showConfirmSkip, 
-                        setShowConfirmSkip, 
-                        proceedToNext,
-                        setSkipConfirmationDisabled,
-                        dontAskAgain
-                    } = voiceStateRef.current;
-
-                    const last = event.results.length - 1;
-                    const transcript = event.results[last][0].transcript
-                        .trim()
-                        .toLowerCase()
-                        .replace(/[.?!,]/g, '');
-                    console.log("Voice Command:", transcript);
-                    if (addToast) addToast("Mic", `Heard: "${transcript}"`, "info");
-
-                    // Handle Skip Confirmation Modal
-                    if (showConfirmSkip) {
-                        if (['yes', 'skip', 'confirm', 'yeah', 'yep', 'okay', 'sure'].includes(transcript)) {
-                            // Yes, Skip
-                            if (dontAskAgain) {
-                                setSkipConfirmationDisabled(true);
-                            }
-                            setShowConfirmSkip(false);
-                            proceedToNext();
-                            return;
-                        } else if (['no', 'cancel', 'back', 'wait', 'stop', 'nope'].includes(transcript)) {
-                            // Cancel
-                            setShowConfirmSkip(false);
-                            return;
-                        }
-                        return; // Ignore other commands while modal is open
-                    }
-
-                    let selectedIndex = -1;
-
-                    if (['a', 'hey', 'ay', 'option a', 'а', 'эй'].includes(transcript)) selectedIndex = 0;
-                    else if (['b', 'bee', 'be', 'bi', 'baby', 'option b', 'б', 'би', 'бе'].includes(transcript)) selectedIndex = 1;
-                    else if (['c', 'see', 'sea', 'si', 'ci', 'option c', 'с', 'си'].includes(transcript)) selectedIndex = 2;
-                    else if (['d', 'dee', 'di', 'die', 'option d', 'д', 'ди'].includes(transcript)) selectedIndex = 3;
-                    else if (['next', 'next question', 'go next', 'skip', 'continue'].includes(transcript)) {
-                        handleNext();
-                        return;
-                    }
-
-                    if (selectedIndex !== -1) {
-                         const options = test.questions[currentIndex]?.shuffledOptions;
-                         if (options && options[selectedIndex]) {
-                             handleAnswer(options[selectedIndex].id);
-                         }
-                    }
-                };
-
-                recognition.onerror = (event) => {
-                    console.error("Speech recognition error", event.error);
-                    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                        setIsListening(false);
-                        return;
-                    }
-                    if (isListeningRef.current && ['no-speech', 'aborted', 'audio-capture'].includes(event.error)) {
-                        try {
-                            recognition.start();
-                        } catch (e) {
-                            setIsListening(false);
-                        }
-                    }
-                };
-                
-                recognition.onend = () => {
-                     if (isListeningRef.current) {
-                         try {
-                             recognition.start();
-                             return;
-                         } catch (e) {
-                             // fall through and stop listening
-                         }
-                     }
-                     setIsListening(false);
-                };
-
-                recognitionRef.current = recognition;
-            }
-        }
-
-        return () => {
-            if (recognitionRef.current) {
-                try {
-                    recognitionRef.current.onend = null; 
-                    recognitionRef.current.stop();
-                } catch(e) {}
-            }
-        };
-    }, []); // Empty dependency array = Created once, never destroyed on question change!
 
 
     // Clear active user session on unmount or finish
@@ -7154,6 +7566,9 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                     </div>
                 </div>
 
+                {/* Public Comments Section - Visible only after test completion */}
+                <TestComments testId={test.id} userName={userName} />
+
                 {/* Report Modal (Duplicate for Finished State) */}
                 {showReportModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -7533,18 +7948,6 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                         </button>
 
                         <div className="flex justify-end gap-2">
-                            <button
-                                onClick={toggleVoiceControl}
-                                className={clsx(
-                                    "px-3 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all border",
-                                    isListening 
-                                        ? "bg-red-100 text-red-600 border-red-200 animate-pulse" 
-                                        : "bg-white dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                                )}
-                                title="Voice Control (Say A, B, C, D)"
-                            >
-                                {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-                            </button>
 
                             {isStudyMode && (
                                 <button
