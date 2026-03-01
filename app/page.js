@@ -1572,9 +1572,9 @@ export default function Home() {
             } catch (e) { }
         }
 
-        // Fetch Country directly from client to support Browser Extension VPNs
-        // We use ipwho.is directly because local API route (Node.js) won't see the Browser Extension VPN
-        fetch('https://ipwho.is/')
+        // Fetch country directly from client to support Browser Extension VPNs.
+        // ipwho.is blocks browser CORS on free plan, so use ipapi.co in browser and keep internal API as fallback.
+        fetch('https://ipapi.co/json/')
             .then(res => res.json())
             .then(data => {
                 if (data.country_code) {
