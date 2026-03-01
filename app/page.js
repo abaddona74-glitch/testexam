@@ -853,6 +853,30 @@ export default function Home() {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const chatEndRef = useRef(null);
     const chatPollRef = useRef(null);
+    const headerRef = useRef(null);
+    const [sidebarTop, setSidebarTop] = useState(80);
+
+    // Track header height for sidebar sticky position
+    useEffect(() => {
+        const updateSidebarTop = () => {
+            if (!headerRef.current) return;
+            // header sticks at top-4 (16px), its full height determines where sidebar should start
+            const headerHeight = headerRef.current.offsetHeight;
+            // top-4 = 16px for header sticky + header height + 16px gap
+            setSidebarTop(16 + headerHeight + 16);
+        };
+        updateSidebarTop();
+        
+        const observer = new ResizeObserver(() => updateSidebarTop());
+        if (headerRef.current) observer.observe(headerRef.current);
+        
+        // Also update on scroll in case of transition
+        window.addEventListener('scroll', updateSidebarTop, { passive: true });
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('scroll', updateSidebarTop);
+        };
+    }, [headerExpanded]);
 
     // Profile State
     const [showProfile, setShowProfile] = useState(false);
@@ -928,10 +952,17 @@ export default function Home() {
         };
     }, [view, fetchChatMessages]);
 
-    // Scroll chat to bottom on new messages
+    // Scroll chat to bottom on new messages (only if chat is visible in viewport)
     useEffect(() => {
         if (chatEndRef.current) {
-            chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+            const chatContainer = chatEndRef.current.closest?.('[data-chat-container]');
+            if (chatContainer) {
+                const rect = chatContainer.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                if (isVisible) {
+                    chatEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
         }
     }, [chatMessages]);
 
@@ -2875,7 +2906,7 @@ export default function Home() {
     return (
         <main className="min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
             <div className="max-w-7xl mx-auto">
-                <header className={clsx(
+                <header ref={headerRef} className={clsx(
                     "relative mb-8 rounded-2xl sticky top-4 z-40 transition-all duration-300 ease-in-out",
                     headerExpanded
                         ? "p-6 border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl"
@@ -4263,8 +4294,8 @@ export default function Home() {
                             </button>
                         </div>
 
-                        <div className={clsx("transition-all duration-500 ease-in-out relative shrink-0", sidebarExpanded ? "w-full lg:w-80 opacity-100" : "w-0 opacity-0 overflow-hidden")}>
-                            <div className="sticky top-28 space-y-6 lg:w-80">
+                        <div className={clsx("transition-all duration-500 ease-in-out shrink-0 self-stretch", sidebarExpanded ? "w-full lg:w-80 opacity-100" : "w-0 opacity-0 lg:hidden")}>
+                            <div className="sticky space-y-6 lg:w-80 overflow-y-auto pr-1 custom-scrollbar" style={{ top: `${sidebarTop}px`, maxHeight: `calc(100vh - ${sidebarTop}px - 16px)` }}>
                                 {/* Active Users Widget */}
                                 <div className="relative overflow-hidden rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl p-6">
                                     {/* Liquid Background */}
@@ -4528,7 +4559,7 @@ export default function Home() {
                                 )}
 
                                 {/* Live Chat Widget */}
-                                <div className="relative rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl">
+                                <div data-chat-container className="relative rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl">
                                     {/* Liquid Background */}
                                     <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden rounded-2xl">
                                         <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
