@@ -11,6 +11,7 @@ const TABS = [
   { id: 'ai', label: '🤖 AI Requests', icon: '🤖' },
   { id: 'content', label: '📝 Content', icon: '📝' },
   { id: 'blocklist', label: '🚫 Block List', icon: '🚫' },
+  { id: 'profanity', label: '🤬 So\'z filtr', icon: '🤬' },
 ];
 
 // ─── Utility Components ────────────────────────────────────────
@@ -169,10 +170,22 @@ export default function AdminPage() {
   // Tests state
   const [tests, setTests] = useState([]);
 
+  // Profanity state
+  const [profanityData, setProfanityData] = useState({ defaults: [], custom: [], total: 0 });
+  const [newBadWord, setNewBadWord] = useState('');
+  const [bulkBadWords, setBulkBadWords] = useState('');
+
+  // Real-time event feed
+  const [realtimeEvents, setRealtimeEvents] = useState([]);
+  const [lastEventId, setLastEventId] = useState(0);
+  const [realtimeActive, setRealtimeActive] = useState(0);
+  const [realtimeSessions, setRealtimeSessions] = useState([]);
+
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
 
   const autoRefreshRef = useRef(null);
+  const realtimeRef = useRef(null);
 
   // Check cached secret on mount
   useEffect(() => {
@@ -256,20 +269,56 @@ export default function AdminPage() {
     }
   }, [api]);
 
+  const fetchProfanity = useCallback(async () => {
+    try {
+      const data = await api('/api/admin/profanity');
+      setProfanityData(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [api]);
+
+  // ─── Real-Time Event Polling (every 3 seconds, from memory — instant) ─
+  const pollRealtime = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/realtime?secret=${encodeURIComponent(secret)}&since=${lastEventId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.events && data.events.length > 0) {
+        setRealtimeEvents(prev => [...data.events, ...prev].slice(0, 200));
+      }
+      if (data.lastEventId) setLastEventId(data.lastEventId);
+      setRealtimeActive(data.activeUsers || 0);
+      setRealtimeSessions(data.activeSessions || []);
+    } catch (err) {
+      // Silent fail for polling
+    }
+  }, [secret, lastEventId]);
+
   // ─── Load Data on Tab Change ──────────────────────────────
 
   useEffect(() => {
     if (!isAuthed) return;
-    if (activeTab === 'overview' || activeTab === 'live' || activeTab === 'ai' || activeTab === 'security') fetchDashboard();
+    if (activeTab === 'overview' || activeTab === 'ai' || activeTab === 'security') fetchDashboard();
     if (activeTab === 'logs') fetchLogs();
     if (activeTab === 'content') { fetchMessages(); fetchTests(); }
     if (activeTab === 'blocklist') fetchBlocklist();
+    if (activeTab === 'profanity') fetchProfanity();
   }, [isAuthed, activeTab, period]);
 
-  // Auto-refresh for live monitor
+  // Real-time polling — runs on ALL tabs, every 3 seconds (reads from memory, not DB)
+  useEffect(() => {
+    if (!isAuthed) return;
+    // Initial poll
+    pollRealtime();
+    realtimeRef.current = setInterval(pollRealtime, 3000);
+    return () => clearInterval(realtimeRef.current);
+  }, [isAuthed, secret]);
+
+  // Auto-refresh full dashboard data every 30s (for charts/aggregated stats)
   useEffect(() => {
     if (isAuthed && (activeTab === 'live' || activeTab === 'overview')) {
-      autoRefreshRef.current = setInterval(fetchDashboard, 15000);
+      autoRefreshRef.current = setInterval(fetchDashboard, 30000);
       return () => clearInterval(autoRefreshRef.current);
     }
   }, [isAuthed, activeTab, fetchDashboard]);
@@ -358,6 +407,38 @@ export default function AdminPage() {
     setIsAuthed(false);
     setSecret('');
     setDashboard(null);
+    clearInterval(realtimeRef.current);
+  };
+
+  // ─── Profanity Actions ────────────────────────────────────
+
+  const handleAddBadWord = async () => {
+    if (!newBadWord.trim()) return;
+    await api('/api/admin/profanity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word: newBadWord.trim() }),
+    });
+    setNewBadWord('');
+    fetchProfanity();
+  };
+
+  const handleBulkAddWords = async () => {
+    if (!bulkBadWords.trim()) return;
+    const words = bulkBadWords.split(/[\n,;]+/).map(w => w.trim()).filter(Boolean);
+    if (words.length === 0) return;
+    await api('/api/admin/profanity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words }),
+    });
+    setBulkBadWords('');
+    fetchProfanity();
+  };
+
+  const handleRemoveBadWord = async (word) => {
+    await api(`/api/admin/profanity?word=${encodeURIComponent(word)}`, { method: 'DELETE' });
+    fetchProfanity();
   };
 
   // ─── Login Screen ────────────────────────────────────────
@@ -454,9 +535,15 @@ export default function AdminPage() {
         {/* ─── OVERVIEW TAB ─── */}
         {activeTab === 'overview' && dashboard && (
           <div className="space-y-6">
+            {/* Real-time indicator */}
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              Real-time (har 3 sekundda yangilanadi) | Son'gi event ID: {lastEventId}
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              <StatCard label="Active Users" value={dashboard.stats.activeUsers} icon="👥" color="green" />
+              <StatCard label="Active Users" value={realtimeActive} icon="👥" color="green" sub="real-time" />
               <StatCard label="Unique Visitors" value={dashboard.stats.uniqueVisitors} icon="👁️" color="blue" />
               <StatCard label="Total Logs" value={dashboard.stats.totalLogs} icon="📋" color="cyan" />
               <StatCard label="AI Requests" value={dashboard.stats.aiRequests} icon="🤖" color="purple" />
@@ -478,27 +565,53 @@ export default function AdminPage() {
               <BarChart data={dashboard.charts.topTests} title="🔥 Eng ko'p ochilgan testlar" maxItems={10} />
               <BarChart data={dashboard.charts.difficultyDist} title="⚡ Qiyinlik darajasi" />
             </div>
+
+            {/* Real-time Event Feed */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+              <h3 className="font-semibold text-sm mb-3 text-gray-700 dark:text-gray-300">⚡ Jonli hodisalar (real-time)</h3>
+              <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                {realtimeEvents.slice(0, 30).map((e, i) => (
+                  <div key={e._eventId || i} className={`flex items-center gap-2 text-xs p-1.5 rounded ${e.isSuspicious ? 'bg-red-50 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'}`}>
+                    <span className="text-gray-400 w-16">{new Date(e._ts || e.createdAt).toLocaleTimeString('uz')}</span>
+                    <span className={`px-1.5 py-0.5 rounded font-medium ${
+                      e.type === 'ai_request' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                      : e.type === 'test_complete' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : e.type === 'chat_message' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
+                      : e.isSuspicious ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                    }`}>{e.type}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{e.userName || e.ip || '-'}</span>
+                    {e.details?.testName && <span className="text-blue-500 truncate max-w-[200px]">{e.details.testName}</span>}
+                    {e.suspiciousReason && <span className="text-red-500 truncate max-w-[200px]">⚠️ {e.suspiciousReason}</span>}
+                  </div>
+                ))}
+                {realtimeEvents.length === 0 && <p className="text-gray-500 text-center py-4 text-xs">Hodisalar kutilmoqda...</p>}
+              </div>
+            </div>
           </div>
         )}
 
         {/* ─── LIVE MONITOR TAB ─── */}
-        {activeTab === 'live' && dashboard && (
+        {activeTab === 'live' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-800 dark:text-white">
-                🟢 Hozirgi foydalanuvchilar ({dashboard.activeSessions?.length || 0})
+                🟢 Hozirgi foydalanuvchilar ({realtimeActive})
               </h2>
-              <span className="text-xs text-gray-400">Har 15 sekundda yangilanadi</span>
+              <span className="text-xs text-green-500 flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                Har 3 sekundda yangilanadi (real-time)
+              </span>
             </div>
 
-            {dashboard.activeSessions?.length === 0 ? (
+            {realtimeSessions.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <div className="text-4xl mb-2">😴</div>
                 <p>Hozir hech kim aktiv emas</p>
               </div>
             ) : (
               <div className="grid gap-3">
-                {dashboard.activeSessions?.map((session, i) => (
+                {realtimeSessions.map((session, i) => (
                   <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${
@@ -962,6 +1075,99 @@ export default function AdminPage() {
                   </div>
                 </details>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ─── PROFANITY TAB ─── */}
+        {activeTab === 'profanity' && (
+          <div className="space-y-6">
+            {/* Add single word */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+              <h3 className="font-bold text-gray-800 dark:text-white mb-4">➕ Yangi so'z qo'shish</h3>
+              <div className="flex gap-3">
+                <input
+                  placeholder="Yomon so'z kiriting..."
+                  value={newBadWord}
+                  onChange={e => setNewBadWord(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddBadWord()}
+                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                />
+                <button
+                  onClick={handleAddBadWord}
+                  disabled={!newBadWord.trim()}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 font-medium disabled:opacity-40"
+                >
+                  ➕ Qo'shish
+                </button>
+              </div>
+            </div>
+
+            {/* Bulk add */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+              <h3 className="font-bold text-gray-800 dark:text-white mb-4">📦 Ko'plab qo'shish</h3>
+              <textarea
+                placeholder="So'zlarni vergul yoki yangi qator bilan ajrating...&#10;masalan: bad1, bad2, bad3&#10;yoki har qatorda bittadan"
+                value={bulkBadWords}
+                onChange={e => setBulkBadWords(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm resize-y"
+              />
+              <button
+                onClick={handleBulkAddWords}
+                disabled={!bulkBadWords.trim()}
+                className="mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 font-medium disabled:opacity-40"
+              >
+                📦 Barchasini qo'shish
+              </button>
+            </div>
+
+            {/* Custom words */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+              <h3 className="font-bold text-gray-800 dark:text-white mb-4">
+                🔧 Qo'shimcha so'zlar ({profanityData?.custom?.length || 0})
+              </h3>
+              {profanityData?.custom?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {profanityData.custom.map(word => (
+                    <span key={word} className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-full text-sm">
+                      <span className="text-red-700 dark:text-red-400">{word}</span>
+                      <button
+                        onClick={() => handleRemoveBadWord(word)}
+                        className="text-red-400 hover:text-red-600 font-bold ml-1"
+                        title="O'chirish"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm text-center py-4">Qo'shimcha so'zlar yo'q. Yuqorida qo'shing.</p>
+              )}
+            </div>
+
+            {/* Default words */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+              <details>
+                <summary className="font-bold text-gray-800 dark:text-white cursor-pointer hover:text-blue-600">
+                  📋 Standart so'zlar ro'yxati ({profanityData?.defaults?.length || 0}) — ochish uchun bosing
+                </summary>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {profanityData?.defaults?.map(word => (
+                    <span key={word} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400">
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              </details>
+            </div>
+
+            {/* Stats */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Jami filtrdagi so'zlar: <span className="font-bold text-lg text-red-500">{profanityData?.total || 0}</span>
+              </p>
             </div>
           </div>
         )}
