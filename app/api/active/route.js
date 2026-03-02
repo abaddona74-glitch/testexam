@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
+import { isBlocked } from '../admin/block/route';
 
 // Store active sessions in memory
 // We now use sessionId as key to support multiple tabs without race conditions
@@ -85,6 +87,21 @@ export async function POST(request) {
         questionId: questionId || null,
         lastUpdated: Date.now()
     };
+
+    // Check if this IP/device is blocked
+    const reqInfo = extractRequestInfo(request);
+    if (isBlocked(reqInfo.ip, userId)) {
+      return NextResponse.json({ error: 'Blocked' }, { status: 403 });
+    }
+
+    // Log test start (only when first entering a test)
+    if (testId && status === 'in-test' && progress === 0) {
+      logActivity({
+        ...reqInfo, type: 'test_start', userName: name, userId,
+        details: { testId, device: device || 'desktop' },
+        country, deviceId: userId,
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

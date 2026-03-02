@@ -2,6 +2,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { logActivity, extractRequestInfo } from "@/lib/activity-logger";
+import { detectDDoS } from "@/lib/security";
 
 export async function POST(req) {
   try {
@@ -14,7 +16,19 @@ export async function POST(req) {
         );
     }
 
-    const { question, options, recaptchaToken } = await req.json();
+    const { question, options, recaptchaToken, userName, studyMode, testName } = await req.json();
+
+    const reqInfo = extractRequestInfo(req);
+
+    // DDoS detection
+    const ddos = detectDDoS(ip);
+    if (ddos.isDDoS) {
+      logActivity({
+        ...reqInfo, type: 'dos_attempt', userName,
+        isSuspicious: true, suspiciousReason: `AI DoS: ${ddos.requestCount} req/min (${ddos.level})`,
+      });
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
 
     // 1. Verify reCAPTCHA (if configured)
      const recaptchaResult = await verifyRecaptcha(recaptchaToken);
@@ -65,6 +79,17 @@ export async function POST(req) {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
+
+    // Log AI request
+    logActivity({
+      ...reqInfo, type: 'ai_request', userName,
+      details: {
+        questionPreview: question?.substring(0, 100),
+        optionsCount: options?.length,
+        studyMode: !!studyMode,
+        testName,
+      },
+    });
 
     return NextResponse.json({ analysis: text });
   } catch (error) {

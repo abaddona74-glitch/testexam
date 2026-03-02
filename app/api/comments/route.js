@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Comment from '../../../models/Comment';
+import { filterProfanity } from '../../../lib/profanity';
+import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
+import { deepScanForInjection, detectDDoS } from '../../../lib/security';
 
 export async function GET(request) {
   await dbConnect();
@@ -44,10 +47,39 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Comment too long (max 1000 chars)' }, { status: 400 });
     }
 
+    const reqInfo = extractRequestInfo(request);
+
+    // Security: Check for injection
+    const injections = deepScanForInjection({ testId, userName, text });
+    if (injections.length > 0) {
+      logActivity({
+        ...reqInfo, type: 'injection_attempt', userName,
+        isSuspicious: true, suspiciousReason: `Comment injection: ${injections[0].type} in ${injections[0].field}`,
+        details: { injections, testId },
+      });
+    }
+
+    // DDoS check
+    const ddos = detectDDoS(reqInfo.ip);
+    if (ddos.isDDoS) {
+      logActivity({
+        ...reqInfo, type: 'dos_attempt', userName,
+        isSuspicious: true, suspiciousReason: `DoS: ${ddos.requestCount} req/min`,
+      });
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
+    // Apply profanity filter
     const comment = await Comment.create({
       testId,
-      userName,
-      text: text.trim(),
+      userName: filterProfanity(userName),
+      text: filterProfanity(text.trim()),
+    });
+
+    // Log activity
+    logActivity({
+      ...reqInfo, type: 'comment_post', userName,
+      details: { testId, textLength: text.length },
     });
 
     return NextResponse.json(comment, { status: 201 });

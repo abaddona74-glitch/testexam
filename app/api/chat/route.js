@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import ChatMessage from '../../../models/ChatMessage';
+import { filterProfanity } from '../../../lib/profanity';
+import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
+import { deepScanForInjection, detectDDoS } from '../../../lib/security';
 
 export async function GET(request) {
   await dbConnect();
@@ -58,11 +61,42 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Message too long (max 500 chars)' }, { status: 400 });
     }
 
+    const reqInfo = extractRequestInfo(request);
+
+    // Security: Check for injection attempts
+    const injections = deepScanForInjection({ sender, message, recipient });
+    if (injections.length > 0) {
+      logActivity({
+        ...reqInfo, type: 'injection_attempt', userName: sender,
+        isSuspicious: true, suspiciousReason: `Chat injection: ${injections[0].type} in ${injections[0].field}`,
+        details: { injections },
+      });
+    }
+
+    // DDoS check
+    const ddos = detectDDoS(reqInfo.ip);
+    if (ddos.isDDoS) {
+      logActivity({
+        ...reqInfo, type: 'dos_attempt', userName: sender,
+        isSuspicious: true, suspiciousReason: `DoS: ${ddos.requestCount} req/min (${ddos.level})`,
+      });
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
+    // Apply profanity filter
+    const filteredMessage = filterProfanity(message.trim());
+
     const chatMessage = await ChatMessage.create({
-      sender,
-      message: message.trim(),
+      sender: filterProfanity(sender),
+      message: filteredMessage,
       recipient: type === 'dm' ? recipient : 'all',
       type: type || 'public',
+    });
+
+    // Log activity
+    logActivity({
+      ...reqInfo, type: 'chat_message', userName: sender,
+      details: { messageLength: message.length, chatType: type || 'public' },
     });
 
     return NextResponse.json(chatMessage, { status: 201 });

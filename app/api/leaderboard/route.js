@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Leaderboard from '../../../models/Leaderboard';
+import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 
 export async function GET(request) {
   await dbConnect();
@@ -147,6 +148,14 @@ export async function POST(request) {
         country,
         city,
         region
+    });
+
+    // Log test completion
+    const reqInfo = extractRequestInfo(request);
+    logActivity({
+      ...reqInfo, type: 'test_complete', userName: name,
+      details: { testName, testId, score, total, difficulty, duration },
+      country, city, region,
     });
     
     return NextResponse.json(newEntry);
