@@ -26,7 +26,14 @@ export async function GET(request) {
       .limit(100)
       .lean();
 
-    return NextResponse.json(comments);
+    // Filter profanity on read (catches old unfiltered messages too)
+    const filtered = comments.map(c => ({
+      ...c,
+      userName: filterProfanity(c.userName),
+      text: filterProfanity(c.text),
+    }));
+
+    return NextResponse.json(filtered);
   } catch (error) {
     console.error('Comments GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 });

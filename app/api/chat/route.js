@@ -40,7 +40,14 @@ export async function GET(request) {
       .limit(limit)
       .lean();
 
-    return NextResponse.json(messages.reverse());
+    // Filter profanity on read (catches old unfiltered messages too)
+    const filtered = messages.map(msg => ({
+      ...msg,
+      sender: filterProfanity(msg.sender),
+      message: filterProfanity(msg.message),
+    }));
+
+    return NextResponse.json(filtered.reverse());
   } catch (error) {
     console.error('Chat GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
