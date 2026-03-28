@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
@@ -6542,6 +6542,34 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [isAiLoading, setIsAiLoading] = useState(false);
     
+    // Voice Control State
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
+    const isListeningRef = useRef(false);
+
+    useEffect(() => {
+        isListeningRef.current = isListening;
+    }, [isListening]);
+
+    const toggleVoiceControl = () => {
+        if (!recognitionRef.current) {
+            alert("Voice control is not supported in this browser.");
+            return;
+        }
+
+        if (isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        } else {
+            try {
+                recognitionRef.current.start();
+                setIsListening(true);
+            } catch (e) {
+                console.error("Failed to start speech recognition", e);
+            }
+        }
+    };
+    
 
 
     // Reset AI analysis when question changes
@@ -7044,6 +7072,110 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
         }
         proceedToNext();
     };
+
+    // Keep latest handlers/state for recognition callbacks.
+    const voiceStateRef = useRef({
+        currentIndex,
+        test,
+        handleNext,
+        handleAnswer,
+        addToast
+    });
+
+    useEffect(() => {
+        voiceStateRef.current = {
+            currentIndex,
+            test,
+            handleNext,
+            handleAnswer,
+            addToast
+        };
+    }, [currentIndex, test, handleNext, handleAnswer, addToast]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = navigator.language || 'en-US';
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event) => {
+            const { currentIndex, test, handleNext, handleAnswer, addToast } = voiceStateRef.current;
+
+            const last = event.results.length - 1;
+            const transcript = event.results[last][0].transcript
+                .trim()
+                .toLowerCase()
+                .replace(/[.?!,]/g, '');
+
+            if (addToast) {
+                addToast('Mic', `Heard: "${transcript}"`, 'info');
+            }
+
+            let selectedIndex = -1;
+            if (['a', 'hey', 'ay', 'option a', 'а', 'эй'].includes(transcript)) selectedIndex = 0;
+            else if (['b', 'bee', 'be', 'bi', 'baby', 'option b', 'б', 'би', 'бе'].includes(transcript)) selectedIndex = 1;
+            else if (['c', 'see', 'sea', 'si', 'ci', 'option c', 'с', 'си'].includes(transcript)) selectedIndex = 2;
+            else if (['d', 'dee', 'di', 'die', 'option d', 'д', 'ди'].includes(transcript)) selectedIndex = 3;
+            else if (['next', 'next question', 'go next', 'skip', 'continue', 'keyingi', 'davom et'].includes(transcript)) {
+                handleNext();
+                return;
+            }
+
+            if (selectedIndex !== -1) {
+                const options = test.questions[currentIndex]?.shuffledOptions;
+                if (options && options[selectedIndex]) {
+                    handleAnswer(options[selectedIndex].id);
+                }
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                setIsListening(false);
+                return;
+            }
+
+            if (isListeningRef.current && ['no-speech', 'aborted', 'audio-capture'].includes(event.error)) {
+                try {
+                    recognition.start();
+                } catch {
+                    setIsListening(false);
+                }
+            }
+        };
+
+        recognition.onend = () => {
+            if (isListeningRef.current) {
+                try {
+                    recognition.start();
+                    return;
+                } catch {
+                    // fall through and stop listening
+                }
+            }
+            setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+
+        return () => {
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.onend = null;
+                    recognitionRef.current.stop();
+                } catch {
+                    // ignore cleanup errors
+                }
+            }
+        };
+    }, []);
 
 
 
@@ -7979,6 +8111,18 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                         </button>
 
                         <div className="flex justify-end gap-2">
+                            <button
+                                onClick={toggleVoiceControl}
+                                className={clsx(
+                                    "px-3 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all border",
+                                    isListening
+                                        ? "bg-red-100 text-red-600 border-red-200 animate-pulse"
+                                        : "bg-white dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                )}
+                                title="Voice Control (Say A, B, C, D)"
+                            >
+                                {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                            </button>
 
                             {isStudyMode && (
                                 <button
