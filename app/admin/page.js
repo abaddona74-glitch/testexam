@@ -86,21 +86,41 @@ function TimeChart({ data, title }) {
   }
 
   const max = Math.max(...normalized.map(d => d.count), 1);
+  const width = 100;
+  const height = 100;
+  const points = normalized.map((item, i) => {
+    const x = normalized.length === 1 ? width / 2 : (i / (normalized.length - 1)) * width;
+    const y = height - ((item.count / max) * (height - 8) + 4);
+    return { ...item, x, y };
+  });
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
       {title && <h3 className="font-semibold text-sm mb-3 text-gray-700 dark:text-gray-300">{title}</h3>}
-      <div className="flex items-end gap-1 h-32 overflow-x-auto">
-        {normalized.map((item, i) => (
-          <div key={i} className="flex flex-col items-center min-w-[18px] group relative">
-            <div className="absolute -top-8 bg-gray-900 text-white text-[10px] px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
-              {item._id}: {item.count} ({item.uniqueVisitors || 0} unique)
-            </div>
-            <div
-              className="w-3 bg-gradient-to-t from-blue-500 to-cyan-400 rounded-t transition-all hover:from-blue-600 hover:to-cyan-500"
-              style={{ height: `${Math.max((item.count / max) * 100, 6)}%` }}
+      <div className="h-32 w-full relative">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+          {[0, 25, 50, 75, 100].map((row) => (
+            <line
+              key={row}
+              x1="0"
+              x2={width}
+              y1={height - row}
+              y2={height - row}
+              className="stroke-slate-200 dark:stroke-slate-700"
+              strokeWidth="0.4"
             />
-          </div>
-        ))}
+          ))}
+
+          <path d={pathD} fill="none" className="stroke-cyan-500" strokeWidth="1.6" strokeLinecap="round" />
+
+          {points.map((p, i) => (
+            <g key={i}>
+              <title>{`${p._id}: ${p.count} (${p.uniqueVisitors || 0} unique)`}</title>
+              <circle cx={p.x} cy={p.y} r="1.7" className="fill-blue-500" />
+            </g>
+          ))}
+        </svg>
       </div>
       <div className="flex justify-between text-[9px] text-gray-400 mt-1 overflow-hidden">
         <span>{normalized[0]?._id?.split(' ')[1] || normalized[0]?._id}</span>
@@ -195,6 +215,7 @@ export default function AdminPage() {
   const [lastEventId, setLastEventId] = useState(0);
   const [realtimeActive, setRealtimeActive] = useState(0);
   const [realtimeSessions, setRealtimeSessions] = useState([]);
+  const [fullscreenSnapshot, setFullscreenSnapshot] = useState(null);
 
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
@@ -668,16 +689,51 @@ export default function AdminPage() {
                       <span>{session.theme === 'dark' ? '🌙' : '☀️'}</span>
                     </div>
                     {(session.difficulty === 'insane' || session.difficulty === 'impossible') && session.cameraSnapshot && (
-                      <div className="w-36 h-24 rounded-lg overflow-hidden border border-amber-200 flex-shrink-0 bg-black">
+                      <div className="w-36 h-24 rounded-lg overflow-hidden border border-amber-200 flex-shrink-0 bg-black relative group">
                         <img
                           src={session.cameraSnapshot}
                           alt="Live camera snapshot"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
+                        <button
+                          onClick={() => setFullscreenSnapshot({
+                            src: session.cameraSnapshot,
+                            name: session.name || session.userId || 'Anonymous',
+                          })}
+                          className="absolute top-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Fullscreen"
+                        >
+                          ⛶
+                        </button>
                       </div>
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {fullscreenSnapshot && (
+              <div
+                className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+                onClick={() => setFullscreenSnapshot(null)}
+              >
+                <div
+                  className="relative max-w-[96vw] max-h-[92vh]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setFullscreenSnapshot(null)}
+                    className="absolute -top-10 right-0 text-white bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm font-bold"
+                    title="Close"
+                  >
+                    X
+                  </button>
+                  <img
+                    src={fullscreenSnapshot.src}
+                    alt={`Snapshot: ${fullscreenSnapshot.name}`}
+                    className="max-w-[96vw] max-h-[92vh] w-auto h-auto object-contain rounded-lg border border-white/20 bg-black"
+                  />
+                </div>
               </div>
             )}
           </div>
