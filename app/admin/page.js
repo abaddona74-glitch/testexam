@@ -134,6 +134,13 @@ function TimeChart({ data, title }) {
     setZoom((prev) => clamp(prev * factor, minZoom, maxZoom));
   };
 
+  const onSliderZoom = (e) => {
+    const next = Number(e.target.value);
+    if (!Number.isNaN(next)) {
+      setZoom(clamp(next, minZoom, maxZoom));
+    }
+  };
+
   const sampleSeries = (series, targetCount) => {
     if (targetCount >= series.length) return series;
     if (targetCount <= 2) return [series[0], series[series.length - 1]];
@@ -151,15 +158,31 @@ function TimeChart({ data, title }) {
   const targetPoints = clamp(Math.round(baseSeries.length / zoom), 4, baseSeries.length);
   const displaySeries = sampleSeries(baseSeries, targetPoints);
 
-  const max = Math.max(...baseSeries.map((d) => d.count), 1);
-  const width = 100;
+  const maxRaw = Math.max(...baseSeries.map((d) => d.count), 1);
+  const yScaleMax = maxRaw <= 100 ? 100 : Math.pow(10, Math.ceil(Math.log10(maxRaw)));
+  const yTicks = 6;
+  const yTickLabels = Array.from({ length: yTicks }).map((_, idx) => {
+    const ratio = (yTicks - 1 - idx) / (yTicks - 1);
+    return Math.round(yScaleMax * ratio);
+  });
+  const width = 480;
   const height = 100;
   const points = displaySeries.map((item, i) => {
     const x = displaySeries.length === 1 ? width / 2 : (i / (displaySeries.length - 1)) * width;
-    const y = height - ((item.count / max) * (height - 8) + 4);
+    const y = height - ((item.count / yScaleMax) * (height - 8) + 4);
     return { ...item, x, y };
   });
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+  const labelCount = Math.min(7, displaySeries.length);
+  const xLabels = Array.from({ length: labelCount }).map((_, i) => {
+    const idx = labelCount === 1 ? 0 : Math.round((i * (displaySeries.length - 1)) / (labelCount - 1));
+    const raw = displaySeries[idx]?._id;
+    const pretty = typeof raw === 'string' && raw.includes(' ')
+      ? raw.split(' ')[1]
+      : raw;
+    return pretty || '-';
+  });
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
@@ -167,10 +190,20 @@ function TimeChart({ data, title }) {
         {title && <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300">{title}</h3>}
         <span className="text-[10px] text-gray-400">Zoom: {zoom.toFixed(1)}x | Points: {displaySeries.length}</span>
       </div>
-      <div className="h-32 w-full relative" onWheel={onWheelZoom}>
+      <div className="h-32 w-full relative flex items-stretch gap-3">
+        <div className="w-12 flex flex-col justify-between text-[10px] text-gray-400 pr-1">
+          {yTickLabels.map((label, idx) => (
+            <span key={idx} className="leading-none text-right tabular-nums">
+              {label}
+            </span>
+          ))}
+          <span className="text-[9px] text-gray-500 text-right mt-1">Users</span>
+        </div>
+
+        <div className="flex-1 relative" onWheel={onWheelZoom}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
-          {Array.from({ length: 6 }).map((_, idx) => {
-            const y = (idx * height) / 5;
+          {Array.from({ length: yTicks }).map((_, idx) => {
+            const y = (idx * height) / (yTicks - 1);
             return (
             <line
               key={`h-${idx}`}
@@ -184,8 +217,8 @@ function TimeChart({ data, title }) {
             );
           })}
 
-          {Array.from({ length: 13 }).map((_, idx) => {
-            const x = (idx * width) / 12;
+          {Array.from({ length: 25 }).map((_, idx) => {
+            const x = (idx * width) / 24;
             return (
               <line
                 key={`v-${idx}`}
@@ -208,10 +241,33 @@ function TimeChart({ data, title }) {
             </g>
           ))}
         </svg>
+        </div>
+
+        <div className="w-8 flex flex-col items-center justify-center select-none">
+          <span className="text-[10px] text-gray-400 leading-none mb-1">+</span>
+          <input
+            type="range"
+            min={minZoom}
+            max={maxZoom}
+            step="0.05"
+            value={zoom}
+            onChange={onSliderZoom}
+            className="w-24 h-2 -rotate-90 accent-cyan-500 cursor-pointer"
+            aria-label="Zoom slider"
+            title="Zoom"
+          />
+          <span className="text-[10px] text-gray-400 leading-none mt-1">-</span>
+        </div>
       </div>
-      <div className="flex justify-between text-[9px] text-gray-400 mt-1 overflow-hidden">
-        <span>{displaySeries[0]?._id?.split(' ')[1] || displaySeries[0]?._id}</span>
-        <span>{displaySeries[displaySeries.length - 1]?._id?.split(' ')[1] || displaySeries[displaySeries.length - 1]?._id}</span>
+      <div className="grid mt-1 text-[9px] text-gray-400" style={{ gridTemplateColumns: `repeat(${labelCount}, minmax(0, 1fr))` }}>
+        {xLabels.map((label, i) => (
+          <span
+            key={i}
+            className={i === 0 ? 'text-left' : i === xLabels.length - 1 ? 'text-right' : 'text-center'}
+          >
+            {label}
+          </span>
+        ))}
       </div>
     </div>
   );
