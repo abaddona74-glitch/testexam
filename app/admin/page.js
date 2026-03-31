@@ -69,6 +69,8 @@ function BarChart({ data, labelKey = '_id', valueKey = 'count', title, maxItems 
 }
 
 function TimeChart({ data, title }) {
+  const [zoom, setZoom] = useState(1);
+
   if (!Array.isArray(data) || data.length === 0) {
     return <p className="text-gray-500 text-sm p-4">No data</p>;
   }
@@ -85,11 +87,75 @@ function TimeChart({ data, title }) {
     return <p className="text-gray-500 text-sm p-4">No data</p>;
   }
 
-  const max = Math.max(...normalized.map(d => d.count), 1);
+  const parseHourLabel = (label) => {
+    if (typeof label !== 'string' || !label.includes(':')) return null;
+    const iso = label.includes(' ') ? label.replace(' ', 'T') : label;
+    const dt = new Date(iso);
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  };
+
+  const formatHourLabel = (dt) => {
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    const h = String(dt.getHours()).padStart(2, '0');
+    return `${y}-${m}-${d} ${h}:00`;
+  };
+
+  const hasHourlyLabels = normalized.every((item) => parseHourLabel(item._id));
+
+  // 24h mode: fill missing hours with zero values so chart always represents full activity window.
+  const baseSeries = hasHourlyLabels
+    ? (() => {
+        const byHour = new Map(normalized.map((item) => [item._id, item]));
+        const parsedDates = normalized.map((item) => parseHourLabel(item._id)).filter(Boolean);
+        const latest = parsedDates.length > 0 ? new Date(Math.max(...parsedDates.map((d) => d.getTime()))) : new Date();
+        latest.setMinutes(0, 0, 0);
+
+        const filled = [];
+        for (let i = 23; i >= 0; i--) {
+          const dt = new Date(latest);
+          dt.setHours(latest.getHours() - i);
+          const key = formatHourLabel(dt);
+          const existing = byHour.get(key);
+          filled.push(existing || { _id: key, count: 0, uniqueVisitors: 0 });
+        }
+        return filled;
+      })()
+    : normalized;
+
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const minZoom = 0.6;
+  const maxZoom = 6;
+
+  const onWheelZoom = (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    setZoom((prev) => clamp(prev * factor, minZoom, maxZoom));
+  };
+
+  const sampleSeries = (series, targetCount) => {
+    if (targetCount >= series.length) return series;
+    if (targetCount <= 2) return [series[0], series[series.length - 1]];
+
+    const picked = [];
+    for (let i = 0; i < targetCount; i++) {
+      const idx = Math.round((i * (series.length - 1)) / (targetCount - 1));
+      picked.push(series[idx]);
+    }
+
+    return picked;
+  };
+
+  // Zoom-in => fewer points; Zoom-out => more points.
+  const targetPoints = clamp(Math.round(baseSeries.length / zoom), 4, baseSeries.length);
+  const displaySeries = sampleSeries(baseSeries, targetPoints);
+
+  const max = Math.max(...baseSeries.map((d) => d.count), 1);
   const width = 100;
   const height = 100;
-  const points = normalized.map((item, i) => {
-    const x = normalized.length === 1 ? width / 2 : (i / (normalized.length - 1)) * width;
+  const points = displaySeries.map((item, i) => {
+    const x = displaySeries.length === 1 ? width / 2 : (i / (displaySeries.length - 1)) * width;
     const y = height - ((item.count / max) * (height - 8) + 4);
     return { ...item, x, y };
   });
@@ -97,20 +163,41 @@ function TimeChart({ data, title }) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
-      {title && <h3 className="font-semibold text-sm mb-3 text-gray-700 dark:text-gray-300">{title}</h3>}
-      <div className="h-32 w-full relative">
+      <div className="flex items-center justify-between mb-3">
+        {title && <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300">{title}</h3>}
+        <span className="text-[10px] text-gray-400">Zoom: {zoom.toFixed(1)}x | Points: {displaySeries.length}</span>
+      </div>
+      <div className="h-32 w-full relative" onWheel={onWheelZoom}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
-          {[0, 25, 50, 75, 100].map((row) => (
+          {Array.from({ length: 6 }).map((_, idx) => {
+            const y = (idx * height) / 5;
+            return (
             <line
-              key={row}
+              key={`h-${idx}`}
               x1="0"
               x2={width}
-              y1={height - row}
-              y2={height - row}
-              className="stroke-slate-200 dark:stroke-slate-700"
+              y1={y}
+              y2={y}
+              stroke="rgba(148,163,184,0.35)"
               strokeWidth="0.4"
             />
-          ))}
+            );
+          })}
+
+          {Array.from({ length: 13 }).map((_, idx) => {
+            const x = (idx * width) / 12;
+            return (
+              <line
+                key={`v-${idx}`}
+                x1={x}
+                x2={x}
+                y1="0"
+                y2={height}
+                stroke="rgba(148,163,184,0.22)"
+                strokeWidth="0.3"
+              />
+            );
+          })}
 
           <path d={pathD} fill="none" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" />
 
@@ -123,8 +210,8 @@ function TimeChart({ data, title }) {
         </svg>
       </div>
       <div className="flex justify-between text-[9px] text-gray-400 mt-1 overflow-hidden">
-        <span>{normalized[0]?._id?.split(' ')[1] || normalized[0]?._id}</span>
-        <span>{normalized[normalized.length - 1]?._id?.split(' ')[1] || normalized[normalized.length - 1]?._id}</span>
+        <span>{displaySeries[0]?._id?.split(' ')[1] || displaySeries[0]?._id}</span>
+        <span>{displaySeries[displaySeries.length - 1]?._id?.split(' ')[1] || displaySeries[displaySeries.length - 1]?._id}</span>
       </div>
     </div>
   );
