@@ -629,9 +629,19 @@ export default function AdminPage() {
                             : session.status === 'browsing' ? '🔍 Saytda ko\'rmoqda' : '💤 AFK'
                           }
                         </p>
+                        {session.status === 'in-test' && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Difficulty: {session.difficulty || 'unknown'}
+                          </p>
+                        )}
                         {(session.difficulty === 'insane' || session.difficulty === 'impossible') && (
                           <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                             🎥 {session.difficulty.toUpperCase()} | Camera: {session.cameraStatus || 'unknown'}
+                          </p>
+                        )}
+                        {(session.difficulty === 'insane' || session.difficulty === 'impossible') && !session.cameraSnapshot && (
+                          <p className="text-xs text-orange-500 mt-1">
+                            Snapshot hali kelmadi (camera ishga tushishi yoki guard active bo'lishi kutilmoqda)
                           </p>
                         )}
                       </div>

@@ -4899,6 +4899,7 @@ export default function Home() {
                             test={activeTest}
                             userName={userName}
                             userId={userId}
+                            sessionId={sessionId}
                             userCountry={userCountry}
                             userLocation={userLocation}
                             activatedCheats={activatedCheats}
@@ -6407,7 +6408,7 @@ function TestComments({ testId, userName }) {
     );
 }
 
-function TestRunner({ test, userName, userId, userCountry, userLocation, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, showTranslation = true, playClickSound, addToast }) {
+function TestRunner({ test, userName, userId, sessionId, userCountry, userLocation, onFinish, onRetake, onProgressUpdate, onBack, onLeaveWithoutResult, userStars, unlockedLeagues, updateUserStars, updateUserUnlocks, spendStars, activatedCheats, soundVolume = 0.8, showTranslation = true, playClickSound, addToast }) {
     const { resolvedTheme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(test.currentQuestionIndex || 0);
     const [answers, setAnswers] = useState(test.answers || {});
@@ -7022,6 +7023,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                 body: JSON.stringify({
                     testId: test.id,
                     userId: userId, // Use stable ID
+                    sessionId,
                     name: userName,
                     progress: currentIndex,
                     total: totalQuestions,
@@ -7059,6 +7061,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                 body: JSON.stringify({
                     testId: test.id,
                     userId: userId,
+                    sessionId,
                     name: userName,
                     progress: currentIndex,
                     total: totalQuestions,
@@ -7641,7 +7644,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                 }
 
                 const now = Date.now();
-                if (now - lastSnapshotAtRef.current >= 8000) {
+                if (now - lastSnapshotAtRef.current >= 3000) {
                     const snap = captureCameraSnapshot(video);
                     if (snap) {
                         cameraSnapshotRef.current = snap;
@@ -7692,6 +7695,12 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                 }
                 video.srcObject = stream;
                 await video.play();
+
+                const firstSnap = captureCameraSnapshot(video);
+                if (firstSnap) {
+                    cameraSnapshotRef.current = firstSnap;
+                    lastSnapshotAtRef.current = Date.now();
+                }
 
                 const tf = await import('@tensorflow/tfjs');
                 await import('@tensorflow/tfjs-backend-webgl');
