@@ -809,8 +809,13 @@ export default function AdminPage() {
                         <p className="text-xs text-gray-500">
                           {session.status === 'in-test'
                             ? `📝 Test yechmoqda: ${session.testId || 'N/A'} (${session.progress}/${session.total})`
-                            : session.status === 'browsing' ? '🔍 Saytda ko\'rmoqda' : '💤 AFK'
+                            : session.status === 'browsing' ? '🔍 Saytda ko\'rmoqda'
+                            : session.status === 'registering' ? '🆕 Ro\'yxatdan o\'tmoqda'
+                            : '💤 AFK'
                           }
+                        </p>
+                        <p className="text-[11px] text-gray-400 mt-1 break-all">
+                          Session: {session.sessionId || '-'} | IP: {session.ip || '-'}
                         </p>
                         {session.status === 'in-test' && (
                           <p className="text-xs text-gray-500 mt-1">
@@ -832,6 +837,7 @@ export default function AdminPage() {
                     <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
                       <span>{session.device === 'mobile' ? '📱' : '🖥️'} {session.device || 'desktop'}</span>
                       <span>🌍 {session.country || '?'}</span>
+                      <span>🆔 {(session.sessionId || session.userId || '-').slice(-8)}</span>
                       <span>⭐ {session.stars || 0}</span>
                       <span>{session.theme === 'dark' ? '🌙' : '☀️'}</span>
                     </div>

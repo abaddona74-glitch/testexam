@@ -844,6 +844,8 @@ export default function Home() {
     const [isUsersLoaded, setIsUsersLoaded] = useState(false); // New loading state
     const [userCountry, setUserCountry] = useState(null);
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
+    const [spectatorContentByTestId, setSpectatorContentByTestId] = useState({});
+    const [spectatorContentLoading, setSpectatorContentLoading] = useState(false);
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
     const [universities, setUniversities] = useState([]);
     const [universityStructure, setUniversityStructure] = useState({});
@@ -1357,6 +1359,42 @@ export default function Home() {
             }
         }
     }, [globalActiveUsers]); // Update whenever global list updates
+
+    useEffect(() => {
+        if (!spectatingUser?.testId) return;
+
+        const rawTestId = String(spectatingUser.testId);
+        const normalizedTestId = rawTestId.replace(/_(en|uz)$/, '');
+
+        if (spectatorContentByTestId[rawTestId] || spectatorContentByTestId[normalizedTestId]) {
+            return;
+        }
+
+        let cancelled = false;
+        setSpectatorContentLoading(true);
+
+        fetch(`/api/tests/content?id=${encodeURIComponent(normalizedTestId)}`)
+            .then((res) => {
+                if (!res.ok) throw new Error('Failed to load spectator content');
+                return res.json();
+            })
+            .then((data) => {
+                if (cancelled || !data?.content) return;
+                setSpectatorContentByTestId((prev) => ({
+                    ...prev,
+                    [normalizedTestId]: data.content,
+                    [rawTestId]: data.content,
+                }));
+            })
+            .catch(() => { })
+            .finally(() => {
+                if (!cancelled) setSpectatorContentLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [spectatingUser, spectatorContentByTestId]);
 
     // Upload State
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -1941,7 +1979,7 @@ export default function Home() {
     useEffect(() => {
         // Send heartbeat for all views EXCEPT 'test' (because TestRunner handles 'in-test' status)
         // This ensures user stays "Online" even while in History/Upload/Review
-        if (view !== 'test' && isNameSet && userName && userId) {
+        if (view !== 'test' && userId) {
             const getPresenceStatus = () => {
                 if (typeof document === 'undefined') return 'browsing';
                 const hasFocus = typeof document.hasFocus === 'function' ? document.hasFocus() : true;
@@ -1949,14 +1987,15 @@ export default function Home() {
             };
 
             const sendHeartbeat = () => {
-                const status = getPresenceStatus();
+                const hasRegisteredName = Boolean(isNameSet && userName && userName.trim());
+                const status = hasRegisteredName ? getPresenceStatus() : 'registering';
                 fetch('/api/active', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userId,
                         sessionId,
-                        name: userName,
+                        name: hasRegisteredName ? userName : 'Registering...',
                         status,
                         device: getDeviceType(),
                         country: userCountry,
@@ -2021,7 +2060,7 @@ export default function Home() {
                 // But for closing tab, we need DELETE.
             };
         }
-    }, [view, isNameSet, userName, userId, userCountry, userStars, resolvedTheme]); // Re-run when stars change too
+    }, [view, isNameSet, userName, userId, userCountry, userStars, resolvedTheme, sessionId]); // Re-run when stars change too
 
     // Disable copy/paste/context menu and some keys when taking a test
     useEffect(() => {
@@ -5009,7 +5048,11 @@ export default function Home() {
                                         // (Actually covered by the regex replace above, but just in case of other suffixes)
                                     }
 
-                                    if (!test) return (
+                                    const rawTestId = String(spectatingUser.testId || '');
+                                    const normalizedTestId = rawTestId.replace(/_(en|uz)$/, '');
+                                    const spectatorTestContent = spectatorContentByTestId[rawTestId] || spectatorContentByTestId[normalizedTestId];
+
+                                    if (!test && !spectatorTestContent) return (
                                         <div className="h-full flex flex-col items-center justify-center text-gray-400 opacity-60">
                                             <EyeOff size={48} className="mb-4" />
                                             <p>This user is taking a private or locally uploaded test.</p>
@@ -5018,8 +5061,13 @@ export default function Home() {
                                     );
 
                                     // Safely access questions: test.questions OR test.content.test_questions
-                                    const questions = test.questions || test.content?.test_questions;
-                                    if (!questions) return <div className="p-4 text-center">Cannot load questions data.</div>;
+                                    const questions = test?.questions || test?.content?.test_questions || spectatorTestContent?.test_questions;
+                                    if (!questions) {
+                                        if (spectatorContentLoading) {
+                                            return <div className="p-4 text-center">Loading questions data...</div>;
+                                        }
+                                        return <div className="p-4 text-center">Cannot load questions data.</div>;
+                                    }
 
                                     // Find question by ID if available (handles shuffled order), else fallback to index
                                     let question = null;

@@ -45,8 +45,13 @@ export async function GET(request) {
       if (!existing) {
           uniqueUsers[session.userId] = session;
       } else {
-          // Priority: in-test > browsing > afk
-          const score = (s) => (s.status === 'in-test' ? 3 : s.status === 'browsing' ? 2 : 1);
+        // Priority: in-test > browsing > registering > afk
+        const score = (s) => {
+          if (s.status === 'in-test') return 4;
+          if (s.status === 'browsing') return 3;
+          if (s.status === 'registering') return 2;
+          return 1;
+        };
           if (score(session) > score(existing)) {
               uniqueUsers[session.userId] = session;
           } else if (score(session) === score(existing)) {
@@ -84,10 +89,18 @@ export async function POST(request) {
       cameraSnapshot,
       cameraUpdatedAt,
     } = body;
+
+    const reqInfo = extractRequestInfo(request);
+
+    // Check if this IP/device is blocked before storing session
+    if (isBlocked(reqInfo.ip, userId)) {
+      return NextResponse.json({ error: 'Blocked' }, { status: 403 });
+    }
     
     // Key by sessionId to ensure multiple tabs don "t conflict (race condition on reload)
     // Fallback to userId for backward compatibility
     const key = sessionId || userId; 
+    const resolvedStatus = status || (testId ? 'in-test' : (name ? 'browsing' : 'registering'));
 
     const safeSnapshot = (typeof cameraSnapshot === 'string'
       && cameraSnapshot.startsWith('data:image/')
@@ -99,13 +112,14 @@ export async function POST(request) {
         testId, // can be null if just browsing
         userId,
         sessionId,
-        name,
+      name: name || 'Registering...',
         progress: progress || 0,
         total: total || 0,
         difficulty: difficulty || null,
-        status: status || (testId ? 'in-test' : 'browsing'),
+      status: resolvedStatus,
         device: device || 'desktop', 
         country: country || null,
+      ip: reqInfo.ip,
         currentAnswer: currentAnswer || null,
         visualState: visualState || null,
         cameraStatus: cameraStatus || null,
@@ -116,12 +130,6 @@ export async function POST(request) {
         questionId: questionId || null,
         lastUpdated: Date.now()
     };
-
-    // Check if this IP/device is blocked
-    const reqInfo = extractRequestInfo(request);
-    if (isBlocked(reqInfo.ip, userId)) {
-      return NextResponse.json({ error: 'Blocked' }, { status: 403 });
-    }
 
     // Log test start (only when first entering a test)
     if (testId && status === 'in-test' && progress === 0) {
