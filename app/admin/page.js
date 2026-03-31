@@ -659,6 +659,7 @@ export default function AdminPage() {
                 <option value="ai_request">AI Request</option>
                 <option value="chat_message">Chat Message</option>
                 <option value="comment_post">Comment</option>
+                <option value="cheat_violation">Cheat Violation</option>
                 <option value="injection_attempt">Injection</option>
                 <option value="dos_attempt">DoS</option>
                 <option value="suspicious">Suspicious</option>

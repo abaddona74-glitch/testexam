@@ -22,6 +22,9 @@ const DIFFICULTIES = [
     { id: 'study', name: 'Study', hints: 999, icon: BookOpen, color: 'text-blue-500', bg: 'bg-blue-100', border: 'border-blue-200', timeLimit: null }
 ];
 
+const CAMERA_GUARD_MAX_ATTEMPTS = 3;
+const CAMERA_GUARD_MODES = new Set(['insane', 'impossible']);
+
 const EXAM_SCHEDULE = [
     { isHeader: true, title: "Call 1" },
     { name: "Digitalization", day: "13", month: "Jan", time: "10:00", room: "Lab-403", teacher: "Abdurasul B." },
@@ -795,6 +798,8 @@ export default function Home() {
     const [showDifficultyModal, setShowDifficultyModal] = useState(false);
     const [showAchievements, setShowAchievements] = useState(false);
     const [pendingTest, setPendingTest] = useState(null);
+    const [hasVideoInput, setHasVideoInput] = useState(true);
+    const [cameraCheckDone, setCameraCheckDone] = useState(false);
 
     const [userName, setUserName] = useState('');
     const [userId, setUserId] = useState(''); // Unique Session ID
@@ -1226,6 +1231,29 @@ export default function Home() {
         }, 3000);
     };
 
+    const checkCameraAvailability = useCallback(async () => {
+        if (typeof window === 'undefined') return false;
+        if (!navigator?.mediaDevices?.enumerateDevices) {
+            setHasVideoInput(false);
+            setCameraCheckDone(true);
+            return false;
+        }
+
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const hasCamera = devices.some((d) => d.kind === 'videoinput');
+            setHasVideoInput(hasCamera);
+            setCameraCheckDone(true);
+            return hasCamera;
+        } catch (error) {
+            console.error('Camera availability check failed:', error);
+            // If browser blocks enumeration, don't hard-block difficulty selection.
+            setHasVideoInput(true);
+            setCameraCheckDone(true);
+            return true;
+        }
+    }, []);
+
     const removeToast = (id) => {
         setToasts(prev => prev.filter(t => t.id !== id));
     };
@@ -1264,6 +1292,11 @@ export default function Home() {
             // Ignore autoplay blocks; start is usually a user click anyway
         }
     };
+
+    useEffect(() => {
+        if (!showDifficultyModal) return;
+        checkCameraAvailability();
+    }, [showDifficultyModal, checkCameraAvailability]);
 
     // Cheats / Promo Codes
     const [promoInput, setPromoInput] = useState('');
@@ -1572,31 +1605,41 @@ export default function Home() {
             } catch (e) { }
         }
 
-        // Fetch country directly from client to support Browser Extension VPNs.
-        // ipwho.is blocks browser CORS on free plan, so use ipapi.co in browser and keep internal API as fallback.
-        fetch('https://ipapi.co/json/')
-            .then(res => res.json())
-            .then(data => {
-                if (data.country_code) {
-                    setUserCountry(data.country_code);
-                    localStorage.setItem('examApp_userCountry', data.country_code);
-                } else {
-                    // Fallback to our internal API if direct fetch fails (e.g. adblocker)
-                    return fetch('/api/country').then(res => res.json());
+        // Fetch country with graceful fallback; external providers can be blocked by adblock/CORS.
+        const loadCountry = async () => {
+            try {
+                const external = await fetch('https://ipapi.co/json/');
+                if (external.ok) {
+                    const data = await external.json();
+                    if (data?.country_code) {
+                        setUserCountry(data.country_code);
+                        localStorage.setItem('examApp_userCountry', data.country_code);
+                        return;
+                    }
                 }
-            })
-            .then(data => {
-                if (data && data.country_code) {
-                     setUserCountry(data.country_code);
-                     localStorage.setItem('examApp_userCountry', data.country_code);
+            } catch {
+                // Silent: external geo endpoint is optional.
+            }
+
+            try {
+                const internal = await fetch('/api/country');
+                if (internal.ok) {
+                    const data = await internal.json();
+                    if (data?.country_code) {
+                        setUserCountry(data.country_code);
+                        localStorage.setItem('examApp_userCountry', data.country_code);
+                        return;
+                    }
                 }
-            })
-            .catch(err => {
-                console.error("Country fetch failed", err);
-                // Fallback to cache if network fails
-                const storedCountry = localStorage.getItem('examApp_userCountry');
-                if (storedCountry) setUserCountry(storedCountry);
-            });
+            } catch {
+                // Silent fallback to cached country below.
+            }
+
+            const storedCountry = localStorage.getItem('examApp_userCountry');
+            if (storedCountry) setUserCountry(storedCountry);
+        };
+
+        loadCountry();
 
         // 4. Set up intervals
         const interval = setInterval(fetchGlobalActiveUsers, 5000);
@@ -2239,7 +2282,9 @@ export default function Home() {
                     setUserLocation(data);
                 }
             })
-            .catch(err => console.error("Location fetch error:", err));
+            .catch(() => {
+                // Silent: optional geo enrichment.
+            });
     }, []);
 
     const fetchLeaderboard = async () => {
@@ -2589,8 +2634,16 @@ export default function Home() {
     const [studyModeQuestionsCount, setStudyModeQuestionsCount] = useState(10);
     const [showStudyOptions, setShowStudyOptions] = useState(false);
 
-    const launchTest = (difficultyId) => {
+    const launchTest = async (difficultyId) => {
         if (!pendingTest) return;
+
+        if (difficultyId === 'insane' || difficultyId === 'impossible') {
+            const hasCamera = await checkCameraAvailability();
+            if (!hasCamera) {
+                addToast('Camera Required', `${difficultyId} mode uchun kamera kerak. Kamera topilmadi.`, 'error');
+                return;
+            }
+        }
 
         // Find Difficulty Settings
         const difficulty = DIFFICULTIES.find(d => d.id === difficultyId);
@@ -5134,7 +5187,12 @@ export default function Home() {
                                         </button>
                                     </div>
                                 ) : (
-                                    DIFFICULTIES.map((diff) => (
+                                    DIFFICULTIES.map((diff) => {
+                                    const requiresCamera = diff.id === 'insane' || diff.id === 'impossible';
+                                    const cameraBlocked = requiresCamera && cameraCheckDone && !hasVideoInput;
+                                    const cameraChecking = requiresCamera && !cameraCheckDone;
+
+                                    return (
                                     <button
                                         key={diff.id}
                                         onClick={() => {
@@ -5144,7 +5202,13 @@ export default function Home() {
                                                 launchTest(diff.id);
                                             }
                                         }}
-                                        className={`w-full group relative flex items-center p-4 rounded-xl border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${diff.border} dark:border-transparent ${diff.bg || 'bg-white dark:bg-gray-800'} hover:border-current`}
+                                        disabled={cameraBlocked || cameraChecking}
+                                        className={clsx(
+                                            `w-full group relative flex items-center p-4 rounded-xl border-2 transition-all duration-200 ${diff.border} dark:border-transparent ${diff.bg || 'bg-white dark:bg-gray-800'} hover:border-current`,
+                                            cameraBlocked || cameraChecking
+                                                ? 'opacity-50 cursor-not-allowed hover:translate-y-0 hover:shadow-none'
+                                                : 'hover:-translate-y-1 hover:shadow-lg'
+                                        )}
                                     >
                                         <div className={`mr-4 p-3 rounded-full bg-white dark:bg-gray-800 shadow-sm ${diff.color}`}>
                                             <diff.icon size={24} strokeWidth={2.5} />
@@ -5152,7 +5216,11 @@ export default function Home() {
                                         <div className="text-left flex-1">
                                             <div className={`font-bold text-lg ${diff.color}`}>{diff.name}</div>
                                             <div className="text-sm text-gray-600 font-medium">
-                                                {diff.id === 'study' 
+                                                {cameraBlocked
+                                                    ? 'Camera topilmadi: bu mode o\'chirilgan'
+                                                    : cameraChecking
+                                                        ? 'Kamera tekshirilmoqda...'
+                                                        : diff.id === 'study' 
                                                     ? 'Instant feedback & custom length'
                                                     : (diff.hints === 0 ? "No hints available" : `${diff.hints} ${diff.hints === 1 ? 'hint' : 'hints'} available`)
                                                 }
@@ -5164,7 +5232,8 @@ export default function Home() {
                                             </div>
                                         </div>
                                     </button>
-                                ))
+                                );
+                                })
                                 )}
                             </div>
                             <div className="p-4 bg-gray-50 dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800/50 text-center">
@@ -6309,6 +6378,13 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     const [expandedImage, setExpandedImage] = useState(null);
     const [skipConfirmationDisabled, setSkipConfirmationDisabled] = useState(false);
     const [dontAskAgain, setDontAskAgain] = useState(false);
+    const cheatGuardEnabled = CAMERA_GUARD_MODES.has(test.difficultyMode) && !(activatedCheats?.includes('godmode'));
+    const [cheatAttemptsUsed, setCheatAttemptsUsed] = useState(0);
+    const [cheatGuardStatus, setCheatGuardStatus] = useState('inactive');
+    const [cheatGuardMessage, setCheatGuardMessage] = useState('');
+    const cheatAttemptsRef = useRef(0);
+    const cheatAutoFinishRef = useRef(false);
+    const violationCooldownRef = useRef({});
 
     const stopCelebrationSound = () => {
         const audio = celebrationAudioRef.current;
@@ -7223,6 +7299,204 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
         }
     };
 
+    const reportCheatViolation = async (violationType, message, meta = {}) => {
+        const now = Date.now();
+        const cooldownKey = String(violationType || 'unknown');
+        const lastAt = violationCooldownRef.current[cooldownKey] || 0;
+        if (now - lastAt < 7000) return;
+        violationCooldownRef.current[cooldownKey] = now;
+
+        const nextUsed = Math.min(CAMERA_GUARD_MAX_ATTEMPTS, cheatAttemptsRef.current + 1);
+        const attemptsLeft = Math.max(0, CAMERA_GUARD_MAX_ATTEMPTS - nextUsed);
+        cheatAttemptsRef.current = nextUsed;
+        setCheatAttemptsUsed(nextUsed);
+        setCheatGuardMessage(message);
+
+        if (addToast) {
+            const attemptWord = attemptsLeft === 1 ? 'attempt' : 'attempts';
+            addToast(
+                attemptsLeft > 0 ? 'Warning' : 'Test Auto-Finished',
+                attemptsLeft > 0
+                    ? `${message}. ${attemptsLeft} ${attemptWord} qoldi.`
+                    : `${message}. 0 attempts qoldi. Test avtomatik tugatildi.`,
+                'error'
+            );
+        }
+
+        fetch('/api/cheat/violation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId,
+                userName,
+                testId: test.id,
+                testName: test.name,
+                difficulty: test.difficultyMode,
+                violationType,
+                message,
+                attemptsUsed: nextUsed,
+                attemptsLeft,
+                meta,
+            }),
+        }).catch(() => { });
+
+        if (attemptsLeft <= 0 && !cheatAutoFinishRef.current && !isSubmitting) {
+            cheatAutoFinishRef.current = true;
+            setTimeout(() => {
+                confirmFinish();
+            }, 150);
+        }
+    };
+
+    useEffect(() => {
+        if (!cheatGuardEnabled || isFinished) {
+            setCheatGuardStatus('inactive');
+            return;
+        }
+
+        let isStopped = false;
+        let stream = null;
+        let tickTimer = null;
+        let objectDetector = null;
+        let faceDetector = null;
+        let lookingAwaySince = null;
+
+        const video = document.createElement('video');
+        video.setAttribute('playsinline', 'true');
+        video.muted = true;
+        video.autoplay = true;
+
+        const detectDelay = test.difficultyMode === 'impossible' ? 1100 : 1500;
+
+        const getEyePoint = (keypoints, side) => {
+            const name = side === 'left' ? 'leftEye' : 'rightEye';
+            return keypoints.find(k => k?.name === name) || keypoints[side === 'left' ? 33 : 263];
+        };
+
+        const runTick = async () => {
+            if (isStopped) return;
+
+            try {
+                if (video.readyState < 2 || !video.videoWidth) {
+                    tickTimer = setTimeout(runTick, detectDelay);
+                    return;
+                }
+
+                if (objectDetector) {
+                    const detections = await objectDetector.detect(video, 8, 0.55);
+                    const phone = detections.find(d => d.class === 'cell phone' && d.score >= 0.55);
+                    if (phone) {
+                        await reportCheatViolation(
+                            'phone_detected',
+                            'Kamerada mobile phone aniqlandi',
+                            { confidence: Number(phone.score?.toFixed?.(3) || 0) }
+                        );
+                    }
+                }
+
+                if (test.difficultyMode === 'impossible' && faceDetector) {
+                    const faces = await faceDetector.estimateFaces(video, { flipHorizontal: true });
+                    if (faces?.length) {
+                        const face = faces[0];
+                        const keypoints = face.keypoints || [];
+                        const nose = keypoints.find(k => k?.name === 'noseTip') || keypoints[1];
+                        const leftEye = getEyePoint(keypoints, 'left');
+                        const rightEye = getEyePoint(keypoints, 'right');
+
+                        if (nose && leftEye && rightEye) {
+                            const leftDist = Math.max(1, Math.abs(nose.x - leftEye.x));
+                            const rightDist = Math.max(1, Math.abs(rightEye.x - nose.x));
+                            const ratio = leftDist / rightDist;
+                            const lookingAway = ratio > 1.7 || ratio < 0.6;
+
+                            if (lookingAway) {
+                                if (!lookingAwaySince) lookingAwaySince = Date.now();
+                                const awayFor = Date.now() - lookingAwaySince;
+                                if (awayFor >= 2200) {
+                                    await reportCheatViolation(
+                                        'backward_look',
+                                        'Orqaga/yon tomonga uzoq qarash aniqlandi',
+                                        { ratio: Number(ratio.toFixed(3)), durationMs: awayFor }
+                                    );
+                                    lookingAwaySince = Date.now();
+                                }
+                            } else {
+                                lookingAwaySince = null;
+                            }
+                        }
+                    } else {
+                        lookingAwaySince = null;
+                    }
+                }
+
+                setCheatGuardStatus('active');
+            } catch (error) {
+                console.error('Camera guard tick error:', error);
+                setCheatGuardStatus('degraded');
+            } finally {
+                if (!isStopped) {
+                    tickTimer = setTimeout(runTick, detectDelay);
+                }
+            }
+        };
+
+        const start = async () => {
+            setCheatGuardStatus('starting');
+            setCheatGuardMessage('Kamera tekshiruvi ishga tushmoqda...');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 } },
+                    audio: false,
+                });
+                video.srcObject = stream;
+                await video.play();
+
+                const tf = await import('@tensorflow/tfjs');
+                await import('@tensorflow/tfjs-backend-webgl');
+                await tf.setBackend('webgl').catch(() => { });
+                await tf.ready();
+
+                const cocoSsd = await import('@tensorflow-models/coco-ssd');
+                objectDetector = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
+
+                if (test.difficultyMode === 'impossible') {
+                    const faceLandmarks = await import('@tensorflow-models/face-landmarks-detection');
+                    faceDetector = await faceLandmarks.createDetector(
+                        faceLandmarks.SupportedModels.MediaPipeFaceMesh,
+                        {
+                            runtime: 'tfjs',
+                            refineLandmarks: false,
+                            maxFaces: 1,
+                        }
+                    );
+                }
+
+                setCheatGuardMessage('Camera guard faol holatda');
+                runTick();
+            } catch (error) {
+                console.error('Camera guard start error:', error);
+                setCheatGuardStatus('error');
+                setCheatGuardMessage('Kamera ruxsati yoki model yuklashda xatolik');
+                if (addToast) {
+                    addToast('Camera Guard Error', 'Kamera yoqilmadi. Browser ruxsatini tekshiring.', 'error');
+                }
+            }
+        };
+
+        start();
+
+        return () => {
+            isStopped = true;
+            if (tickTimer) clearTimeout(tickTimer);
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (objectDetector?.dispose) objectDetector.dispose();
+            if (faceDetector?.dispose) faceDetector.dispose();
+            setCheatGuardStatus('inactive');
+        };
+    }, [cheatGuardEnabled, isFinished, test.difficultyMode]);
+
     const leaveWithoutResult = async () => {
         if (isSubmitting) return;
         stopCelebrationSound();
@@ -7806,6 +8080,32 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                             </button>
                         </div>
                     </div>
+
+                    {cheatGuardEnabled && (
+                        <div className={clsx(
+                            'mb-5 rounded-xl border px-4 py-3 text-sm',
+                            cheatGuardStatus === 'active'
+                                ? 'border-amber-200 bg-amber-50 text-amber-900'
+                                : cheatGuardStatus === 'error'
+                                    ? 'border-red-200 bg-red-50 text-red-800'
+                                    : 'border-gray-200 bg-gray-50 text-gray-700'
+                        )}>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 font-semibold">
+                                    <AlertTriangle size={16} />
+                                    <span>
+                                        Camera Guard ({test.difficultyMode === 'impossible' ? 'Impossible+' : 'Insane'})
+                                    </span>
+                                </div>
+                                <div className="font-bold">
+                                    {Math.max(0, CAMERA_GUARD_MAX_ATTEMPTS - cheatAttemptsUsed)} attempts qoldi
+                                </div>
+                            </div>
+                            <p className="mt-1 text-xs opacity-90">
+                                {cheatGuardMessage || 'Phone va head-movement kuzatuvi ishlayapti.'}
+                            </p>
+                        </div>
+                    )}
 
                     <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 leading-relaxed">
                         <TranslatableText

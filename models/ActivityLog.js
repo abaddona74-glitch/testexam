@@ -8,6 +8,7 @@ const ActivityLogSchema = new mongoose.Schema({
       'ai_request', 'chat_message', 'comment_post',
       'api_call', 'login_attempt', 'key_validate', 'key_generate',
       'test_upload', 'test_delete', 'report',
+      'cheat_violation',
       'injection_attempt', 'dos_attempt', 'suspicious',
       'block_action', 'admin_action'
     ],
