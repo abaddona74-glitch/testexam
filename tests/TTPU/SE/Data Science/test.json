@@ -1,0 +1,554 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Kompyuter fanida 'Algoritm' deganda nima tushuniladi?",
+      "options": {
+        "A": "Muammoni yechish uchun cheklangan bosqichlar ketma-ketligi",
+        "B": "Kompyuter dasturining nomi",
+        "C": "Ma'lumotlar bazasi",
+        "D": "Dasturlash tili"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "Quyidagilardan qaysi biri yuqori darajali dasturlash tiliga misol?",
+      "options": {
+        "A": "Assembly",
+        "B": "Machine Code",
+        "C": "Python",
+        "D": "Binary"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 3,
+      "question": "Ma'lumotlar tuzilmasi 'STACK' (Stek) qandoi prinsip asosida ishlaydi?",
+      "options": {
+        "A": "FIFO (First In First Out)",
+        "B": "LIFO (Last In First Out)",
+        "C": "FCFS (First Come First Served)",
+        "D": "Round Robin"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 4,
+      "question": "MongoDB ma'lumotlar bazasida 'document' deganda nima tushuniladi?",
+      "options": {
+        "A": "Jadvaldagi qator",
+        "B": "JSON formatidagi ma'lumotlar obyekti",
+        "C": "Jadval ustuni",
+        "D": "Ma'lumotlar bazasi nomi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 5,
+      "question": "Quyidagilardan qaysi biri operatsion tizim vazifalaridan biri emas?",
+      "options": {
+        "A": "Xotirani boshqarish",
+        "B": "Matn muharriri",
+        "C": "Jarayonlarni boshqarish",
+        "D": "Fayllarni boshqarish"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 6,
+      "question": "Time complexity (vaqt murakkabligi) O(n²) qaysi algoritmga xos?",
+      "options": {
+        "A": "Bubble sort",
+        "B": "Binary search",
+        "C": "Merge sort",
+        "D": "Quick sort"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 7,
+      "question": "MongoDBda 'collection' nima?",
+      "options": {
+        "A": "Ma'lumotlar bazasi",
+        "B": "Hujjatlar guruhi (SQLdagi jadvalga o'xshash)",
+        "C": "Bitta hujjat",
+        "D": "Maydonlar ro'yxati"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 8,
+      "question": "Python dasturlash tilida 'Pandas' kutubxonasi asosan nima uchun ishlatiladi?",
+      "options": {
+        "A": "Veb dasturlash",
+        "B": "Ilmiy hisoblar va ma'lumotlarni tahlil qilish",
+        "C": "O'yin yaratish",
+        "D": "Mobil ilova yaratish"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "Quyidagilardan qaysi biri 'NoSQL' ma'lumotlar bazasi hisoblanadi?",
+      "options": {
+        "A": "PostgreSQL",
+        "B": "MySQL",
+        "C": "MongoDB",
+        "D": "SQLite"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 10,
+      "question": "Sanal tarmoq (Computer Network)da 'IP' qisqartmasi nimani anglatadi?",
+      "options": {
+        "A": "Internal Protocol",
+        "B": "Internet Protocol",
+        "C": "Internet Provider",
+        "D": "Internal Processor"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 11,
+      "question": "Quyidagilardan qaysi biri obyektga yo'naltirilgan dasturlash tamoyili hisoblanmaydi?",
+      "options": {
+        "A": "Inkapsulyatsiya",
+        "B": "Polimorfizm",
+        "C": "Meros olish",
+        "D": "Protseduralar"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 12,
+      "question": "MongoDBda ma'lumot qidirish uchun qaysi metod ishlatiladi?",
+      "options": {
+        "A": "db.collection.search()",
+        "B": "db.collection.query()",
+        "C": "db.collection.find()",
+        "D": "db.collection.get()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 13,
+      "question": "Binary search algoritmi qanday shartda ishlaydi?",
+      "options": {
+        "A": "Elementlar saralanmagan bo'lishi kerak",
+        "B": "Elementlar saralangan bo'lishi kerak",
+        "C": "Elementlar takrorlanmasligi kerak",
+        "D": "Elementlar juft son bo'lishi kerak"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 14,
+      "question": "DataFrame'da 'df.isnull().sum()' qanday natija qaytaradi?",
+      "options": {
+        "A": "Barcha qatorlar yig'indisi",
+        "B": "Har bir ustundagi null qiymatlar soni",
+        "C": "Null qiymatlar indeksi",
+        "D": "DataFrame o'lchami"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 15,
+      "question": "Rekursiya (recursion) deb nimaga aytiladi?",
+      "options": {
+        "A": "Funksiyaning o'zini o'zi chaqirishi",
+        "B": "Cheksiz tsikl",
+        "C": "Shartli operator",
+        "D": "Massiv elementlari"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 16,
+      "question": "MongoDBda 'aggregation' nima uchun ishlatiladi?",
+      "options": {
+        "A": "Ma'lumotlarni qo'shish uchun",
+        "B": "Ma'lumotlarni guruhlash va qayta ishlash uchun",
+        "C": "Ma'lumotlarni o'chirish uchun",
+        "C": "Indeks yaratish uchun"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 17,
+      "question": "SQL va NoSQL ma'lumotlar bazalari orasidagi asosiy farq nima?",
+      "options": {
+        "A": "SQL tezroq, NoSQL sekinroq",
+        "B": "SQL relatsion, NoSQL relatsion emas",
+        "C": "SQL faqat Windowsda ishlaydi",
+        "D": "NoSQL ma'lumotlarni saqlamaydi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 18,
+      "question": "Quyidagi qaysi buyruq DataFrame'dan birinchi 5 qatorni ko'rsatadi?",
+      "options": {
+        "A": "df.tail()",
+        "B": "df.show()",
+        "C": "df.head()",
+        "D": "df.first()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 19,
+      "question": "MongoDBda 'projection' deganda nima tushuniladi?",
+      "options": {
+        "A": "Hujjatning faqat kerakli maydonlarini tanlash",
+        "B": "Barcha maydonlarni ko'rsatish",
+        "C": "Hujjatni o'chirish",
+        "D": "Yangi indeks yaratish"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 20,
+      "question": "Quyidagilardan qaysi biri chiziqli (linear) ma'lumotlar tuzilmasi hisoblanadi?",
+      "options": {
+        "A": "Daraxt (Tree)",
+        "B": "Graf (Graph)",
+        "C": "Ro'yxat (Linked List)",
+        "D": "Hash jadvali"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 21,
+      "question": "Pandasda 'df.groupby()' metodi nima vazifasini bajaradi?",
+      "options": {
+        "A": "Ma'lumotlarni saralaydi",
+        "B": "Ma'lumotlarni biror ustun bo'yicha guruhlaydi",
+        "C": "Null qiymatlarni olib tashlaydi",
+        "D": "Ma'lumotlarni filtrlaydi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 22,
+      "question": "MongoDBda ma'lumot yangilash uchun qaysi metod ishlatiladi?",
+      "options": {
+        "A": "db.collection.modify()",
+        "B": "db.collection.change()",
+        "C": "db.collection.update()",
+        "D": "db.collection.alter()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 23,
+      "question": "Kompyuter xavfsizligida 'phishing' nima?",
+      "options": {
+        "A": "Kompyuterni fizik buzish",
+        "B": "Soxta veb-saytlar orqali maxfiy ma'lumotlarni olish",
+        "C": "Antivirus dastur",
+        "D": "Tarmoqqa ulanish protokoli"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 24,
+      "question": "MongoDBda '_id' maydoni haqida qaysi gap to'g'ri?",
+      "options": {
+        "A": "Ixtiyoriy, tashlab qo'yish mumkin",
+        "B": "Har bir hujjatda unikal va majburiy",
+        "C": "Faqat string tipida bo'ladi",
+        "D": "Foydalanuvchi o'zgartira olmaydi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 25,
+      "question": "Quyidagilardan qaysi biri sun'iy intellektning sohasi emas?",
+      "options": {
+        "A": "Machine Learning",
+        "B": "Computer Vision",
+        "C": "Database Administration",
+        "D": "Natural Language Processing"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 26,
+      "question": "Pandasda CSV faylini o'qish uchun qaysi funksiya ishlatiladi?",
+      "options": {
+        "A": "pd.read_excel()",
+        "B": "pd.load_csv()",
+        "C": "pd.read_csv()",
+        "D": "pd.import_csv()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 27,
+      "question": "MongoDBda 'sort' operatsiyasi qanday bajariladi?",
+      "options": {
+        "A": "db.collection.find().order()",
+        "B": "db.collection.find().arrange()",
+        "C": "db.collection.find().sort()",
+        "D": "db.collection.sort()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 28,
+      "question": "TCP/IP modelida 'HTTP' qaysi qatlamda ishlaydi?",
+      "options": {
+        "A": "Transport",
+        "B": "Tarmoq (Internet)",
+        "C": "Ilova (Application)",
+        "D": "Fizik"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 29,
+      "question": "Quyidagilardan qaysi biri MongoDB operatori emas?",
+      "options": {
+        "A": "$gt",
+        "B": "$lt",
+        "C": "$and",
+        "D": "$like"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 30,
+      "question": "Python da 'lambda' funksiya nima?",
+      "options": {
+        "A": "Oddiy funksiya",
+        "B": "Nomsiz (anonymous) funksiya",
+        "C": "Rekursiv funksiya",
+        "D": "Asinxron funksiya"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 31,
+      "question": "MongoDBda ma'lumot o'chirish uchun qaysi metod ishlatiladi?",
+      "options": {
+        "A": "db.collection.erase()",
+        "B": "db.collection.delete()",
+        "C": "db.collection.remove()",
+        "D": "db.collection.drop()"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 32,
+      "question": "Data Science jarayonida 'Data Cleaning' nima?",
+      "options": {
+        "A": "Ma'lumotlarni vizualizatsiya qilish",
+        "B": "Ma'lumotlarni tozalash, null va noto'g'ri qiymatlarni tuzatish",
+        "C": "Ma'lumotlarni modelga yuklash",
+        "D": "Ma'lumotlarni shifrlash"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 33,
+      "question": "Quyidagilardan qaysi biri 'Primary Key' xususiyatiga ega?",
+      "options": {
+        "A": "Takrorlanishi mumkin",
+        "B": "NULL bo'lishi mumkin",
+        "C": "Unikal va NULL bo'lmaydi",
+        "D": "Faqat bitta jadvalda ishlatiladi"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 34,
+      "question": "MongoDBda 'index' nima vazifasini bajaradi?",
+      "options": {
+        "A": "Ma'lumotlarni himoya qiladi",
+        "B": "So'rovlar tezligini oshiradi",
+        "C": "Ma'lumotlarni zaxiralaydi",
+        "D": "Ma'lumotlarni siqadi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 35,
+      "question": "Quyidagilardan qaysi biri 'Compiler' vazifasi?",
+      "options": {
+        "A": "Dasturni qatorma-qator bajarish",
+        "B": "Dastur kodini butunlay mashina kodiga o'tkazish",
+        "C": "Xotirani boshqarish",
+        "D": "Tarmoqqa ulanish"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 36,
+      "question": "Pandasda 'DataFrame' qanday ma'lumotlar tuzilmasi?",
+      "options": {
+        "A": "Bir o'lchovli massiv",
+        "B": "Ikki o'lchovli (jadval ko'rinishidagi) ma'lumotlar tuzilmasi",
+        "C": "Kalit-qiymat juftligi",
+        "D": "Faqat raqamli ma'lumotlar"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 37,
+      "question": "MongoDBda 'limit()' metodi nima uchun ishlatiladi?",
+      "options": {
+        "A": "Hujjatlarni cheklangan miqdorda qaytarish",
+        "B": "Hujjatlarni o'chirish",
+        "C": "Maydonlarni cheklash",
+        "D": "Indeks yaratish"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 38,
+      "question": "Quyidagi qaysi algoritm eng tez saralash algoritmlaridan biri hisoblanadi?",
+      "options": {
+        "A": "Bubble sort",
+        "B": "Selection sort",
+        "C": "Quick sort",
+        "D": "Insertion sort"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 39,
+      "question": "MongoDBda $in operatori nima vazifasini bajaradi?",
+      "options": {
+        "A": "Maydonda berilgan qiymatlardan biriga teng bo'lgan hujjatlarni topish",
+        "B": "Maydon qiymatlarini qo'shish",
+        "C": "Maydonlarni birlashtirish",
+        "D": "Maydonni o'chirish"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 40,
+      "question": "Virtual xotira (Virtual Memory) nima?",
+      "options": {
+        "A": "Faqat protsessor xotirasi",
+        "B": "Qattiq diskda xotirani kengaytirish texnologiyasi",
+        "C": "RAM xotirasi",
+        "D": "Kesh xotira"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 41,
+      "question": "MongoDBda 'skip()' metodi bilan nima qilish mumkin?",
+      "options": {
+        "A": "Berilgan sondagi hujjatlarni tashlab ketish",
+        "B": "Hujjatlarni o'tkazib yuborish",
+        "C": "Indeksdan o'tish",
+        "D": "Hujjatlarni o'chirish"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 42,
+      "question": "Quyidagilardan qaysi biri Big Data xususiyatlaridan biri emas?",
+      "options": {
+        "A": "Volume (hajm)",
+        "B": "Velocity (tezlik)",
+        "C": "Variety (xilma-xillik)",
+        "D": "Simplicity (soddalik)"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 43,
+      "question": "MongoDBda 'aggregate' pipeline qanday ishlaydi?",
+      "options": {
+        "A": "Bir necha bosqichlardan iborat ma'lumotlarni qayta ishlash zanjiri",
+        "B": "Bitta so'rov bilan ma'lumot olish",
+        "C": "Ma'lumotlarni indekslash",
+        "D": "Ma'lumotlarni zaxiralash"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 44,
+      "question": "Ransomware nima?",
+      "options": {
+        "A": "Ma'lumotlarni shifrlab, to'lov talab qiluvchi zararli dastur",
+        "B": "Antivirus dastur",
+        "C": "Operatsion tizim",
+        "D": "Tarmoq protokoli"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 45,
+      "question": "Pandasda 'df.dropna()' qanday vazifani bajaradi?",
+      "options": {
+        "A": "Ustunlarni o'chiradi",
+        "B": "Null qiymatli qatorlarni o'chiradi",
+        "C": "Takrorlangan qiymatlarni o'chiradi",
+        "D": "Indekslarni o'chiradi"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 46,
+      "question": "MongoDBda 'sharding' nima?",
+      "options": {
+        "A": "Ma'lumotlarni bir necha serverlarga taqsimlash",
+        "B": "Ma'lumotlarni zaxiralash",
+        "C": "Indeks yaratish",
+        "D": "Ma'lumotlarni o'chirish"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 47,
+      "question": "Quyidagilardan qaysi biri 'Cloud Computing' xizmat turi hisoblanadi?",
+      "options": {
+        "A": "IaaS (Infrastructure as a Service)",
+        "B": "Python",
+        "C": "MySQL",
+        "D": "Windows"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 48,
+      "question": "MongoDBda 'findOne()' va 'find()' orasidagi asosiy farq nima?",
+      "options": {
+        "A": "findOne() bitta, find() ko'p hujjat qaytaradi",
+        "B": "findOne() tezroq",
+        "C": "find() faqat bitta qaytaradi",
+        "D": "Farqi yo'q"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 49,
+      "question": "Data Mining nima?",
+      "options": {
+        "A": "Ma'lumotlarni o'chirish",
+        "B": "Katta hajmdagi ma'lumotlardan qonuniyat va bilimlarni topish jarayoni",
+        "C": "Ma'lumotlarni shifrlash",
+        "D": "Ma'lumotlar bazasini yaratish"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 50,
+      "question": "MongoDBda 'Map-Reduce' nima uchun ishlatiladi?",
+      "options": {
+        "A": "Katta hajmdagi ma'lumotlarni parallel qayta ishlash",
+        "B": "Ma'lumotlarni indekslash",
+        "C": "Ma'lumotlarni import qilish",
+        "D": "Ma'lumotlarni eksport qilish"
+      },
+      "correct_answer": "A"
+    }
+  ]
+}
