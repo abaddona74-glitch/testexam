@@ -112,12 +112,12 @@ function TimeChart({ data, title }) {
             />
           ))}
 
-          <path d={pathD} fill="none" className="stroke-cyan-500" strokeWidth="1.6" strokeLinecap="round" />
+          <path d={pathD} fill="none" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" />
 
           {points.map((p, i) => (
             <g key={i}>
               <title>{`${p._id}: ${p.count} (${p.uniqueVisitors || 0} unique)`}</title>
-              <circle cx={p.x} cy={p.y} r="1.7" className="fill-blue-500" />
+              <circle cx={p.x} cy={p.y} r="2.3" fill="#60a5fa" />
             </g>
           ))}
         </svg>
@@ -215,13 +215,17 @@ export default function AdminPage() {
   const [lastEventId, setLastEventId] = useState(0);
   const [realtimeActive, setRealtimeActive] = useState(0);
   const [realtimeSessions, setRealtimeSessions] = useState([]);
-  const [fullscreenSnapshot, setFullscreenSnapshot] = useState(null);
+  const [fullscreenSessionKey, setFullscreenSessionKey] = useState(null);
 
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
 
   const autoRefreshRef = useRef(null);
   const realtimeRef = useRef(null);
+
+  const getSessionKey = useCallback((session) => {
+    return session?.sessionId || session?.userId || 'anon';
+  }, []);
 
   // Check cached secret on mount
   useEffect(() => {
@@ -638,7 +642,7 @@ export default function AdminPage() {
               </h2>
               <span className="text-xs text-green-500 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                Har 3 sekundda yangilanadi (real-time)
+                Har 3 sekundda yangilanadi (real-time, frame oqimi ham 3s)
               </span>
             </div>
 
@@ -696,10 +700,7 @@ export default function AdminPage() {
                           className="w-full h-full object-contain"
                         />
                         <button
-                          onClick={() => setFullscreenSnapshot({
-                            src: session.cameraSnapshot,
-                            name: session.name || session.userId || 'Anonymous',
-                          })}
+                          onClick={() => setFullscreenSessionKey(getSessionKey(session))}
                           className="absolute top-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Fullscreen"
                         >
@@ -712,27 +713,39 @@ export default function AdminPage() {
               </div>
             )}
 
-            {fullscreenSnapshot && (
+            {fullscreenSessionKey && (
               <div
                 className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
-                onClick={() => setFullscreenSnapshot(null)}
+                onClick={() => setFullscreenSessionKey(null)}
               >
                 <div
                   className="relative max-w-[96vw] max-h-[92vh]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
-                    onClick={() => setFullscreenSnapshot(null)}
+                    onClick={() => setFullscreenSessionKey(null)}
                     className="absolute -top-10 right-0 text-white bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm font-bold"
                     title="Close"
                   >
                     X
                   </button>
-                  <img
-                    src={fullscreenSnapshot.src}
-                    alt={`Snapshot: ${fullscreenSnapshot.name}`}
-                    className="max-w-[96vw] max-h-[92vh] w-auto h-auto object-contain rounded-lg border border-white/20 bg-black"
-                  />
+                  {(() => {
+                    const target = realtimeSessions.find((s) => getSessionKey(s) === fullscreenSessionKey);
+                    if (!target?.cameraSnapshot) {
+                      return (
+                        <div className="w-[70vw] h-[60vh] rounded-lg border border-white/20 bg-black text-white flex items-center justify-center">
+                          Kadr kutilmoqda...
+                        </div>
+                      );
+                    }
+                    return (
+                      <img
+                        src={target.cameraSnapshot}
+                        alt={`Snapshot: ${target.name || target.userId || 'Anonymous'}`}
+                        className="max-w-[96vw] max-h-[92vh] w-auto h-auto object-contain rounded-lg border border-white/20 bg-black"
+                      />
+                    );
+                  })()}
                 </div>
               </div>
             )}

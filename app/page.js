@@ -7082,7 +7082,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         };
 
         ping();
-        const interval = setInterval(ping, 15000);
+        const interval = setInterval(ping, 3000);
         return () => clearInterval(interval);
     }, [isFinished, test?.id, userId, userName, currentIndex, totalQuestions, userCountry, userStars, resolvedTheme, question.id]);
 
