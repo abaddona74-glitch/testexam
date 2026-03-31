@@ -64,11 +64,36 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { testId, userId, sessionId, name, progress, total, status, device, country, currentAnswer, stars, theme, questionId, visualState } = body; 
+    const {
+      testId,
+      userId,
+      sessionId,
+      name,
+      progress,
+      total,
+      status,
+      device,
+      country,
+      currentAnswer,
+      stars,
+      theme,
+      questionId,
+      visualState,
+      difficulty,
+      cameraStatus,
+      cameraSnapshot,
+      cameraUpdatedAt,
+    } = body;
     
     // Key by sessionId to ensure multiple tabs don "t conflict (race condition on reload)
     // Fallback to userId for backward compatibility
     const key = sessionId || userId; 
+
+    const safeSnapshot = (typeof cameraSnapshot === 'string'
+      && cameraSnapshot.startsWith('data:image/')
+      && cameraSnapshot.length <= 260000)
+      ? cameraSnapshot
+      : null;
 
     activeSessions[key] = {
         testId, // can be null if just browsing
@@ -77,11 +102,15 @@ export async function POST(request) {
         name,
         progress: progress || 0,
         total: total || 0,
+        difficulty: difficulty || null,
         status: status || (testId ? 'in-test' : 'browsing'),
         device: device || 'desktop', 
         country: country || null,
         currentAnswer: currentAnswer || null,
         visualState: visualState || null,
+        cameraStatus: cameraStatus || null,
+        cameraSnapshot: safeSnapshot,
+        cameraUpdatedAt: cameraUpdatedAt || null,
         stars: stars || 0,
         theme: theme || 'light',
         questionId: questionId || null,

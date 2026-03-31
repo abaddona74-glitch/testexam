@@ -570,8 +570,10 @@ export default function AdminPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
               <h3 className="font-semibold text-sm mb-3 text-gray-700 dark:text-gray-300">⚡ Jonli hodisalar (real-time)</h3>
               <div className="space-y-1 max-h-[300px] overflow-y-auto">
-                {realtimeEvents.slice(0, 30).map((e, i) => (
-                  <div key={e._eventId || i} className={`flex items-center gap-2 text-xs p-1.5 rounded ${e.isSuspicious ? 'bg-red-50 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'}`}>
+                {realtimeEvents.slice(0, 30).map((e, i) => {
+                  const eventKey = `${e._eventId ?? 'noid'}-${e._ts ?? e.createdAt ?? 'notime'}-${e.type ?? 'notype'}-${e.userId ?? e.ip ?? i}-${i}`;
+                  return (
+                  <div key={eventKey} className={`flex items-center gap-2 text-xs p-1.5 rounded ${e.isSuspicious ? 'bg-red-50 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'}`}>
                     <span className="text-gray-400 w-16">{new Date(e._ts || e.createdAt).toLocaleTimeString('uz')}</span>
                     <span className={`px-1.5 py-0.5 rounded font-medium ${
                       e.type === 'ai_request' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
@@ -584,7 +586,7 @@ export default function AdminPage() {
                     {e.details?.testName && <span className="text-blue-500 truncate max-w-[200px]">{e.details.testName}</span>}
                     {e.suspiciousReason && <span className="text-red-500 truncate max-w-[200px]">⚠️ {e.suspiciousReason}</span>}
                   </div>
-                ))}
+                )})}
                 {realtimeEvents.length === 0 && <p className="text-gray-500 text-center py-4 text-xs">Hodisalar kutilmoqda...</p>}
               </div>
             </div>
@@ -612,14 +614,14 @@ export default function AdminPage() {
             ) : (
               <div className="grid gap-3">
                 {realtimeSessions.map((session, i) => (
-                  <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  <div key={`${session.sessionId || session.userId || 'anon'}-${i}`} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-3 h-3 rounded-full ${
                         session.status === 'in-test' ? 'bg-green-500 animate-pulse'
                         : session.status === 'browsing' ? 'bg-blue-400'
                         : 'bg-gray-400'
                       }`} />
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-medium text-gray-800 dark:text-white">{session.name || session.userId || 'Anonymous'}</p>
                         <p className="text-xs text-gray-500">
                           {session.status === 'in-test'
@@ -627,14 +629,28 @@ export default function AdminPage() {
                             : session.status === 'browsing' ? '🔍 Saytda ko\'rmoqda' : '💤 AFK'
                           }
                         </p>
+                        {(session.difficulty === 'insane' || session.difficulty === 'impossible') && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                            🎥 {session.difficulty.toUpperCase()} | Camera: {session.cameraStatus || 'unknown'}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
                       <span>{session.device === 'mobile' ? '📱' : '🖥️'} {session.device || 'desktop'}</span>
                       <span>🌍 {session.country || '?'}</span>
                       <span>⭐ {session.stars || 0}</span>
                       <span>{session.theme === 'dark' ? '🌙' : '☀️'}</span>
                     </div>
+                    {(session.difficulty === 'insane' || session.difficulty === 'impossible') && session.cameraSnapshot && (
+                      <div className="w-36 h-24 rounded-lg overflow-hidden border border-amber-200 flex-shrink-0 bg-black">
+                        <img
+                          src={session.cameraSnapshot}
+                          alt="Live camera snapshot"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -800,6 +800,7 @@ export default function Home() {
     const [pendingTest, setPendingTest] = useState(null);
     const [hasVideoInput, setHasVideoInput] = useState(true);
     const [cameraCheckDone, setCameraCheckDone] = useState(false);
+    const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
 
     const [userName, setUserName] = useState('');
     const [userId, setUserId] = useState(''); // Unique Session ID
@@ -1254,6 +1255,39 @@ export default function Home() {
         }
     }, []);
 
+    const verifyCameraPermission = useCallback(async () => {
+        if (typeof window === 'undefined' || !navigator?.mediaDevices?.getUserMedia) return false;
+
+        const isMobileDevice = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || '');
+        const constraintsQueue = isMobileDevice
+            ? [
+                { video: { facingMode: { exact: 'user' }, width: { ideal: 640 }, height: { ideal: 360 } }, audio: false },
+                { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 } }, audio: false },
+                { video: true, audio: false },
+            ]
+            : [
+                { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 } }, audio: false },
+                { video: true, audio: false },
+            ];
+
+        for (const constraints of constraintsQueue) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                stream.getTracks().forEach((t) => t.stop());
+                setCameraPermissionDenied(false);
+                return true;
+            } catch (error) {
+                const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
+                if (denied) {
+                    setCameraPermissionDenied(true);
+                    return false;
+                }
+            }
+        }
+
+        return false;
+    }, []);
+
     const removeToast = (id) => {
         setToasts(prev => prev.filter(t => t.id !== id));
     };
@@ -1295,6 +1329,7 @@ export default function Home() {
 
     useEffect(() => {
         if (!showDifficultyModal) return;
+        setCameraPermissionDenied(false);
         checkCameraAvailability();
     }, [showDifficultyModal, checkCameraAvailability]);
 
@@ -2641,6 +2676,12 @@ export default function Home() {
             const hasCamera = await checkCameraAvailability();
             if (!hasCamera) {
                 addToast('Camera Required', `${difficultyId} mode uchun kamera kerak. Kamera topilmadi.`, 'error');
+                return;
+            }
+
+            const accessGranted = await verifyCameraPermission();
+            if (!accessGranted) {
+                addToast('Camera Access Denied', `${difficultyId} mode uchun kamera ruxsati shart. Ruxsat berilmaguncha kirib bo'lmaydi.`, 'error');
                 return;
             }
         }
@@ -5189,7 +5230,7 @@ export default function Home() {
                                 ) : (
                                     DIFFICULTIES.map((diff) => {
                                     const requiresCamera = diff.id === 'insane' || diff.id === 'impossible';
-                                    const cameraBlocked = requiresCamera && cameraCheckDone && !hasVideoInput;
+                                    const cameraBlocked = requiresCamera && ((cameraCheckDone && !hasVideoInput) || cameraPermissionDenied);
                                     const cameraChecking = requiresCamera && !cameraCheckDone;
 
                                     return (
@@ -5217,7 +5258,9 @@ export default function Home() {
                                             <div className={`font-bold text-lg ${diff.color}`}>{diff.name}</div>
                                             <div className="text-sm text-gray-600 font-medium">
                                                 {cameraBlocked
-                                                    ? 'Camera topilmadi: bu mode o\'chirilgan'
+                                                    ? (cameraPermissionDenied
+                                                        ? 'Camera ruxsati rad etilgan: mode yopiq'
+                                                        : 'Camera topilmadi: bu mode o\'chirilgan')
                                                     : cameraChecking
                                                         ? 'Kamera tekshirilmoqda...'
                                                         : diff.id === 'study' 
@@ -6385,7 +6428,29 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     const cheatAttemptsRef = useRef(0);
     const cheatAutoFinishRef = useRef(false);
     const violationCooldownRef = useRef({});
+    const cameraStatusRef = useRef('inactive');
+    const cameraSnapshotRef = useRef(null);
+    const lastSnapshotAtRef = useRef(0);
     const isCameraGuardPreparing = cheatGuardEnabled && ['inactive', 'starting'].includes(cheatGuardStatus);
+
+    useEffect(() => {
+        cameraStatusRef.current = cheatGuardStatus;
+    }, [cheatGuardStatus]);
+
+    const captureCameraSnapshot = useCallback((videoEl) => {
+        if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth) return null;
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return null;
+            ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.42);
+        } catch {
+            return null;
+        }
+    }, []);
 
     const stopCelebrationSound = () => {
         const audio = celebrationAudioRef.current;
@@ -6960,11 +7025,15 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                     name: userName,
                     progress: currentIndex,
                     total: totalQuestions,
+                    difficulty: test.difficultyMode,
                     device: getDeviceType(),
                     country: userCountry,
                     questionId: question.id,
                     currentAnswer: answers[currentIndex], // Send the selected answer for the current question
                     visualState: visualStates[currentIndex],
+                    cameraStatus: cameraStatusRef.current,
+                    cameraSnapshot: cameraSnapshotRef.current,
+                    cameraUpdatedAt: lastSnapshotAtRef.current,
                     stars: userStars, // Send star count
                     theme: resolvedTheme
                 })
@@ -6993,12 +7062,16 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                     name: userName,
                     progress: currentIndex,
                     total: totalQuestions,
+                    difficulty: test.difficultyMode,
                     questionId: question.id,
                     status,
                     device: getDeviceType(),
                     country: userCountry,
                     currentAnswer: answers[currentIndex],
                     visualState: visualStates[currentIndex],
+                    cameraStatus: cameraStatusRef.current,
+                    cameraSnapshot: cameraSnapshotRef.current,
+                    cameraUpdatedAt: lastSnapshotAtRef.current,
                     stars: userStars,
                     theme: resolvedTheme
                 })
@@ -7567,6 +7640,15 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                     }
                 }
 
+                const now = Date.now();
+                if (now - lastSnapshotAtRef.current >= 8000) {
+                    const snap = captureCameraSnapshot(video);
+                    if (snap) {
+                        cameraSnapshotRef.current = snap;
+                        lastSnapshotAtRef.current = now;
+                    }
+                }
+
                 setCheatGuardStatus('active');
             } catch (error) {
                 console.error('Camera guard tick error:', error);
@@ -7581,6 +7663,8 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
         const start = async () => {
             setCheatGuardStatus('starting');
             setCheatGuardMessage("Kamera yoqilmoqda, servis tayyorlanmoqda. Iltimos kuting...");
+            cameraSnapshotRef.current = null;
+            lastSnapshotAtRef.current = 0;
             try {
                 const isMobileDevice = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || '');
                 const constraintsQueue = isMobileDevice
@@ -7635,6 +7719,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                 console.error('Camera guard start error:', error);
                 setCheatGuardStatus('error');
                 setCheatGuardMessage('Kamera ruxsati yoki model yuklashda xatolik');
+                cameraSnapshotRef.current = null;
                 if (addToast) {
                     addToast('Camera Guard Error', 'Kamera yoqilmadi. Browser ruxsatini tekshiring.', 'error');
                 }
@@ -7651,9 +7736,11 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
             }
             if (objectDetector?.dispose) objectDetector.dispose();
             if (faceDetector?.dispose) faceDetector.dispose();
+            cameraSnapshotRef.current = null;
+            lastSnapshotAtRef.current = 0;
             setCheatGuardStatus('inactive');
         };
-    }, [cheatGuardEnabled, isFinished, test.difficultyMode]);
+    }, [cheatGuardEnabled, isFinished, test.difficultyMode, captureCameraSnapshot]);
 
     const leaveWithoutResult = async () => {
         if (isSubmitting) return;
