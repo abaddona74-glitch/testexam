@@ -6385,6 +6385,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     const cheatAttemptsRef = useRef(0);
     const cheatAutoFinishRef = useRef(false);
     const violationCooldownRef = useRef({});
+    const isCameraGuardPreparing = cheatGuardEnabled && ['inactive', 'starting'].includes(cheatGuardStatus);
 
     const stopCelebrationSound = () => {
         const audio = celebrationAudioRef.current;
@@ -6589,7 +6590,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
 
     // Timer Countdown Effect
     useEffect(() => {
-        if (baseTimeLimit === null || isFinished) return;
+        if (baseTimeLimit === null || isFinished || isCameraGuardPreparing) return;
 
         const timer = setInterval(() => {
             setTimeLeft(prev => {
@@ -6603,7 +6604,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [currentIndex, isFinished, answers, baseTimeLimit]); // Re-start when index changes
+    }, [currentIndex, isFinished, answers, baseTimeLimit, isCameraGuardPreparing]); // Re-start when index changes
 
     const [showConfirmFinish, setShowConfirmFinish] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -6628,6 +6629,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     }, [isListening]);
 
     const toggleVoiceControl = () => {
+        if (isCameraGuardPreparing) return;
         if (!recognitionRef.current) {
             alert("Voice control is not supported in this browser.");
             return;
@@ -6654,6 +6656,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     }, [currentIndex]);
 
     const handleAskAI = async () => {
+        if (isCameraGuardPreparing) return;
         const currentQ = test.questions[currentIndex];
         if (!currentQ) return;
         
@@ -6802,6 +6805,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
 
     // Hint Logic
     const handleUseHint = (shouldBuy = false) => {
+        if (isCameraGuardPreparing) return;
         const infiniteHints = activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode');
         
         let purchased = false;
@@ -7064,6 +7068,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     }, [currentIndex]);
 
     const handleAnswer = useCallback((optionId, forceOverride = false) => {
+        if (isCameraGuardPreparing) return;
         playClickSound?.();
 
         if (forceOverride) {
@@ -7117,7 +7122,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                 return ({ ...prev, [currentIndex]: optionId });
             });
         }
-    }, [currentIndex, question, playClickSound]);
+    }, [currentIndex, question, playClickSound, isCameraGuardPreparing]);
 
     const proceedToNext = (remainingTimeOverride) => {
         // Time Banking Logic
@@ -7137,6 +7142,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
     };
 
     const handleNext = () => {
+        if (isCameraGuardPreparing) return;
         // Check if answered
         if (!answers[currentIndex]) {
             if (skipConfirmationDisabled) {
@@ -7442,7 +7448,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
         const attemptsLeft = Math.max(0, CAMERA_GUARD_MAX_ATTEMPTS - nextUsed);
         cheatAttemptsRef.current = nextUsed;
         setCheatAttemptsUsed(nextUsed);
-        setCheatGuardMessage(message);
+        setCheatGuardMessage(`${message}. ${attemptsLeft} attempts qoldi.`);
 
         if (addToast) {
             const attemptWord = attemptsLeft === 1 ? 'attempt' : 'attempts';
@@ -7574,12 +7580,32 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
 
         const start = async () => {
             setCheatGuardStatus('starting');
-            setCheatGuardMessage('Kamera tekshiruvi ishga tushmoqda...');
+            setCheatGuardMessage("Kamera yoqilmoqda, servis tayyorlanmoqda. Iltimos kuting...");
             try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 } },
-                    audio: false,
-                });
+                const isMobileDevice = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || '');
+                const constraintsQueue = isMobileDevice
+                    ? [
+                        { video: { facingMode: { exact: 'user' }, width: { ideal: 640 }, height: { ideal: 360 } }, audio: false },
+                        { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 } }, audio: false },
+                        { video: { width: { ideal: 640 }, height: { ideal: 360 } }, audio: false },
+                    ]
+                    : [
+                        { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 } }, audio: false },
+                        { video: true, audio: false },
+                    ];
+
+                for (const constraints of constraintsQueue) {
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        if (stream) break;
+                    } catch {
+                        // Try next variant.
+                    }
+                }
+
+                if (!stream) {
+                    throw new Error('No usable camera stream');
+                }
                 video.srcObject = stream;
                 await video.play();
 
@@ -7603,7 +7629,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                     );
                 }
 
-                setCheatGuardMessage('Camera guard faol holatda');
+                setCheatGuardMessage("Diqqat: kamera ishlayapti, nazorat faol.");
                 runTick();
             } catch (error) {
                 console.error('Camera guard start error:', error);
@@ -8229,13 +8255,21 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                                         Camera Guard ({test.difficultyMode === 'impossible' ? 'Impossible+' : 'Insane'})
                                     </span>
                                 </div>
-                                <div className="font-bold">
-                                    {Math.max(0, CAMERA_GUARD_MAX_ATTEMPTS - cheatAttemptsUsed)} attempts qoldi
-                                </div>
+                                {cheatAttemptsUsed > 0 && (
+                                    <div className="font-bold text-red-700">
+                                        {Math.max(0, CAMERA_GUARD_MAX_ATTEMPTS - cheatAttemptsUsed)} attempts qoldi
+                                    </div>
+                                )}
                             </div>
                             <p className="mt-1 text-xs opacity-90">
                                 {cheatGuardMessage || 'Phone va head-movement kuzatuvi ishlayapti.'}
                             </p>
+                        </div>
+                    )}
+
+                    {isCameraGuardPreparing && (
+                        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                            Kamera ishga tushmoqda. Nazorat faol bo'lguncha test vaqtincha pauza holatida.
                         </div>
                     )}
 
@@ -8338,7 +8372,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                                 return (
                                     <button
                                         key={idx}
-                                        disabled={isEliminated || (isStudyMode && (!isMultiSelect ? !!userAnswer : false))} 
+                                        disabled={isCameraGuardPreparing || isEliminated || (isStudyMode && (!isMultiSelect ? !!userAnswer : false))} 
                                         onClick={() => !isEliminated && handleAnswer(option.id)}
                                         className={clsx(
                                             "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3",
@@ -8405,6 +8439,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                                 // Explicit early finish
                                 setShowConfirmFinish(true);
                             }}
+                            disabled={isCameraGuardPreparing}
                             className="text-gray-500 hover:text-red-600 font-medium text-sm px-4 py-2 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
                         >
                             End Test Now
@@ -8413,6 +8448,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={toggleVoiceControl}
+                                disabled={isCameraGuardPreparing}
                                 className={clsx(
                                     "px-3 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all border",
                                     isListening
@@ -8427,7 +8463,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                             {isStudyMode && (
                                 <button
                                     onClick={handleAskAI}
-                                    disabled={isAiLoading}
+                                    disabled={isAiLoading || isCameraGuardPreparing}
                                     className="px-4 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50"
                                     title="Get AI Help"
                                 >
@@ -8447,6 +8483,7 @@ function TestRunner({ test, userName, userId, userCountry, userLocation, onFinis
                             {!isStudyMode && (
                                 <button
                                     onClick={() => { playClickSound?.(); handleNext(); }}
+                                    disabled={isCameraGuardPreparing}
                                     className={clsx(
                                         "px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all",
                                         answers[currentIndex]
