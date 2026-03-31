@@ -69,27 +69,42 @@ function BarChart({ data, labelKey = '_id', valueKey = 'count', title, maxItems 
 }
 
 function TimeChart({ data, title }) {
-  if (!data || data.length === 0) return <p className="text-gray-500 text-sm p-4">No data</p>;
-  const max = Math.max(...data.map(d => d.count), 1);
+  if (!Array.isArray(data) || data.length === 0) {
+    return <p className="text-gray-500 text-sm p-4">No data</p>;
+  }
+
+  const normalized = data
+    .map((d) => ({
+      ...d,
+      count: Number(d?.count) || 0,
+      uniqueVisitors: Number(d?.uniqueVisitors) || 0,
+    }))
+    .filter((d) => d && d._id !== undefined && d._id !== null);
+
+  if (normalized.length === 0) {
+    return <p className="text-gray-500 text-sm p-4">No data</p>;
+  }
+
+  const max = Math.max(...normalized.map(d => d.count), 1);
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
       {title && <h3 className="font-semibold text-sm mb-3 text-gray-700 dark:text-gray-300">{title}</h3>}
       <div className="flex items-end gap-1 h-32 overflow-x-auto">
-        {data.map((item, i) => (
+        {normalized.map((item, i) => (
           <div key={i} className="flex flex-col items-center min-w-[18px] group relative">
             <div className="absolute -top-8 bg-gray-900 text-white text-[10px] px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
               {item._id}: {item.count} ({item.uniqueVisitors || 0} unique)
             </div>
             <div
               className="w-3 bg-gradient-to-t from-blue-500 to-cyan-400 rounded-t transition-all hover:from-blue-600 hover:to-cyan-500"
-              style={{ height: `${Math.max((item.count / max) * 100, 4)}%` }}
+              style={{ height: `${Math.max((item.count / max) * 100, 6)}%` }}
             />
           </div>
         ))}
       </div>
       <div className="flex justify-between text-[9px] text-gray-400 mt-1 overflow-hidden">
-        <span>{data[0]?._id?.split(' ')[1] || data[0]?._id}</span>
-        <span>{data[data.length - 1]?._id?.split(' ')[1] || data[data.length - 1]?._id}</span>
+        <span>{normalized[0]?._id?.split(' ')[1] || normalized[0]?._id}</span>
+        <span>{normalized[normalized.length - 1]?._id?.split(' ')[1] || normalized[normalized.length - 1]?._id}</span>
       </div>
     </div>
   );

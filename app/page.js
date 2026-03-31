@@ -7209,7 +7209,16 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             setBankedTime(unusedTime);
         }
 
-        if (currentIndex < totalQuestions - 1) {
+        const isLastQuestion = currentIndex >= totalQuestions - 1;
+        const isAutoTimeout = remainingTimeOverride !== undefined && remainingTimeOverride <= 0;
+
+        // If timer ended on the last question, finish directly without confirmation modal.
+        if (isLastQuestion && isAutoTimeout) {
+            confirmFinish();
+            return;
+        }
+
+        if (!isLastQuestion) {
             setCurrentIndex(currentIndex + 1);
             setShowConfirmSkip(false);
         } else {
