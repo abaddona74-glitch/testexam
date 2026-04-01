@@ -1401,6 +1401,7 @@ export default function Home() {
     const [uploadFolder, setUploadFolder] = useState('');
     const [uploadMode, setUploadMode] = useState('file'); // 'file' | 'text'
     const [lectureText, setLectureText] = useState('');
+    const [lectureFile, setLectureFile] = useState(null);
     const [testName, setTestName] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [jsonError, setJsonError] = useState(null);
@@ -2890,8 +2891,13 @@ export default function Home() {
             return;
         }
         
-        if (!testName.trim() || !lectureText.trim()) {
-            setJsonError("Name and Lecture content are required.");
+        if (!testName.trim()) {
+            setJsonError("Test name is required.");
+            return;
+        }
+
+        if (!lectureText.trim() && !lectureFile) {
+            setJsonError("Provide lecture text or upload a document.");
             return;
         }
 
@@ -2900,13 +2906,16 @@ export default function Home() {
 
         try {
              // 1. Generate JSON from text
+            const generationPayload = new FormData();
+            generationPayload.append('lectureText', lectureText || '');
+            generationPayload.append('godmode', String(isGodmode));
+            if (lectureFile) {
+                generationPayload.append('lectureFile', lectureFile);
+            }
+
             const genRes = await fetch('/api/generate-test', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    lectureText,
-                    godmode: isGodmode
-                })
+                body: generationPayload
             });
 
             const genData = await genRes.json();
@@ -2934,6 +2943,7 @@ export default function Home() {
                 setShowUploadModal(false);
                 setUploadFolder('');
                 setLectureText('');
+                setLectureFile(null);
                 setTestName('');
                 setUploadMode('file');
                 addToast('Success', 'Test generated and uploaded successfully!', 'success');
@@ -3848,12 +3858,26 @@ export default function Home() {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Lecture/Topic Content</label>
                                     <textarea
                                         className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-h-[150px] resize-y"
-                                        placeholder="Paste your lecture notes, article, or topic summary here..."
+                                        placeholder="Paste your lecture notes, article, or topic summary here (or upload file below)..."
                                         value={lectureText}
                                         onChange={(e) => setLectureText(e.target.value)}
-                                        required
-                                        minLength={50}
                                     />
+
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Or Upload Document (doc, docx, pdf, txt, md, rtf)</label>
+                                    <div className="border border-dashed border-gray-300 rounded-lg p-3 mb-6 bg-gray-50 dark:bg-gray-950">
+                                        <input
+                                            type="file"
+                                            accept=".doc,.docx,.pdf,.txt,.md,.rtf"
+                                            onChange={(e) => {
+                                                const picked = e.target.files?.[0] || null;
+                                                setLectureFile(picked);
+                                            }}
+                                            className="block w-full text-sm text-gray-700 dark:text-gray-300 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                                        />
+                                        <p className="mt-2 text-xs text-gray-500">
+                                            {lectureFile ? `Selected: ${lectureFile.name}` : 'No file selected'}
+                                        </p>
+                                    </div>
 
                                     <button
                                         type="submit"
@@ -5115,11 +5139,17 @@ export default function Home() {
 
                                                     // Current selected IDs (could be string like "A, B" or array)
                                                     let selectedAnswerIds = [];
+                                                    const normalizeAnswerId = (value) => String(value ?? '').trim().toLowerCase();
                                                     if (spectatingUser.currentAnswer) {
                                                         if (Array.isArray(spectatingUser.currentAnswer)) {
-                                                            selectedAnswerIds = spectatingUser.currentAnswer;
+                                                            selectedAnswerIds = spectatingUser.currentAnswer
+                                                                .map(normalizeAnswerId)
+                                                                .filter(Boolean);
                                                         } else if (typeof spectatingUser.currentAnswer === 'string') {
-                                                            selectedAnswerIds = spectatingUser.currentAnswer.split(',').map(s => s.trim());
+                                                            selectedAnswerIds = spectatingUser.currentAnswer
+                                                                .split(',')
+                                                                .map(normalizeAnswerId)
+                                                                .filter(Boolean);
                                                         }
                                                     }
 
@@ -5142,7 +5172,7 @@ export default function Home() {
                                                                     isCorrectlyMatched = (userSelectedRight === correctRight);
                                                                 }
                                                             } else {
-                                                                if (selectedAnswerIds.includes(option.id)) {
+                                                                if (selectedAnswerIds.includes(normalizeAnswerId(option.id))) {
                                                                     userSelectedRight = correctRight;
                                                                     isCorrectlyMatched = true;
                                                                     isUserSelection = true;
@@ -5176,7 +5206,7 @@ export default function Home() {
                                                     }
 
                                                     return optionsArray.map((option) => {
-                                                        const isSelected = selectedAnswerIds.includes(option.id);
+                                                        const isSelected = selectedAnswerIds.includes(normalizeAnswerId(option.id));
                                                         return (
                                                             <div key={option.id} className={clsx(
                                                                 "p-4 rounded-xl border-2 transition-all relative overflow-hidden",
@@ -7132,7 +7162,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         ping();
         const interval = setInterval(ping, 3000);
         return () => clearInterval(interval);
-    }, [isFinished, test?.id, userId, userName, currentIndex, totalQuestions, userCountry, userStars, resolvedTheme, question.id]);
+    }, [isFinished, test?.id, userId, userName, currentIndex, totalQuestions, userCountry, userStars, resolvedTheme, question.id, answers, visualStates]);
 
     // Poll for other active users
     useEffect(() => {

@@ -2,10 +2,98 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
+export const runtime = "nodejs";
+
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+const SUPPORTED_UPLOAD_EXTENSIONS = new Set([
+  "txt",
+  "md",
+  "rtf",
+  "pdf",
+  "docx",
+  "doc"
+]);
+
+function getFileExtension(fileName = "") {
+  const parts = String(fileName).toLowerCase().split(".");
+  return parts.length > 1 ? parts.pop() : "";
+}
+
+function sanitizeExtractedText(rawText = "") {
+  return String(rawText)
+    .replace(/\u0000/g, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function extractTextFromUploadedFile(file) {
+  const fileName = file?.name || "";
+  const extension = getFileExtension(fileName);
+
+  if (!SUPPORTED_UPLOAD_EXTENSIONS.has(extension)) {
+    throw new Error("Unsupported file type. Use doc/docx/pdf/txt/rtf/md.");
+  }
+
+  if (typeof file.size === "number" && file.size > MAX_UPLOAD_BYTES) {
+    throw new Error("File is too large. Maximum allowed size is 10 MB.");
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const nodeBuffer = Buffer.from(arrayBuffer);
+
+  if (extension === "txt" || extension === "md" || extension === "rtf") {
+    return sanitizeExtractedText(nodeBuffer.toString("utf-8"));
+  }
+
+  if (extension === "pdf") {
+    const pdfParseModule = await import("pdf-parse");
+    const pdfParse = pdfParseModule.default || pdfParseModule;
+    const parsed = await pdfParse(nodeBuffer);
+    return sanitizeExtractedText(parsed?.text || "");
+  }
+
+  if (extension === "docx") {
+    const mammothModule = await import("mammoth");
+    const mammoth = mammothModule.default || mammothModule;
+    const parsed = await mammoth.extractRawText({ buffer: nodeBuffer });
+    return sanitizeExtractedText(parsed?.value || "");
+  }
+
+  if (extension === "doc") {
+    const WordExtractorModule = await import("word-extractor");
+    const WordExtractor = WordExtractorModule.default || WordExtractorModule;
+    const extractor = new WordExtractor();
+    const extracted = await extractor.extract(nodeBuffer);
+    return sanitizeExtractedText(extracted?.getBody?.() || "");
+  }
+
+  throw new Error("Unsupported file type.");
+}
+
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { lectureText, godmode } = body;
+    let lectureText = "";
+    let godmode = false;
+
+    const contentType = req.headers.get("content-type") || "";
+    if (contentType.includes("multipart/form-data")) {
+      const form = await req.formData();
+      const textInput = form.get("lectureText");
+      const godmodeInput = form.get("godmode");
+      const lectureFile = form.get("lectureFile");
+
+      lectureText = typeof textInput === "string" ? textInput.trim() : "";
+      godmode = godmodeInput === "true";
+
+      if ((!lectureText || lectureText.length < 50) && lectureFile instanceof File) {
+        lectureText = await extractTextFromUploadedFile(lectureFile);
+      }
+    } else {
+      const body = await req.json();
+      lectureText = typeof body?.lectureText === "string" ? body.lectureText.trim() : "";
+      godmode = body?.godmode === true;
+    }
 
     // Only godmode users can generate tests
     if (godmode !== true) {
@@ -17,7 +105,7 @@ export async function POST(req) {
 
     if (!lectureText || lectureText.length < 50) {
       return NextResponse.json(
-        { error: "Lecture text is too short. Please provide more content." },
+        { error: "Lecture text is too short. Please provide more content or upload a richer file." },
         { status: 400 }
       );
     }
