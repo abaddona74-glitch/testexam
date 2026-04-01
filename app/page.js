@@ -2960,18 +2960,24 @@ export default function Home() {
 
         const reader = new FileReader();
         reader.onload = async (event) => {
+            let json;
             try {
-                const json = JSON.parse(event.target.result);
+                json = JSON.parse(event.target.result);
+            } catch (err) {
+                setJsonError("Invalid JSON syntax. Please check your file format.");
+                return;
+            }
 
-                // Validation
-                const validation = validateJson(json);
-                if (!validation.valid) {
-                    setJsonError(validation.error);
-                    return;
-                }
+            // Validation
+            const validation = validateJson(json);
+            if (!validation.valid) {
+                setJsonError(validation.error);
+                return;
+            }
 
-                const name = file.name.replace('.json', '');
+            const name = file.name.replace('.json', '');
 
+            try {
                 const res = await fetch('/api/tests', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2988,11 +2994,30 @@ export default function Home() {
                     setShowUploadModal(false);
                     setUploadFolder('');
                 } else {
-                    const errData = await res.json();
-                    setJsonError(errData.error || "Failed to upload test");
+                    let errMessage = "Failed to upload test";
+
+                    try {
+                        const errData = await res.json();
+                        if (errData?.error) {
+                            errMessage = errData.error;
+                        }
+                    } catch {
+                        try {
+                            const rawText = await res.text();
+                            if (rawText) {
+                                errMessage = `Upload failed (${res.status}): ${rawText.slice(0, 240)}`;
+                            } else {
+                                errMessage = `Upload failed with status ${res.status}`;
+                            }
+                        } catch {
+                            errMessage = `Upload failed with status ${res.status}`;
+                        }
+                    }
+
+                    setJsonError(errMessage);
                 }
             } catch (err) {
-                setJsonError("Invalid JSON syntax. Please check your file format.");
+                setJsonError("Upload request failed. Check internet/Vercel logs and try again.");
             }
         };
         reader.readAsText(file);
