@@ -911,7 +911,30 @@ export default function Home() {
     const chatEndRef = useRef(null);
     const chatPollRef = useRef(null);
     const headerRef = useRef(null);
+    const navScrollRef = useRef(null);
+    const [canNavScrollLeft, setCanNavScrollLeft] = useState(false);
+    const [canNavScrollRight, setCanNavScrollRight] = useState(false);
     const [sidebarTop, setSidebarTop] = useState(80);
+
+    const updateNavScrollControls = useCallback(() => {
+        const el = navScrollRef.current;
+        if (!el) {
+            setCanNavScrollLeft(false);
+            setCanNavScrollRight(false);
+            return;
+        }
+
+        const maxScrollLeft = Math.max(0, el.scrollWidth - el.clientWidth);
+        setCanNavScrollLeft(el.scrollLeft > 4);
+        setCanNavScrollRight(el.scrollLeft < maxScrollLeft - 4);
+    }, []);
+
+    const handleNavSwipe = useCallback((direction) => {
+        const el = navScrollRef.current;
+        if (!el) return;
+        el.scrollBy({ left: direction * 180, behavior: 'smooth' });
+        setTimeout(updateNavScrollControls, 260);
+    }, [updateNavScrollControls]);
 
     // Track header height for sidebar sticky position
     useEffect(() => {
@@ -934,6 +957,20 @@ export default function Home() {
             window.removeEventListener('scroll', updateSidebarTop);
         };
     }, [headerExpanded]);
+
+    useEffect(() => {
+        updateNavScrollControls();
+        const el = navScrollRef.current;
+        if (!el) return;
+
+        el.addEventListener('scroll', updateNavScrollControls, { passive: true });
+        window.addEventListener('resize', updateNavScrollControls);
+
+        return () => {
+            el.removeEventListener('scroll', updateNavScrollControls);
+            window.removeEventListener('resize', updateNavScrollControls);
+        };
+    }, [updateNavScrollControls, headerExpanded, view]);
 
     // Profile State
     const [showProfile, setShowProfile] = useState(false);
@@ -3123,9 +3160,11 @@ export default function Home() {
         return true;
     });
 
+    const renderableActiveUsers = visibleActiveUsers.filter((u) => u && (u.userId || u.name));
+
     return (
         <main className={clsx(
-            "min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32",
+            "min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-12 md:pb-32",
             isLowPerformance ? "perf-low" : isMediumPerformance ? "perf-medium" : "perf-high"
         )}>
             <style jsx global>{`
@@ -3153,13 +3192,14 @@ export default function Home() {
                 }
 
                 .auto-hide-scroll {
-                    scrollbar-width: thin;
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
                     scrollbar-color: transparent transparent;
                 }
 
                 .auto-hide-scroll::-webkit-scrollbar {
-                    width: 8px;
-                    height: 8px;
+                    width: 0;
+                    height: 0;
                 }
 
                 .auto-hide-scroll::-webkit-scrollbar-track {
@@ -3174,10 +3214,18 @@ export default function Home() {
 
                 .auto-hide-scroll:hover {
                     scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+                    scrollbar-width: thin;
                 }
 
                 .auto-hide-scroll[data-scrolling='true'] {
                     scrollbar-color: rgba(148, 163, 184, 0.65) transparent;
+                    scrollbar-width: thin;
+                }
+
+                .auto-hide-scroll:hover::-webkit-scrollbar,
+                .auto-hide-scroll[data-scrolling='true']::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
                 }
 
                 .auto-hide-scroll:hover::-webkit-scrollbar-thumb {
@@ -3186,6 +3234,24 @@ export default function Home() {
 
                 .auto-hide-scroll[data-scrolling='true']::-webkit-scrollbar-thumb {
                     background: rgba(148, 163, 184, 0.65);
+                }
+
+                .no-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+
+                .no-scrollbar::-webkit-scrollbar {
+                    width: 0;
+                    height: 0;
+                    display: none;
+                }
+
+                @media (min-width: 1024px) {
+                    .sidebar-scroll-shell {
+                        top: var(--sidebar-top);
+                        max-height: calc(100vh - var(--sidebar-top) - 16px);
+                    }
                 }
             `}</style>
             <div className="max-w-7xl mx-auto">
@@ -3212,10 +3278,14 @@ export default function Home() {
                         </div>
                     )}
 
-                    <div className={clsx(
-                        "auto-hide-scroll relative z-10 transition-all duration-300 overflow-x-auto overflow-y-hidden",
-                        headerExpanded ? "opacity-100 max-h-[100px]" : "opacity-0 max-h-0 pointer-events-none"
-                    )}>
+                    <div className="relative z-10">
+                    <div
+                        ref={navScrollRef}
+                        className={clsx(
+                            "transition-all duration-300 overflow-x-auto overflow-y-hidden no-scrollbar md:auto-hide-scroll",
+                            headerExpanded ? "opacity-100 max-h-[100px]" : "opacity-0 max-h-0 pointer-events-none"
+                        )}
+                    >
                         <div className="flex justify-between items-center gap-3 min-w-max md:min-w-0 md:w-full pr-1">
                         <div className="flex items-center gap-2 md:gap-4">
                             <div>
@@ -3367,6 +3437,33 @@ export default function Home() {
                             )}
                         </div>
                         </div>
+                        {headerExpanded && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => handleNavSwipe(-1)}
+                                    className={clsx(
+                                        "md:hidden absolute left-1 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-black/35 text-white backdrop-blur-sm flex items-center justify-center transition-opacity",
+                                        canNavScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none"
+                                    )}
+                                    aria-label="Scroll navbar left"
+                                >
+                                    <ChevronLeft size={14} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleNavSwipe(1)}
+                                    className={clsx(
+                                        "md:hidden absolute right-1 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-black/35 text-white backdrop-blur-sm flex items-center justify-center transition-opacity",
+                                        canNavScrollRight ? "opacity-100" : "opacity-0 pointer-events-none"
+                                    )}
+                                    aria-label="Scroll navbar right"
+                                >
+                                    <ChevronRight size={14} />
+                                </button>
+                            </>
+                        )}
+                    </div>
                     </div>
 
                     {/* Navbar Toggle Handle - Up/Down Logic for Header */}
@@ -4687,8 +4784,8 @@ export default function Home() {
                             </button>
                         </div>
 
-                        <div className={clsx("transition-all duration-500 ease-in-out shrink-0 self-stretch", sidebarExpanded ? "w-full lg:w-80 opacity-100" : "w-0 opacity-0 lg:hidden")}>
-                            <div className="sticky space-y-6 lg:w-80 overflow-y-auto pr-1 custom-scrollbar" style={{ top: `${sidebarTop}px`, maxHeight: `calc(100vh - ${sidebarTop}px - 16px)` }}>
+                        <div className={clsx("transition-all duration-500 ease-in-out shrink-0 lg:self-stretch", sidebarExpanded ? "w-full lg:w-80 opacity-100" : "w-0 opacity-0 lg:hidden")}>
+                            <div className="sidebar-scroll-shell space-y-6 lg:w-80 pr-1 custom-scrollbar lg:sticky lg:overflow-y-auto" style={{ '--sidebar-top': `${sidebarTop}px` }}>
                                 {/* Active Users Widget */}
                                 <div className="relative overflow-hidden rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl p-6">
                                     {/* Liquid Background */}
@@ -4705,19 +4802,19 @@ export default function Home() {
                                         </div>
                                         <h3 className="font-bold text-gray-800 dark:text-gray-200">Online Users</h3>
                                         <span className="text-xs font-mono text-gray-400 ml-auto bg-gray-50/50 dark:bg-gray-950/50 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-800/50 backdrop-blur-sm">
-                                            {visibleActiveUsers.length}
+                                            {renderableActiveUsers.length}
                                         </span>
                                     </div>
 
                                     <div className="relative z-10 space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                                        {!isUsersLoaded && visibleActiveUsers.length === 0 ? (
+                                        {!isUsersLoaded && renderableActiveUsers.length === 0 ? (
                                             <div className="flex justify-center p-4">
                                                 <Loader2 className="animate-spin text-blue-500" size={20} />
                                             </div>
-                                        ) : visibleActiveUsers.length === 0 ? (
+                                        ) : renderableActiveUsers.length === 0 ? (
                                             <p className="text-sm text-gray-400 text-center py-4">No active users.</p>
                                         ) : (
-                                            [...visibleActiveUsers]
+                                            [...renderableActiveUsers]
                                                 .sort((a, b) => (a.userId === userId ? -1 : b.userId === userId ? 1 : 0))
                                                 .map((user, idx) => {
                                                     const isMe = user.userId === userId;
@@ -4734,7 +4831,7 @@ export default function Home() {
                                                                     ? "bg-blue-600 text-white border-blue-600 animate-float"
                                                                     : "bg-gradient-to-br from-blue-100 to-indigo-100 text-indigo-600 border-indigo-200"
                                                             )}>
-                                                                {isMe ? <User size={14} /> : user.name.charAt(0).toUpperCase()}
+                                                                {isMe ? <User size={14} /> : (user.name || '?').charAt(0).toUpperCase()}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-center">
@@ -4745,7 +4842,7 @@ export default function Home() {
                                                                             </span>
                                                                         )}
                                                                         <p className={clsx("text-sm font-semibold truncate", isMe ? "text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-100")}>
-                                                                            {isMe ? "Me" : user.name}
+                                                                            {isMe ? "Me" : (user.name || 'Anonymous')}
                                                                         </p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
@@ -4990,7 +5087,7 @@ export default function Home() {
                                         </div>
                                     </div>
 
-                                    <div className="relative z-10 flex flex-col" style={{ height: '350px' }}>
+                                    <div className="relative z-10 flex flex-col h-[430px] sm:h-[380px] lg:h-[350px]">
                                         {/* Messages */}
                                         <div className="flex-1 overflow-y-auto p-3 space-y-2">
                                             {chatMessages.length === 0 ? (
