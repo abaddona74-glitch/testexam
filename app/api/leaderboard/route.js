@@ -130,9 +130,16 @@ export async function POST(request) {
     }
     
     // Get region from body (Client detected) OR headers (Vercel/Middleware)
-    const country = bodyCountry || request.headers.get('x-vercel-ip-country') || 'Unknown';
-    const city = bodyCity || request.headers.get('x-vercel-ip-city') || 'Unknown';
-    const region = bodyRegion || request.headers.get('x-vercel-ip-region') || 'Unknown';
+        const normalizeGeo = (value) => {
+            if (!value) return null;
+            const trimmed = String(value).trim();
+            if (!trimmed || trimmed.toLowerCase() === 'unknown') return null;
+            return trimmed;
+        };
+
+        const country = normalizeGeo(bodyCountry || request.headers.get('x-vercel-ip-country'));
+        const city = normalizeGeo(bodyCity || request.headers.get('x-vercel-ip-city'));
+        const region = normalizeGeo(bodyRegion || request.headers.get('x-vercel-ip-region'));
 
     const newEntry = await Leaderboard.create({
         name,

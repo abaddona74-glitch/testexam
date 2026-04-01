@@ -18,6 +18,8 @@ const LazyLiquidGlassClock = dynamic(
     { ssr: false, loading: () => null }
 );
 
+const PROFILE_CACHE_TTL_MS = 2 * 60 * 1000;
+
 const DIFFICULTIES = [
     { id: 'easy', name: 'Easy', hints: 3, icon: Lightbulb, color: 'text-green-500', bg: 'bg-green-100', border: 'border-green-200', timeLimit: null },
     { id: 'middle', name: 'Middle', hints: 1, icon: Zap, color: 'text-yellow-500', bg: 'bg-yellow-100', border: 'border-yellow-200', timeLimit: null },
@@ -86,7 +88,7 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
             name: 'Mythic',
             badgeClass: 'bg-gray-900/5 text-transparent bg-clip-text bg-gradient-to-r from-red-800 via-red-600 to-red-800 border-red-600 shadow-[0_0_15px_rgba(255,0,0,0.6)] font-extrabold',
             textClass: 'font-extrabold mythic-blood',
-            rowClass: 'bg-gradient-to-r from-red-100/30 via-red-50/20 to-red-100/30 border-l-4 border-l-[#ff0000]',
+            rowClass: 'bg-gradient-to-r from-red-100/30 via-red-50/20 to-red-100/30 dark:from-red-900/20 dark:via-red-900/10 dark:to-red-900/20 border-l-4 border-l-[#ff0000]',
             icon: Trophy
         };
     }
@@ -109,7 +111,7 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
             name: 'Legendary',
             badgeClass: 'legendary-border-tail border-transparent legendary-rgb-text font-bold',
             textClass: 'font-bold legendary-rgb-text drop-shadow-[0_1px_1px_rgba(251,191,36,0.3)]',
-            rowClass: 'bg-gradient-to-r from-amber-50/50 to-transparent border-l-4 border-l-amber-400',
+            rowClass: 'bg-gradient-to-r from-amber-50/50 to-transparent dark:from-amber-900/20 dark:to-transparent border-l-4 border-l-amber-400',
             icon: Crown
         };
     }
@@ -124,7 +126,7 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
         name: 'Epic',
         badgeClass: 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
         textClass: 'font-semibold text-purple-700',
-        rowClass: 'hover:bg-purple-50/30 border-l-4 border-l-transparent hover:border-l-purple-300',
+        rowClass: 'hover:bg-purple-50/30 dark:hover:bg-purple-900/20 border-l-4 border-l-transparent hover:border-l-purple-300 dark:hover:border-l-purple-700',
         icon: Swords
     };
 
@@ -132,7 +134,7 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
         name: 'Diamond',
         badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200',
         textClass: 'font-medium text-cyan-700',
-        rowClass: 'hover:bg-cyan-50/30 transition-colors',
+        rowClass: 'hover:bg-cyan-50/30 dark:hover:bg-cyan-900/20 transition-colors',
         icon: Gem
     };
 
@@ -140,7 +142,7 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
         name: 'Ruby',
         badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
         textClass: 'text-rose-600',
-        rowClass: 'hover:bg-rose-50/30 transition-colors',
+        rowClass: 'hover:bg-rose-50/30 dark:hover:bg-rose-900/20 transition-colors',
         icon: Shield
     };
 
@@ -148,7 +150,7 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
         name: 'Iron',
         badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
         textClass: 'text-slate-600',
-        rowClass: 'hover:bg-slate-50 transition-colors',
+        rowClass: 'hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors',
         icon: Shield
     };
 
@@ -156,7 +158,7 @@ function getLeague(score, total, difficulty, duration = 0, questions = [], answe
         name: 'Copper',
         badgeClass: 'bg-orange-100 text-orange-800 border-orange-200',
         textClass: 'text-orange-900',
-        rowClass: 'hover:bg-orange-50 transition-colors',
+        rowClass: 'hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors',
         icon: Shield
     };
 }
@@ -858,6 +860,30 @@ export default function Home() {
         } catch { }
     }, [performanceMode]);
 
+    useEffect(() => {
+        const scrollers = Array.from(document.querySelectorAll('.auto-hide-scroll'));
+        const cleanups = [];
+
+        scrollers.forEach((el) => {
+            let timer = null;
+            const markScrolling = () => {
+                el.setAttribute('data-scrolling', 'true');
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => {
+                    el.removeAttribute('data-scrolling');
+                }, 900);
+            };
+
+            el.addEventListener('scroll', markScrolling, { passive: true });
+            cleanups.push(() => {
+                if (timer) clearTimeout(timer);
+                el.removeEventListener('scroll', markScrolling);
+            });
+        });
+
+        return () => cleanups.forEach((fn) => fn());
+    }, []);
+
     const isLowPerformance = performanceMode === 'low';
     const isMediumPerformance = performanceMode === 'medium';
     const [showDonateModal, setShowDonateModal] = useState(false);
@@ -912,6 +938,9 @@ export default function Home() {
     // Profile State
     const [showProfile, setShowProfile] = useState(false);
     const [profileData, setProfileData] = useState([]);
+    const [isProfileLoading, setIsProfileLoading] = useState(false);
+    const [profileLoadedUser, setProfileLoadedUser] = useState('');
+    const [profileLoadedAt, setProfileLoadedAt] = useState(0);
 
     // Persistence for Filters
     useEffect(() => {
@@ -999,7 +1028,16 @@ export default function Home() {
     }, [chatMessages]);
 
     // Profile: fetch user history from leaderboard
-    const fetchProfileData = useCallback(async () => {
+    const fetchProfileData = useCallback(async (force = false) => {
+        const hasFreshCache =
+            profileLoadedUser === userName &&
+            Date.now() - profileLoadedAt < PROFILE_CACHE_TTL_MS;
+
+        if (!force && hasFreshCache) {
+            return;
+        }
+
+        setIsProfileLoading(true);
         try {
             const res = await fetch(`/api/leaderboard?period=all&limit=500`);
             if (res.ok) {
@@ -1017,11 +1055,15 @@ export default function Home() {
                 });
                 const profileArr = Object.entries(grouped).map(([name, pct]) => ({ name, pct }));
                 setProfileData(profileArr);
+                setProfileLoadedUser(userName);
+                setProfileLoadedAt(Date.now());
             }
         } catch (e) {
             console.error('Profile fetch error', e);
+        } finally {
+            setIsProfileLoading(false);
         }
-    }, [userName]);
+    }, [userName, profileLoadedUser, profileLoadedAt]);
 
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
@@ -3086,32 +3128,66 @@ export default function Home() {
             "min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32",
             isLowPerformance ? "perf-low" : isMediumPerformance ? "perf-medium" : "perf-high"
         )}>
-            {(isLowPerformance || isMediumPerformance) && (
-                <style jsx global>{`
-                    .perf-low .animate-blob,
-                    .perf-low .animate-pulse,
-                    .perf-low .animate-bounce,
-                    .perf-low .animate-ping {
-                        animation: none !important;
-                    }
+            <style jsx global>{`
+                .perf-low .animate-blob,
+                .perf-low .animate-pulse,
+                .perf-low .animate-bounce,
+                .perf-low .animate-ping {
+                    animation: none !important;
+                }
 
-                    .perf-low .blur-3xl,
-                    .perf-low .blur-2xl {
-                        filter: none !important;
-                    }
+                .perf-low .blur-3xl,
+                .perf-low .blur-2xl {
+                    filter: none !important;
+                }
 
-                    .perf-low .backdrop-blur-xl,
-                    .perf-low .backdrop-blur-md,
-                    .perf-low .backdrop-blur-sm {
-                        backdrop-filter: none !important;
-                        -webkit-backdrop-filter: none !important;
-                    }
+                .perf-low .backdrop-blur-xl,
+                .perf-low .backdrop-blur-md,
+                .perf-low .backdrop-blur-sm {
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                }
 
-                    .perf-medium .animate-blob {
-                        animation-duration: 12s !important;
-                    }
-                `}</style>
-            )}
+                .perf-medium .animate-blob {
+                    animation-duration: 12s !important;
+                }
+
+                .auto-hide-scroll {
+                    scrollbar-width: thin;
+                    scrollbar-color: transparent transparent;
+                }
+
+                .auto-hide-scroll::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                }
+
+                .auto-hide-scroll::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
+                .auto-hide-scroll::-webkit-scrollbar-thumb {
+                    background: transparent;
+                    border-radius: 999px;
+                    transition: background-color 0.25s ease;
+                }
+
+                .auto-hide-scroll:hover {
+                    scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+                }
+
+                .auto-hide-scroll[data-scrolling='true'] {
+                    scrollbar-color: rgba(148, 163, 184, 0.65) transparent;
+                }
+
+                .auto-hide-scroll:hover::-webkit-scrollbar-thumb {
+                    background: rgba(148, 163, 184, 0.55);
+                }
+
+                .auto-hide-scroll[data-scrolling='true']::-webkit-scrollbar-thumb {
+                    background: rgba(148, 163, 184, 0.65);
+                }
+            `}</style>
             <div className="max-w-7xl mx-auto">
                 <header ref={headerRef} className={clsx(
                     "relative mb-8 rounded-2xl sticky top-4 z-40 transition-all duration-300 ease-in-out",
@@ -3137,7 +3213,7 @@ export default function Home() {
                     )}
 
                     <div className={clsx(
-                        "relative z-10 transition-all duration-300 overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                        "auto-hide-scroll relative z-10 transition-all duration-300 overflow-x-auto overflow-y-hidden",
                         headerExpanded ? "opacity-100 max-h-[100px]" : "opacity-0 max-h-0 pointer-events-none"
                     )}>
                         <div className="flex justify-between items-center gap-3 min-w-max md:min-w-0 md:w-full pr-1">
@@ -3263,13 +3339,13 @@ export default function Home() {
                             <button
                                 onClick={() => {
                                     playStartSound();
-                                    fetchProfileData();
                                     setShowProfile(true);
+                                    fetchProfileData();
                                 }}
                                 className="p-1.5 md:p-2 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
                                 title="My Profile"
                             >
-                                <User size={18} className="md:w-5 md:h-5" />
+                                {isProfileLoading ? <Loader2 size={18} className="md:w-5 md:h-5 animate-spin" /> : <User size={18} className="md:w-5 md:h-5" />}
                             </button>
 
                             {view !== 'list' && (
@@ -3563,7 +3639,12 @@ export default function Home() {
                             </div>
 
                             {/* Radar Chart */}
-                            {profileData.length > 0 ? (
+                            {isProfileLoading ? (
+                                <div className="py-10 text-center text-gray-400">
+                                    <Loader2 size={28} className="mx-auto mb-3 animate-spin text-indigo-500" />
+                                    <p className="text-sm">Profile data loading...</p>
+                                </div>
+                            ) : profileData.length > 0 ? (
                                 <div className="mb-6">
                                     <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 text-center">Performance by Subject</h3>
                                     <div className="flex justify-center">
@@ -3572,26 +3653,33 @@ export default function Home() {
                                                 const cx = 200, cy = 200, maxR = 150;
                                                 const items = profileData.slice(0, 8); // Max 8 subjects for readability
                                                 const n = items.length;
-                                                const angleStep = (2 * Math.PI) / n;
 
-                                                // Concentric rings
+                                                // Keep at least 3 axes so chart stays spider-web shaped even with 1-2 subjects.
+                                                const axisCount = Math.max(n, 3);
+                                                const angleStep = (2 * Math.PI) / axisCount;
+
                                                 const rings = [0.25, 0.5, 0.75, 1.0];
 
-                                                // Points for the data polygon
-                                                const points = items.map((item, i) => {
+                                                const axisPoints = Array.from({ length: axisCount }, (_, i) => {
                                                     const angle = i * angleStep - Math.PI / 2;
-                                                    const r = (item.pct / 100) * maxR;
                                                     return {
-                                                        x: cx + r * Math.cos(angle),
-                                                        y: cy + r * Math.sin(angle),
-                                                        labelX: cx + (maxR + 25) * Math.cos(angle),
-                                                        labelY: cy + (maxR + 25) * Math.sin(angle),
+                                                        angle,
                                                         axisX: cx + maxR * Math.cos(angle),
                                                         axisY: cy + maxR * Math.sin(angle),
                                                     };
                                                 });
 
-                                                const polygonPoints = points.map(p => `${p.x},${p.y}`).join(' ');
+                                                const dataPoints = axisPoints.map((axis, i) => {
+                                                    const pct = items[i]?.pct ?? 0;
+                                                    const r = (pct / 100) * maxR;
+                                                    return {
+                                                        x: cx + r * Math.cos(axis.angle),
+                                                        y: cy + r * Math.sin(axis.angle),
+                                                        pct,
+                                                    };
+                                                });
+
+                                                const polygonPoints = dataPoints.map((p) => `${p.x},${p.y}`).join(' ');
 
                                                 return (
                                                     <>
@@ -3599,20 +3687,19 @@ export default function Home() {
                                                         {rings.map((r, i) => (
                                                             <polygon
                                                                 key={i}
-                                                                points={Array.from({ length: n }, (_, j) => {
+                                                                points={Array.from({ length: axisCount }, (_, j) => {
                                                                     const angle = j * angleStep - Math.PI / 2;
                                                                     return `${cx + maxR * r * Math.cos(angle)},${cy + maxR * r * Math.sin(angle)}`;
                                                                 }).join(' ')}
                                                                 fill="none"
-                                                                stroke="currentColor"
-                                                                className="text-gray-200 dark:text-gray-700"
-                                                                strokeWidth="1"
+                                                                stroke="rgba(148,163,184,0.5)"
+                                                                strokeWidth="1.2"
                                                             />
                                                         ))}
 
                                                         {/* Axis lines */}
-                                                        {points.map((p, i) => (
-                                                            <line key={i} x1={cx} y1={cy} x2={p.axisX} y2={p.axisY} stroke="currentColor" className="text-gray-200 dark:text-gray-700" strokeWidth="1" />
+                                                        {axisPoints.map((p, i) => (
+                                                            <line key={i} x1={cx} y1={cy} x2={p.axisX} y2={p.axisY} stroke="rgba(148,163,184,0.45)" strokeWidth="1" />
                                                         ))}
 
                                                         {/* Data polygon */}
@@ -3624,13 +3711,13 @@ export default function Home() {
                                                         />
 
                                                         {/* Data points */}
-                                                        {points.map((p, i) => (
+                                                        {dataPoints.map((p, i) => (
                                                             <circle key={i} cx={p.x} cy={p.y} r="4" fill="#6366f1" stroke="white" strokeWidth="2" />
                                                         ))}
 
                                                         {/* Labels */}
                                                         {items.map((item, i) => {
-                                                            const angle = i * angleStep - Math.PI / 2;
+                                                            const angle = axisPoints[i].angle;
                                                             const lx = cx + (maxR + 30) * Math.cos(angle);
                                                             const ly = cy + (maxR + 30) * Math.sin(angle);
                                                             // Truncate long names
@@ -4425,7 +4512,7 @@ export default function Home() {
                                 {leaderboard.length === 0 ? (
                                     <div className="relative z-10 text-center py-8 text-gray-400 italic">No results yet. Be the first!</div>
                                 ) : (
-                                    <div className="relative z-10 overflow-x-hidden hover:overflow-x-auto transition-all scrollbar-hide">
+                                    <div className="auto-hide-scroll relative z-10 overflow-x-auto transition-all">
                                         <table className="w-full text-center table-fixed min-w-[800px]">
                                             <thead>
                                                 <tr className="border-b border-gray-100 dark:border-gray-800/50 text-xs uppercase text-gray-400 font-semibold tracking-wider">
@@ -4479,9 +4566,12 @@ export default function Home() {
                                                                             {entry.name}
                                                                         </span>
                                                                     )}
-                                                                    {entry.country && (
-                                                                        <span className="text-[10px] uppercase tracking-wide text-gray-400 bg-gray-50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded border border-gray-100 dark:border-gray-700/50 mt-1">
-                                                                            {entry.country} {entry.region ? `· ${entry.region.split('-')[1] || entry.region}` : ''}
+                                                                    {entry.country && String(entry.country).toLowerCase() !== 'unknown' && (
+                                                                        <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/70 px-1.5 py-0.5 rounded border border-gray-100 dark:border-gray-700/50 mt-1">
+                                                                            {entry.country}
+                                                                            {entry.region && String(entry.region).toLowerCase() !== 'unknown'
+                                                                                ? ` · ${entry.region.split('-')[1] || entry.region}`
+                                                                                : ''}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -7710,9 +7800,9 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                         questions: test.questions, // Store snapshot
                         answers: answers,
                         difficulty: test.difficultyMode, // Save Difficulty to Leaderboard
-                        country: (userLocation && userLocation.country_code) || userCountry || 'Unknown',
-                        city: (userLocation && userLocation.city) || 'Unknown',
-                        region: (userLocation && userLocation.region) || 'Unknown'
+                        country: (userLocation && userLocation.country_code) || userCountry || null,
+                        city: (userLocation && userLocation.city) || null,
+                        region: (userLocation && userLocation.region) || null
                     })
                 });
             }
