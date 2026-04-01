@@ -16,7 +16,7 @@ const TABS = [
 
 // ─── Utility Components ────────────────────────────────────────
 
-function StatCard({ label, value, icon, color = 'blue', sub }) {
+function StatCard({ label, value, icon, color = 'blue', sub, onClick }) {
   const colors = {
     blue: 'from-blue-500 to-blue-600',
     green: 'from-green-500 to-green-600',
@@ -28,7 +28,12 @@ function StatCard({ label, value, icon, color = 'blue', sub }) {
     yellow: 'from-yellow-500 to-yellow-600',
   };
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} rounded-xl p-4 text-white shadow-lg`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full text-left bg-gradient-to-br ${colors[color]} rounded-xl p-4 text-white shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl ${onClick ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/60' : 'cursor-default'}`}
+      title={onClick ? `${label} details` : label}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm opacity-80">{label}</p>
@@ -37,7 +42,7 @@ function StatCard({ label, value, icon, color = 'blue', sub }) {
         </div>
         <span className="text-3xl opacity-70">{icon}</span>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -359,6 +364,10 @@ export default function AdminPage() {
   const [realtimeActive, setRealtimeActive] = useState(0);
   const [realtimeSessions, setRealtimeSessions] = useState([]);
   const [fullscreenSessionKey, setFullscreenSessionKey] = useState(null);
+
+  const openTab = useCallback((tabId) => {
+    setActiveTab(tabId);
+  }, []);
 
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
@@ -726,16 +735,16 @@ export default function AdminPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              <StatCard label="Active Users" value={realtimeActive} icon="👥" color="green" sub="real-time" />
-              <StatCard label="Unique Visitors" value={dashboard.stats.uniqueVisitors} icon="👁️" color="blue" />
-              <StatCard label="Total Logs" value={dashboard.stats.totalLogs} icon="📋" color="cyan" />
-              <StatCard label="AI Requests" value={dashboard.stats.aiRequests} icon="🤖" color="purple" />
-              <StatCard label="Suspicious" value={dashboard.stats.suspiciousLogs} icon="⚠️" color="red" />
-              <StatCard label="Chat Messages" value={dashboard.stats.chatMessages} icon="💬" color="pink" />
-              <StatCard label="Comments" value={dashboard.stats.comments} icon="📝" color="orange" />
-              <StatCard label="Tests (DB)" value={dashboard.stats.testsCount} icon="📚" color="blue" />
-              <StatCard label="Leaderboard" value={dashboard.stats.leaderboardCount} icon="🏆" color="yellow" />
-              <StatCard label="Blocked IPs" value={dashboard.stats.blockedIPs} icon="🚫" color="red" />
+              <StatCard label="Active Users" value={realtimeActive} icon="👥" color="green" sub="real-time" onClick={() => openTab('live')} />
+              <StatCard label="Unique Visitors" value={dashboard.stats.uniqueVisitors} icon="👁️" color="blue" onClick={() => openTab('logs')} />
+              <StatCard label="Total Logs" value={dashboard.stats.totalLogs} icon="📋" color="cyan" onClick={() => openTab('logs')} />
+              <StatCard label="AI Requests" value={dashboard.stats.aiRequests} icon="🤖" color="purple" onClick={() => openTab('ai')} />
+              <StatCard label="Suspicious" value={dashboard.stats.suspiciousLogs} icon="⚠️" color="red" onClick={() => openTab('security')} />
+              <StatCard label="Chat Messages" value={dashboard.stats.chatMessages} icon="💬" color="pink" onClick={() => openTab('content')} />
+              <StatCard label="Comments" value={dashboard.stats.comments} icon="📝" color="orange" onClick={() => openTab('content')} />
+              <StatCard label="Tests (DB)" value={dashboard.stats.testsCount} icon="📚" color="blue" onClick={() => openTab('content')} />
+              <StatCard label="Leaderboard" value={dashboard.stats.leaderboardCount} icon="🏆" color="yellow" onClick={() => openTab('overview')} />
+              <StatCard label="Blocked IPs" value={dashboard.stats.blockedIPs} icon="🚫" color="red" onClick={() => openTab('blocklist')} />
             </div>
 
             {/* Charts Row */}

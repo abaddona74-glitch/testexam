@@ -1400,8 +1400,10 @@ export default function Home() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadFolder, setUploadFolder] = useState('');
     const [uploadMode, setUploadMode] = useState('file'); // 'file' | 'text'
+    const [uploadModeDirection, setUploadModeDirection] = useState(1);
     const [lectureText, setLectureText] = useState('');
     const [lectureFile, setLectureFile] = useState(null);
+    const lectureFileInputRef = useRef(null);
     const [testName, setTestName] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [jsonError, setJsonError] = useState(null);
@@ -1411,6 +1413,14 @@ export default function Home() {
     const testUploadsEnabled = testUploadMode !== 'off';
     const isGodmode = activatedCheats.includes('godmode');
     const canUploadTests = testUploadsEnabled || isGodmode;
+
+    const handleUploadModeChange = useCallback((nextMode) => {
+        if (nextMode === uploadMode) return;
+        const modeOrder = { file: 0, text: 1 };
+        const direction = modeOrder[nextMode] > modeOrder[uploadMode] ? 1 : -1;
+        setUploadModeDirection(direction);
+        setUploadMode(nextMode);
+    }, [uploadMode]);
 
     // Persistent state for resuming tests
     const [savedProgress, setSavedProgress] = useState({});
@@ -3774,44 +3784,62 @@ export default function Home() {
                             </h2>
 
                             {/* Mode Switcher */}
-                            <div className="flex gap-2 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                            <div className="relative grid grid-cols-2 gap-2 mb-6 bg-gray-100 dark:bg-gray-900 p-1 rounded-lg overflow-hidden">
+                                <motion.div
+                                    className="absolute top-1 left-1 bottom-1 rounded-md bg-white dark:bg-gray-700 shadow-sm"
+                                    style={{ width: 'calc(50% - 0.25rem)' }}
+                                    animate={{ x: uploadMode === 'file' ? '0%' : '100%' }}
+                                    transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.5 }}
+                                />
                                 <button
-                                    onClick={() => setUploadMode('file')}
+                                    onClick={() => handleUploadModeChange('file')}
                                     className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
                                         uploadMode === 'file'
-                                            ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
+                                            ? 'text-blue-600 dark:text-blue-400'
                                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                    }`}
+                                    } relative z-10`}
                                 >
                                     JSON File
                                 </button>
                                 <button
-                                    onClick={() => setUploadMode('text')}
+                                    onClick={() => handleUploadModeChange('text')}
                                     className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
                                         uploadMode === 'text'
-                                            ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
+                                            ? 'text-blue-600 dark:text-blue-400'
                                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                    }`}
+                                    } relative z-10`}
                                 >
                                     Generate from Text
                                 </button>
                             </div>
 
-                            {uploadMode === 'file' ? (
-                                <form onSubmit={handleUploadSubmit}>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Subject</label>
-                                    <select
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            <AnimatePresence mode="wait" custom={uploadModeDirection} initial={false}>
+                                {uploadMode === 'file' ? (
+                                <motion.form
+                                    key="upload-file-mode"
+                                    onSubmit={handleUploadSubmit}
+                                    custom={uploadModeDirection}
+                                    initial={{ x: uploadModeDirection > 0 ? -42 : 42, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    exit={{ x: uploadModeDirection > 0 ? 42 : -42, opacity: 0 }}
+                                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                                >
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Select Subject</label>
+                                    <input
+                                        list="upload-subject-options"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-900/70 text-gray-900 dark:text-gray-100"
                                         value={uploadFolder}
                                         onChange={(e) => setUploadFolder(e.target.value)}
-                                    >
+                                        placeholder="Choose subject or type new name"
+                                    />
+                                    <datalist id="upload-subject-options">
                                         <option value="">General (Root)</option>
                                         {folders.map(f => (
                                             <option key={f} value={f}>{f}</option>
                                         ))}
-                                    </select>
+                                    </datalist>
 
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Test File (JSON)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Test File (JSON)</label>
                                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 dark:bg-gray-950 transition-colors mb-6 relative">
                                         <input
                                             type="file"
@@ -3830,53 +3858,78 @@ export default function Home() {
                                     >
                                         Upload Test
                                     </button>
-                                </form>
+                                </motion.form>
                             ) : (
-                                <form onSubmit={handleGenerateSubmit}>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Test Name</label>
+                                <motion.form
+                                    key="upload-text-mode"
+                                    onSubmit={handleGenerateSubmit}
+                                    custom={uploadModeDirection}
+                                    initial={{ x: uploadModeDirection > 0 ? 42 : -42, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    exit={{ x: uploadModeDirection > 0 ? -42 : 42, opacity: 0 }}
+                                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                                >
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Test Name</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-900/70 text-gray-900 dark:text-gray-100"
                                         placeholder="e.g. History Final Exam"
                                         value={testName}
                                         onChange={(e) => setTestName(e.target.value)}
                                         required
                                     />
 
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Subject</label>
-                                    <select
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Select Subject</label>
+                                    <input
+                                        list="upload-subject-options"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-900/70 text-gray-900 dark:text-gray-100"
                                         value={uploadFolder}
                                         onChange={(e) => setUploadFolder(e.target.value)}
-                                    >
+                                        placeholder="Choose subject or type new name"
+                                    />
+                                    <datalist id="upload-subject-options">
                                         <option value="">General (Root)</option>
                                         {folders.map(f => (
                                             <option key={f} value={f}>{f}</option>
                                         ))}
-                                    </select>
+                                    </datalist>
 
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Lecture/Topic Content</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Lecture/Topic Content</label>
                                     <textarea
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none mb-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-h-[150px] resize-y"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none mb-6 bg-white dark:bg-gray-900/70 text-gray-900 dark:text-gray-100 min-h-[150px] resize-y"
                                         placeholder="Paste your lecture notes, article, or topic summary here (or upload file below)..."
                                         value={lectureText}
                                         onChange={(e) => setLectureText(e.target.value)}
                                     />
 
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Or Upload Document (doc, docx, pdf, txt, md, rtf)</label>
-                                    <div className="border border-dashed border-gray-300 rounded-lg p-3 mb-6 bg-gray-50 dark:bg-gray-950">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Or Upload Document (doc, docx, pdf, txt, md, rtf)</label>
+                                    <div className="border border-dashed border-gray-300 rounded-lg p-4 mb-6 bg-gray-50 dark:bg-gray-950">
                                         <input
+                                            ref={lectureFileInputRef}
+                                            id="lecture-file-input"
                                             type="file"
                                             accept=".doc,.docx,.pdf,.txt,.md,.rtf"
                                             onChange={(e) => {
                                                 const picked = e.target.files?.[0] || null;
                                                 setLectureFile(picked);
                                             }}
-                                            className="block w-full text-sm text-gray-700 dark:text-gray-300 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                                            className="hidden"
                                         />
-                                        <p className="mt-2 text-xs text-gray-500">
-                                            {lectureFile ? `Selected: ${lectureFile.name}` : 'No file selected'}
-                                        </p>
+                                        <div className="flex items-center justify-center gap-3 text-center">
+                                            <p
+                                                className="text-xs text-gray-600 dark:text-gray-300 leading-none truncate max-w-[180px]"
+                                                title={lectureFile ? lectureFile.name : 'No file selected'}
+                                            >
+                                                {lectureFile ? `Selected: ${lectureFile.name}` : 'No file selected'}
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => lectureFileInputRef.current?.click()}
+                                                className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                                            >
+                                                Choose file
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <button
@@ -3895,8 +3948,9 @@ export default function Home() {
                                             </>
                                         )}
                                     </button>
-                                </form>
+                                </motion.form>
                             )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 )}
@@ -4105,6 +4159,9 @@ export default function Home() {
                                         if (idxB !== -1) return 1;
                                         
                                         return catA.localeCompare(catB);
+                                    }).filter(([, categoryTests]) => {
+                                        if (activatedCheats.includes('admin123')) return true;
+                                        return categoryTests.length > 0;
                                     }).map(([category, categoryTests]) => (
                                         <div key={category} className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-6 border border-gray-100 dark:border-gray-800/30">
                                             <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
@@ -4806,7 +4863,7 @@ export default function Home() {
                                                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
                                                     placeholder={chatMode === 'dm' ? `Message ${chatDmPartner}...` : "Message everyone..."}
                                                     className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100"
-                                                    maxLength={500}
+                                                    maxLength={5000}
                                                 />
                                                 <button
                                                     onClick={sendChatMessage}
@@ -4815,6 +4872,9 @@ export default function Home() {
                                                 >
                                                     <Send size={16} />
                                                 </button>
+                                            </div>
+                                            <div className="mt-1 text-right text-[10px] text-gray-400">
+                                                {chatInput.length}/5000
                                             </div>
                                             {chatMode === 'dm' && (
                                                 <button
@@ -6432,10 +6492,10 @@ function TestComments({ testId, userName }) {
                             placeholder="Share your thoughts about this test..."
                             className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900 dark:text-gray-100"
                             rows={2}
-                            maxLength={1000}
+                            maxLength={5000}
                         />
                         <div className="flex justify-between items-center mt-2">
-                            <span className="text-[10px] text-gray-400">{newComment.length}/1000</span>
+                            <span className="text-[10px] text-gray-400">{newComment.length}/5000</span>
                             <button
                                 onClick={handleSubmitComment}
                                 disabled={!newComment.trim() || isSubmitting}

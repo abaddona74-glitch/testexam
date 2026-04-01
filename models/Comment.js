@@ -13,7 +13,7 @@ const CommentSchema = new mongoose.Schema({
   text: {
     type: String,
     required: true,
-    maxlength: 1000,
+    maxlength: 5000,
   },
   createdAt: {
     type: Date,

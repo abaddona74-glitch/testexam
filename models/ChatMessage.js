@@ -8,7 +8,7 @@ const ChatMessageSchema = new mongoose.Schema({
   message: {
     type: String,
     required: true,
-    maxlength: 500,
+    maxlength: 5000,
   },
   recipient: {
     type: String, // null or 'all' for public, username for DM

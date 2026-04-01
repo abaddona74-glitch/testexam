@@ -5,6 +5,8 @@ import { filterProfanity } from '../../../lib/profanity';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { deepScanForInjection, detectDDoS } from '../../../lib/security';
 
+const MAX_CHAT_MESSAGE_LENGTH = 5000;
+
 export async function GET(request) {
   await dbConnect();
   try {
@@ -64,8 +66,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Sender and message required' }, { status: 400 });
     }
 
-    if (message.length > 500) {
-      return NextResponse.json({ error: 'Message too long (max 500 chars)' }, { status: 400 });
+    if (message.length > MAX_CHAT_MESSAGE_LENGTH) {
+      return NextResponse.json({ error: `Message too long (max ${MAX_CHAT_MESSAGE_LENGTH} chars)` }, { status: 400 });
     }
 
     const reqInfo = extractRequestInfo(request);

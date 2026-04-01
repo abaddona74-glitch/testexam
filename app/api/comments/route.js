@@ -5,6 +5,8 @@ import { filterProfanity } from '../../../lib/profanity';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { deepScanForInjection, detectDDoS } from '../../../lib/security';
 
+const MAX_COMMENT_LENGTH = 5000;
+
 export async function GET(request) {
   await dbConnect();
   try {
@@ -50,8 +52,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'testId, userName, and text required' }, { status: 400 });
     }
 
-    if (text.length > 1000) {
-      return NextResponse.json({ error: 'Comment too long (max 1000 chars)' }, { status: 400 });
+    if (text.length > MAX_COMMENT_LENGTH) {
+      return NextResponse.json({ error: `Comment too long (max ${MAX_COMMENT_LENGTH} chars)` }, { status: 400 });
     }
 
     const reqInfo = extractRequestInfo(request);
