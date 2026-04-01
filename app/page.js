@@ -881,7 +881,9 @@ export default function Home() {
             });
         });
 
-        return () => cleanups.forEach((fn) => fn());
+        return () => {
+            cleanups.forEach((fn) => fn());
+        };
     }, []);
 
     const isLowPerformance = performanceMode === 'low';
@@ -3191,51 +3193,6 @@ export default function Home() {
                     animation-duration: 12s !important;
                 }
 
-                .auto-hide-scroll {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                    scrollbar-color: transparent transparent;
-                }
-
-                .auto-hide-scroll::-webkit-scrollbar {
-                    width: 0;
-                    height: 0;
-                }
-
-                .auto-hide-scroll::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-
-                .auto-hide-scroll::-webkit-scrollbar-thumb {
-                    background: transparent;
-                    border-radius: 999px;
-                    transition: background-color 0.25s ease;
-                }
-
-                .auto-hide-scroll:hover {
-                    scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
-                    scrollbar-width: thin;
-                }
-
-                .auto-hide-scroll[data-scrolling='true'] {
-                    scrollbar-color: rgba(148, 163, 184, 0.65) transparent;
-                    scrollbar-width: thin;
-                }
-
-                .auto-hide-scroll:hover::-webkit-scrollbar,
-                .auto-hide-scroll[data-scrolling='true']::-webkit-scrollbar {
-                    width: 8px;
-                    height: 8px;
-                }
-
-                .auto-hide-scroll:hover::-webkit-scrollbar-thumb {
-                    background: rgba(148, 163, 184, 0.55);
-                }
-
-                .auto-hide-scroll[data-scrolling='true']::-webkit-scrollbar-thumb {
-                    background: rgba(148, 163, 184, 0.65);
-                }
-
                 .no-scrollbar {
                     -ms-overflow-style: none;
                     scrollbar-width: none;
@@ -4776,7 +4733,7 @@ export default function Home() {
                             <button
                                 onClick={() => setSidebarExpanded(!sidebarExpanded)}
                                 className={clsx(
-                                    "flex items-center justify-center w-6 h-16 rounded-l-2xl bg-white dark:bg-gray-800 border-y border-l border-gray-200 dark:border-gray-700 shadow-[0_0_15px_rgba(0,0,0,0.1)] text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all hover:w-8 hover:bg-gray-50 dark:hover:bg-gray-700",
+                                    "flex items-center justify-center w-6 h-16 rounded-l-2xl bg-[#030712]/85 border-y border-l border-[#1f2937] shadow-none text-gray-400 hover:text-blue-400 transition-colors hover:bg-[#030712]",
                                 )}
                                 title={sidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
                             >
@@ -5089,7 +5046,7 @@ export default function Home() {
 
                                     <div className="relative z-10 flex flex-col h-[430px] sm:h-[380px] lg:h-[350px]">
                                         {/* Messages */}
-                                        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                        <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                                             {chatMessages.length === 0 ? (
                                                 <div className="text-center text-gray-400 text-xs py-8">
                                                     <MessageCircle size={32} className="mx-auto mb-2 opacity-20" />

@@ -66,6 +66,7 @@ export const viewport = {
 import { ThemeProvider } from "@/components/theme-provider";
 import { InstallPrompt } from "@/components/install-prompt";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ScrollActivity } from "@/components/scroll-activity";
 
 export default function RootLayout({ children }) {
   return (
@@ -99,6 +100,7 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
+          <ScrollActivity />
           {children}
           <InstallPrompt />
           <SpeedInsights />
