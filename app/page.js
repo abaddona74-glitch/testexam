@@ -2,16 +2,21 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff } from 'lucide-react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LiquidGlassClock } from '@/components/liquid-clock';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
+
+const LazyLiquidGlassClock = dynamic(
+    () => import('@/components/liquid-clock').then((m) => m.LiquidGlassClock),
+    { ssr: false, loading: () => null }
+);
 
 const DIFFICULTIES = [
     { id: 'easy', name: 'Easy', hints: 3, icon: Lightbulb, color: 'text-green-500', bg: 'bg-green-100', border: 'border-green-200', timeLimit: null },
@@ -810,6 +815,15 @@ export default function Home() {
     const [leaderboard, setLeaderboard] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('today'); // Filter state
     const [showSettings, setShowSettings] = useState(false);
+    const [performanceMode, setPerformanceMode] = useState(() => {
+        if (typeof window === 'undefined') return 'high';
+        try {
+            const stored = localStorage.getItem('examApp_performanceMode');
+            return stored === 'low' || stored === 'medium' || stored === 'high' ? stored : 'high';
+        } catch {
+            return 'high';
+        }
+    });
     const [soundVolume, setSoundVolume] = useState(() => {
         if (typeof window === 'undefined') return 0.8;
         try {
@@ -837,6 +851,15 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem('examApp_showTranslation', JSON.stringify(showTranslation));
     }, [showTranslation]);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('examApp_performanceMode', performanceMode);
+        } catch { }
+    }, [performanceMode]);
+
+    const isLowPerformance = performanceMode === 'low';
+    const isMediumPerformance = performanceMode === 'medium';
     const [showDonateModal, setShowDonateModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('uzum');
     const [cardCopied, setCardCopied] = useState(false);
@@ -953,12 +976,13 @@ export default function Home() {
     useEffect(() => {
         if (view === 'list') {
             fetchChatMessages();
-            chatPollRef.current = setInterval(fetchChatMessages, 5000);
+            const pollMs = isLowPerformance ? 12000 : isMediumPerformance ? 8000 : 5000;
+            chatPollRef.current = setInterval(fetchChatMessages, pollMs);
         }
         return () => {
             if (chatPollRef.current) clearInterval(chatPollRef.current);
         };
-    }, [view, fetchChatMessages]);
+    }, [view, fetchChatMessages, isLowPerformance, isMediumPerformance]);
 
     // Scroll chat to bottom on new messages (only if chat is visible in viewport)
     useEffect(() => {
@@ -2412,9 +2436,10 @@ export default function Home() {
 
     useEffect(() => {
         fetchLeaderboard();
-        const interval = setInterval(fetchLeaderboard, 5000);
+        const pollMs = isLowPerformance ? 12000 : isMediumPerformance ? 8000 : 5000;
+        const interval = setInterval(fetchLeaderboard, pollMs);
         return () => clearInterval(interval);
-    }, [filterPeriod, leaderboardPage, leaderboardLimit, activatedCheats, leaderboardLocation, userLocation]);
+    }, [filterPeriod, leaderboardPage, leaderboardLimit, activatedCheats, leaderboardLocation, userLocation, isLowPerformance, isMediumPerformance]);
 
     const handlePromoSubmit = (e) => {
         e.preventDefault();
@@ -3057,28 +3082,65 @@ export default function Home() {
     });
 
     return (
-        <main className="min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32">
+        <main className={clsx(
+            "min-h-screen bg-emerald-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans p-4 md:p-8 pb-32",
+            isLowPerformance ? "perf-low" : isMediumPerformance ? "perf-medium" : "perf-high"
+        )}>
+            {(isLowPerformance || isMediumPerformance) && (
+                <style jsx global>{`
+                    .perf-low .animate-blob,
+                    .perf-low .animate-pulse,
+                    .perf-low .animate-bounce,
+                    .perf-low .animate-ping {
+                        animation: none !important;
+                    }
+
+                    .perf-low .blur-3xl,
+                    .perf-low .blur-2xl {
+                        filter: none !important;
+                    }
+
+                    .perf-low .backdrop-blur-xl,
+                    .perf-low .backdrop-blur-md,
+                    .perf-low .backdrop-blur-sm {
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
+                    }
+
+                    .perf-medium .animate-blob {
+                        animation-duration: 12s !important;
+                    }
+                `}</style>
+            )}
             <div className="max-w-7xl mx-auto">
                 <header ref={headerRef} className={clsx(
                     "relative mb-8 rounded-2xl sticky top-4 z-40 transition-all duration-300 ease-in-out",
                     headerExpanded
-                        ? "p-6 border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-xl"
+                        ? clsx(
+                            "p-6 border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)]",
+                            isLowPerformance ? "bg-white/90 dark:bg-gray-900/90" : "backdrop-blur-xl"
+                        )
                         : "p-0 py-2 border-transparent shadow-none bg-transparent"
                 )}>
                     {/* Liquid Background Effect */}
                     {headerExpanded && (
                         <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden rounded-2xl">
                             <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/60 transition-colors"></div>
-                            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-blob"></div>
-                            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+                            {!isLowPerformance && (
+                                <>
+                                    <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-blob"></div>
+                                    <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+                                </>
+                            )}
                         </div>
                     )}
 
                     <div className={clsx(
-                        "relative z-10 flex justify-between items-center transition-all duration-300 overflow-hidden",
+                        "relative z-10 transition-all duration-300 overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
                         headerExpanded ? "opacity-100 max-h-[100px]" : "opacity-0 max-h-0 pointer-events-none"
                     )}>
+                        <div className="flex justify-between items-center gap-3 min-w-max md:min-w-0 md:w-full pr-1">
                         <div className="flex items-center gap-2 md:gap-4">
                             <div>
                                 <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -3093,7 +3155,7 @@ export default function Home() {
                         <div className="flex gap-1 md:gap-2 items-center">
                             {/* Liquid Glass Clock (PC only) */}
                             <div className="mr-4">
-                                <LiquidGlassClock />
+                                {!isLowPerformance ? <LazyLiquidGlassClock /> : null}
                             </div>
 
                             {/* Daily Spinner */}
@@ -3228,6 +3290,7 @@ export default function Home() {
                                 </button>
                             )}
                         </div>
+                        </div>
                     </div>
 
                     {/* Navbar Toggle Handle - Up/Down Logic for Header */}
@@ -3304,6 +3367,32 @@ export default function Home() {
                                      }}>
                                     <code className="text-xs text-gray-600 dark:text-gray-300 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono">{userId}</code>
                                     <Copy size={14} className="text-gray-400 group-hover:text-blue-500" />
+                                </div>
+                            </div>
+
+                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Performance Mode
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {['high', 'medium', 'low'].map((mode) => (
+                                        <button
+                                            key={mode}
+                                            type="button"
+                                            onClick={() => setPerformanceMode(mode)}
+                                            className={clsx(
+                                                "py-2 rounded-lg text-sm font-semibold border transition-colors",
+                                                performanceMode === mode
+                                                    ? "bg-blue-600 text-white border-blue-600"
+                                                    : "bg-gray-50 dark:bg-gray-700/70 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:border-blue-400"
+                                            )}
+                                        >
+                                            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="mt-2 text-[11px] text-gray-400">
+                                    High: full effects, Medium: lighter animation, Low: near-static + slower background polling.
                                 </div>
                             </div>
 
