@@ -5927,13 +5927,18 @@ export default function Home() {
                 jsonError && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border-2 border-red-100">
+                            {(() => {
+                                const normalizedError = String(jsonError || '').toLowerCase();
+                                const isUploadDisabledError = normalizedError.includes('temporarily disabled');
+                                return (
+                                <>
                             <div className="p-6 bg-red-50 border-b border-red-100 flex items-center gap-4">
                                 <div className="p-3 bg-red-100 rounded-full text-red-600">
                                     <AlertTriangle size={32} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-red-900">Format Error</h3>
-                                    <p className="text-red-600/90 text-sm">The uploaded JSON file is invalid</p>
+                                    <h3 className="text-xl font-bold text-red-900">{isUploadDisabledError ? 'Upload Disabled' : 'Format Error'}</h3>
+                                    <p className="text-red-600/90 text-sm">{isUploadDisabledError ? 'Test upload is currently disabled on the server.' : 'The uploaded JSON file is invalid'}</p>
                                 </div>
                             </div>
                             <div className="p-6">
@@ -5942,6 +5947,7 @@ export default function Home() {
                                     <p className="text-red-900 font-mono text-sm break-words">{jsonError}</p>
                                 </div>
 
+                                {!isUploadDisabledError && (
                                 <div className="space-y-3">
                                     <p className="text-gray-900 dark:text-gray-100 font-semibold mb-2">Expected JSON Structure:</p>
                                     <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto">
@@ -5962,6 +5968,7 @@ export default function Home() {
                                         </pre>
                                     </div>
                                 </div>
+                                )}
                             </div>
                             <div className="p-4 bg-gray-50 dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800/50 flex justify-end">
                                 <button
@@ -5971,6 +5978,9 @@ export default function Home() {
                                     Understood
                                 </button>
                             </div>
+                                </>
+                                );
+                            })()}
                         </div>
                     </div>
                 )
