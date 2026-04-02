@@ -7,6 +7,9 @@ if (!globalThis._blockedCache) {
 
 export function middleware(request) {
   const { nextUrl: url, geo } = request
+  const isAdminApi = url.pathname.startsWith('/api/admin/');
+  const isAdminAuthLogin = url.pathname === '/api/admin/auth/login';
+  const isAdminAuthSessionGet = url.pathname === '/api/admin/auth/session' && request.method === 'GET';
   
   // Extract IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -16,6 +19,57 @@ export function middleware(request) {
   const country = geo?.country || request.headers.get('x-vercel-ip-country') || 'Unknown'
   const city = geo?.city || request.headers.get('x-vercel-ip-city') || 'Unknown'
   const region = geo?.region || request.headers.get('x-vercel-ip-region') || 'Unknown'
+
+  const isDev = process.env.NODE_ENV !== 'production';
+  const scriptSrc = isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com"
+    : "script-src 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com";
+
+  const csp = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    scriptSrc,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co",
+    "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
+    "upgrade-insecure-requests",
+  ].join('; ');
+
+  // ─── Admin API pre-check (cookie/session + CSRF) ─────────
+  if (isAdminApi && !isAdminAuthLogin && !isAdminAuthSessionGet) {
+    const sessionCookie = request.cookies.get('admin_session')?.value;
+    if (!sessionCookie) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const method = request.method.toUpperCase();
+    const isUnsafeMethod = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+    if (isUnsafeMethod) {
+      const csrfCookie = request.cookies.get('admin_csrf')?.value;
+      const csrfHeader = request.headers.get('x-csrf-token');
+      if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Invalid CSRF token' }),
+          {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+    }
+  }
 
   // ─── IP Blocking Check ──────────────────────────────
   const blockedCache = globalThis._blockedCache;
@@ -62,6 +116,11 @@ export function middleware(request) {
   response.headers.set('x-geo-country', country);
   response.headers.set('x-geo-city', city);
   response.headers.set('x-geo-region', region);
+  response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
   
   return response;
 }

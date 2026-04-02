@@ -4,6 +4,8 @@ import ChatMessage from '../../../models/ChatMessage';
 import { filterProfanity } from '../../../lib/profanity';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { deepScanForInjection, detectDDoS } from '../../../lib/security';
+import { sanitizePlainText } from '../../../lib/sanitize';
+import { isUserNameBlocked, loadBlockedCache, getUserNameBlockReason } from '../admin/block/route';
 
 const MAX_CHAT_MESSAGE_LENGTH = 5000;
 
@@ -45,8 +47,8 @@ export async function GET(request) {
     // Filter profanity on read (catches old unfiltered messages too)
     const filtered = messages.map(msg => ({
       ...msg,
-      sender: filterProfanity(msg.sender),
-      message: filterProfanity(msg.message),
+      sender: filterProfanity(sanitizePlainText(msg.sender)),
+      message: filterProfanity(sanitizePlainText(msg.message)),
     }));
 
     return NextResponse.json(filtered.reverse());
@@ -60,7 +62,14 @@ export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { sender, message, recipient, type } = body;
+    const senderRaw = body?.sender;
+    const messageRaw = body?.message;
+    const recipientRaw = body?.recipient;
+    const type = body?.type;
+
+    const sender = sanitizePlainText(senderRaw);
+    const message = sanitizePlainText(messageRaw);
+    const recipient = sanitizePlainText(recipientRaw);
 
     if (!sender || !message || !message.trim()) {
       return NextResponse.json({ error: 'Sender and message required' }, { status: 400 });
@@ -71,6 +80,26 @@ export async function POST(request) {
     }
 
     const reqInfo = extractRequestInfo(request);
+
+    if (!global._blockedCache?.loaded) {
+      await loadBlockedCache();
+    }
+
+    if (isUserNameBlocked(sender)) {
+      const blockReason = getUserNameBlockReason(sender);
+      logActivity({
+        ...reqInfo,
+        type: 'blocked_chat_attempt',
+        userName: sender,
+        isSuspicious: true,
+        suspiciousReason: 'Blocked user attempted to send chat message',
+        details: { chatType: type || 'public', reason: blockReason },
+      });
+      return NextResponse.json({
+        error: 'User is blocked from chatting',
+        reason: blockReason || 'Blocked by admin',
+      }, { status: 403 });
+    }
 
     // Security: Check for injection attempts
     const injections = deepScanForInjection({ sender, message, recipient });

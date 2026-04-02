@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const ADMIN_SECRET_KEY = 'admin_secret_session';
+const ADMIN_CSRF_KEY = 'admin_csrf_token';
 const TABS = [
   { id: 'overview', label: '📊 Overview', icon: '📊' },
   { id: 'live', label: '👥 Live Monitor', icon: '👥' },
@@ -324,7 +324,8 @@ function Pagination({ pagination, onPageChange }) {
 // ─── Main Component ────────────────────────────────────────────
 
 export default function AdminPage() {
-  const [secret, setSecret] = useState('');
+  const [password, setPassword] = useState('');
+  const [csrfToken, setCsrfToken] = useState('');
   const [isAuthed, setIsAuthed] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
@@ -348,7 +349,7 @@ export default function AdminPage() {
 
   // Block state
   const [blocklist, setBlocklist] = useState([]);
-  const [blockForm, setBlockForm] = useState({ ip: '', deviceId: '', reason: '', duration: 'permanent' });
+  const [blockForm, setBlockForm] = useState({ ip: '', deviceId: '', userName: '', reason: '', duration: 'permanent' });
 
   // Tests state
   const [tests, setTests] = useState([]);
@@ -379,29 +380,48 @@ export default function AdminPage() {
     return session?.sessionId || session?.userId || 'anon';
   }, []);
 
-  // Check cached secret on mount
+  // Restore authenticated session (cookie-based) on mount.
   useEffect(() => {
-    const cached = sessionStorage.getItem(ADMIN_SECRET_KEY);
-    if (cached) {
-      setSecret(cached);
-      setIsAuthed(true);
-    }
+    const bootstrapSession = async () => {
+      try {
+        const res = await fetch('/api/admin/auth/session');
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data?.authenticated) {
+          setIsAuthed(true);
+          if (data.csrfToken) {
+            setCsrfToken(data.csrfToken);
+            sessionStorage.setItem(ADMIN_CSRF_KEY, data.csrfToken);
+          }
+          return;
+        }
+      } catch {
+        // Ignore bootstrap failures and show login form.
+      }
+
+      setIsAuthed(false);
+      const cachedCsrf = sessionStorage.getItem(ADMIN_CSRF_KEY) || '';
+      setCsrfToken(cachedCsrf);
+    };
+
+    bootstrapSession();
   }, []);
 
   // ─── API Helpers ──────────────────────────────────────────
 
   const api = useCallback(async (url, opts = {}) => {
+    const method = (opts.method || 'GET').toUpperCase();
+    const requiresCsrf = !['GET', 'HEAD', 'OPTIONS'].includes(method);
     const res = await fetch(url, {
       ...opts,
       headers: {
         ...(opts.headers || {}),
-        'x-admin-secret': secret,
+        ...(requiresCsrf && csrfToken ? { 'x-csrf-token': csrfToken } : {}),
       },
     });
 
     if (res.status === 401) {
       setIsAuthed(false);
-      sessionStorage.removeItem(ADMIN_SECRET_KEY);
+      sessionStorage.removeItem(ADMIN_CSRF_KEY);
       throw new Error('Unauthorized');
     }
 
@@ -411,7 +431,7 @@ export default function AdminPage() {
     }
 
     return payload;
-  }, [secret]);
+  }, [csrfToken]);
 
   // ─── Data Fetchers ────────────────────────────────────────
 
@@ -485,11 +505,7 @@ export default function AdminPage() {
   // ─── Real-Time Event Polling (every 3 seconds, from memory — instant) ─
   const pollRealtime = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/realtime?since=${lastEventId}`, {
-        headers: {
-          'x-admin-secret': secret,
-        },
-      });
+      const res = await fetch(`/api/admin/realtime?since=${lastEventId}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data.events && data.events.length > 0) {
@@ -501,7 +517,7 @@ export default function AdminPage() {
     } catch (err) {
       // Silent fail for polling
     }
-  }, [secret, lastEventId]);
+  }, [lastEventId]);
 
   // ─── Load Data on Tab Change ──────────────────────────────
 
@@ -521,7 +537,7 @@ export default function AdminPage() {
     pollRealtime();
     realtimeRef.current = setInterval(pollRealtime, 3000);
     return () => clearInterval(realtimeRef.current);
-  }, [isAuthed, secret]);
+  }, [isAuthed, pollRealtime]);
 
   // Auto-refresh full dashboard data every 30s (for charts/aggregated stats)
   useEffect(() => {
@@ -535,10 +551,10 @@ export default function AdminPage() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch('/api/admin/dashboard?period=24h', {
-        headers: {
-          'x-admin-secret': secret,
-        },
+      const res = await fetch('/api/admin/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -551,10 +567,15 @@ export default function AdminPage() {
         return;
       }
 
-      setDashboard(data);
+      if (data?.csrfToken) {
+        setCsrfToken(data.csrfToken);
+        sessionStorage.setItem(ADMIN_CSRF_KEY, data.csrfToken);
+      }
+
       setIsAuthed(true);
-      sessionStorage.setItem(ADMIN_SECRET_KEY, secret);
+      setPassword('');
       setError('');
+      fetchDashboard();
     } catch (err) {
       setError('Server xatoligi');
     }
@@ -592,13 +613,27 @@ export default function AdminPage() {
   };
 
   const handleBlock = async () => {
-    if (!blockForm.ip && !blockForm.deviceId) return;
+    if (!blockForm.ip && !blockForm.deviceId && !blockForm.userName) return;
     await api('/api/admin/block', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(blockForm),
     });
-    setBlockForm({ ip: '', deviceId: '', reason: '', duration: 'permanent' });
+    setBlockForm({ ip: '', deviceId: '', userName: '', reason: '', duration: 'permanent' });
+    fetchBlocklist();
+  };
+
+  const handleQuickBlockCommentUser = async (userName) => {
+    if (!userName) return;
+    await api('/api/admin/block', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userName,
+        reason: 'Blocked from comments by admin',
+        duration: 'permanent',
+      }),
+    });
     fetchBlocklist();
   };
 
@@ -620,10 +655,16 @@ export default function AdminPage() {
     });
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem(ADMIN_SECRET_KEY);
+  const handleLogout = async () => {
+    try {
+      await api('/api/admin/auth/logout', { method: 'POST' });
+    } catch {
+      // Even if logout request fails, clear local state.
+    }
+    sessionStorage.removeItem(ADMIN_CSRF_KEY);
     setIsAuthed(false);
-    setSecret('');
+    setPassword('');
+    setCsrfToken('');
     setDashboard(null);
     clearInterval(realtimeRef.current);
   };
@@ -674,8 +715,8 @@ export default function AdminPage() {
           <input
             type="password"
             placeholder="Admin parol..."
-            value={secret}
-            onChange={e => setSecret(e.target.value)}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
             className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -1227,13 +1268,24 @@ export default function AdminPage() {
                         {msg.message || msg.text}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteMessage(msg._id)}
-                      className="ml-3 px-2 py-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition"
-                      title="O'chirish"
-                    >
-                      🗑️
-                    </button>
+                    <div className="ml-3 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                      {msgSource === 'comments' && (msg.userName || msg.sender) && (
+                        <button
+                          onClick={() => handleQuickBlockCommentUser(msg.userName || msg.sender)}
+                          className="px-2 py-1 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/20 rounded"
+                          title="Userni commentdan bloklash"
+                        >
+                          🚫
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteMessage(msg._id)}
+                        className="px-2 py-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded"
+                        title="O'chirish"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {messages.length === 0 && <p className="text-center text-gray-500 py-6 text-sm">Xabarlar topilmadi</p>}
@@ -1279,7 +1331,7 @@ export default function AdminPage() {
             {/* Block Form */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
               <h3 className="font-bold text-gray-800 dark:text-white mb-4">🚫 Yangi bloklash</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-3">
                 <input
                   placeholder="IP manzil"
                   value={blockForm.ip}
@@ -1290,6 +1342,12 @@ export default function AdminPage() {
                   placeholder="Device ID"
                   value={blockForm.deviceId}
                   onChange={e => setBlockForm(f => ({ ...f, deviceId: e.target.value }))}
+                  className="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                />
+                <input
+                  placeholder="User name (comments)"
+                  value={blockForm.userName}
+                  onChange={e => setBlockForm(f => ({ ...f, userName: e.target.value }))}
                   className="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
                 />
                 <input
@@ -1328,6 +1386,7 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2 mb-1">
                         {item.ip && <span className="font-mono text-sm bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded">IP: {item.ip}</span>}
                         {item.deviceId && <span className="font-mono text-sm bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded">Device: {item.deviceId}</span>}
+                        {item.userName && <span className="font-mono text-sm bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded">User: {item.userName}</span>}
                       </div>
                       <p className="text-xs text-gray-500">
                         📝 {item.reason} | 📅 {new Date(item.blockedAt).toLocaleString('uz')}

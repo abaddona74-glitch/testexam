@@ -9,6 +9,10 @@ const BlockedIPSchema = new mongoose.Schema({
     type: String,
     index: true,
   },
+  userName: {
+    type: String,
+    index: true,
+  },
   reason: {
     type: String,
     required: true,
@@ -35,5 +39,6 @@ const BlockedIPSchema = new mongoose.Schema({
 // Compound indexes
 BlockedIPSchema.index({ ip: 1, isActive: 1 });
 BlockedIPSchema.index({ deviceId: 1, isActive: 1 });
+BlockedIPSchema.index({ userName: 1, isActive: 1 });
 
 export default mongoose.models.BlockedIP || mongoose.model('BlockedIP', BlockedIPSchema);

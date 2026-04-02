@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import ActivityLog from '@/models/ActivityLog';
 import { requireAdminAuth } from '@/lib/admin-auth';
+import { extractRequestInfo, logActivity } from '@/lib/activity-logger';
 
 export async function GET(request) {
   const authError = requireAdminAuth(request);
@@ -69,11 +70,23 @@ export async function DELETE(request) {
   try {
     if (clearAll === 'true') {
       await ActivityLog.deleteMany({});
+      await logActivity({
+        type: 'admin_action',
+        ...extractRequestInfo(request),
+        statusCode: 200,
+        details: { action: 'clear_all_logs' },
+      });
       return NextResponse.json({ success: true, message: 'All logs cleared' });
     }
 
     if (id) {
       await ActivityLog.findByIdAndDelete(id);
+      await logActivity({
+        type: 'admin_action',
+        ...extractRequestInfo(request),
+        statusCode: 200,
+        details: { action: 'delete_log', logId: id },
+      });
       return NextResponse.json({ success: true });
     }
 

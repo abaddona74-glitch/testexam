@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getBadWords, addCustomWord, removeCustomWord, setCustomWords, getCustomWords } from '@/lib/profanity';
 import dbConnect from '@/lib/mongodb';
 import { requireAdminAuth } from '@/lib/admin-auth';
+import { extractRequestInfo, logActivity } from '@/lib/activity-logger';
 
 // We store custom words in a simple MongoDB collection
 // Using mongoose directly for a lightweight approach
@@ -87,6 +88,16 @@ export async function POST(request) {
     // Save to DB
     await saveToDb(getCustomWords());
 
+    await logActivity({
+      type: 'admin_action',
+      ...extractRequestInfo(request),
+      statusCode: 200,
+      details: {
+        action: 'profanity_add_words',
+        addedCount: added.length,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       added,
@@ -117,6 +128,16 @@ export async function DELETE(request) {
   }
 
   await saveToDb(getCustomWords());
+
+  await logActivity({
+    type: 'admin_action',
+    ...extractRequestInfo(request),
+    statusCode: 200,
+    details: {
+      action: 'profanity_remove_word',
+      word,
+    },
+  });
 
   return NextResponse.json({
     success: true,

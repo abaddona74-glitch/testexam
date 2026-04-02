@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import LicenseKey from '@/models/LicenseKey';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { requireAdminAuth } from '@/lib/admin-auth';
+import { extractRequestInfo, logActivity } from '@/lib/activity-logger';
 
 export async function POST(request) {
     try {
@@ -35,6 +36,17 @@ export async function POST(request) {
         }
 
         await LicenseKey.insertMany(keys);
+
+        await logActivity({
+            type: 'admin_action',
+            ...extractRequestInfo(request),
+            statusCode: 200,
+            details: {
+                action: 'generate_license_keys',
+                count,
+                keyType: type,
+            },
+        });
 
         return NextResponse.json({ success: true, keys: keys.map(k => k.key) });
         

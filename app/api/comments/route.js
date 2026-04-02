@@ -4,6 +4,8 @@ import Comment from '../../../models/Comment';
 import { filterProfanity } from '../../../lib/profanity';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { deepScanForInjection, detectDDoS } from '../../../lib/security';
+import { sanitizePlainText } from '../../../lib/sanitize';
+import { isUserNameBlocked, loadBlockedCache, getUserNameBlockReason } from '../admin/block/route';
 
 const MAX_COMMENT_LENGTH = 5000;
 
@@ -31,8 +33,8 @@ export async function GET(request) {
     // Filter profanity on read (catches old unfiltered messages too)
     const filtered = comments.map(c => ({
       ...c,
-      userName: filterProfanity(c.userName),
-      text: filterProfanity(c.text),
+      userName: filterProfanity(sanitizePlainText(c.userName)),
+      text: filterProfanity(sanitizePlainText(c.text)),
     }));
 
     return NextResponse.json(filtered);
@@ -46,7 +48,9 @@ export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { testId, userName, text } = body;
+    const testId = sanitizePlainText(body?.testId);
+    const userName = sanitizePlainText(body?.userName);
+    const text = sanitizePlainText(body?.text);
 
     if (!testId || !userName || !text || !text.trim()) {
       return NextResponse.json({ error: 'testId, userName, and text required' }, { status: 400 });
@@ -57,6 +61,26 @@ export async function POST(request) {
     }
 
     const reqInfo = extractRequestInfo(request);
+
+    if (!global._blockedCache?.loaded) {
+      await loadBlockedCache();
+    }
+
+    if (isUserNameBlocked(userName)) {
+      const blockReason = getUserNameBlockReason(userName);
+      logActivity({
+        ...reqInfo,
+        type: 'blocked_comment_attempt',
+        userName,
+        isSuspicious: true,
+        suspiciousReason: 'Blocked user attempted to post comment',
+        details: { testId, reason: blockReason },
+      });
+      return NextResponse.json({
+        error: 'User is blocked from commenting',
+        reason: blockReason || 'Blocked by admin',
+      }, { status: 403 });
+    }
 
     // Security: Check for injection
     const injections = deepScanForInjection({ testId, userName, text });

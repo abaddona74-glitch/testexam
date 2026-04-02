@@ -12,6 +12,7 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
+import { sanitizeMarkdownText } from '@/lib/sanitize';
 
 const LazyLiquidGlassClock = dynamic(
     () => import('@/components/liquid-clock').then((m) => m.LiquidGlassClock),
@@ -920,6 +921,7 @@ export default function Home() {
     const [chatInput, setChatInput] = useState('');
     const [chatMode, setChatMode] = useState('public'); // 'public' | 'dm'
     const [chatDmPartner, setChatDmPartner] = useState(null);
+    const [chatBlockInfo, setChatBlockInfo] = useState(null);
     const [isChatLoading, setIsChatLoading] = useState(false);
     const chatEndRef = useRef(null);
     const chatPollRef = useRef(null);
@@ -1029,7 +1031,7 @@ export default function Home() {
     }, [chatMode, chatDmPartner, userName]);
 
     const sendChatMessage = async () => {
-        if (!chatInput.trim() || !userName) return;
+        if (!chatInput.trim() || !userName || chatBlockInfo?.isBlocked) return;
         try {
             const body = {
                 sender: userName,
@@ -1044,7 +1046,22 @@ export default function Home() {
             });
             if (res.ok) {
                 setChatInput('');
+                setChatBlockInfo(null);
                 fetchChatMessages();
+            } else {
+                let data = null;
+                try {
+                    data = await res.json();
+                } catch {
+                    data = null;
+                }
+
+                if (res.status === 403) {
+                    setChatBlockInfo({
+                        isBlocked: true,
+                        reason: data?.reason || data?.error || 'Blocked by admin',
+                    });
+                }
             }
         } catch (e) {
             console.error('Chat send error', e);
@@ -1805,22 +1822,8 @@ export default function Home() {
             } catch (e) { }
         }
 
-        // Fetch country with graceful fallback; external providers can be blocked by adblock/CORS.
+        // Fetch country via internal API only (server-side provider calls stay on backend).
         const loadCountry = async () => {
-            try {
-                const external = await fetch('https://ipapi.co/json/');
-                if (external.ok) {
-                    const data = await external.json();
-                    if (data?.country_code) {
-                        setUserCountry(data.country_code);
-                        localStorage.setItem('examApp_userCountry', data.country_code);
-                        return;
-                    }
-                }
-            } catch {
-                // Silent: external geo endpoint is optional.
-            }
-
             try {
                 const internal = await fetch('/api/country');
                 if (internal.ok) {
@@ -5091,6 +5094,17 @@ export default function Home() {
 
                                         {/* Input */}
                                         <div className="p-3 border-t border-gray-100 dark:border-gray-800/50">
+                                            {chatBlockInfo?.isBlocked && (
+                                                <div className="mb-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700/70 dark:bg-amber-900/20 dark:text-amber-200">
+                                                    <div className="flex items-start gap-2">
+                                                        <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                                                        <div>
+                                                            <p className="font-semibold">You are blocked from chat.</p>
+                                                            <p className="opacity-90">Reason: {chatBlockInfo.reason}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
@@ -5098,12 +5112,13 @@ export default function Home() {
                                                     onChange={(e) => setChatInput(e.target.value)}
                                                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
                                                     placeholder={chatMode === 'dm' ? `Message ${chatDmPartner}...` : "Message everyone..."}
+                                                    disabled={chatBlockInfo?.isBlocked}
                                                     className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100"
                                                     maxLength={5000}
                                                 />
                                                 <button
                                                     onClick={sendChatMessage}
-                                                    disabled={!chatInput.trim()}
+                                                    disabled={!chatInput.trim() || chatBlockInfo?.isBlocked}
                                                     className="px-3 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <Send size={16} />
@@ -6201,6 +6216,7 @@ function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 te
             >
                 <MessageCircle size={16} />
                 {showCardComments ? "Hide Comments" : "Comments"}
+                {showCardComments ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 {cardCommentCount > 0 && (
                     <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs px-1.5 py-0.5 rounded-full">{cardCommentCount}</span>
                 )}
@@ -6292,9 +6308,10 @@ function TranslatableText({ text, translation, type = 'text' }) {
     const content = (displayText) => (
         <ReactMarkdown
             rehypePlugins={[rehypeHighlight]}
+            skipHtml={true}
             components={components}
         >
-            {displayText}
+            {sanitizeMarkdownText(displayText)}
         </ReactMarkdown>
     );
 
@@ -6679,6 +6696,7 @@ function TestComments({ testId, userName }) {
     const [newComment, setNewComment] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [commentBlockInfo, setCommentBlockInfo] = useState(null);
 
     const fetchComments = useCallback(async () => {
         try {
@@ -6699,7 +6717,7 @@ function TestComments({ testId, userName }) {
     }, [fetchComments]);
 
     const handleSubmitComment = async () => {
-        if (!newComment.trim() || isSubmitting) return;
+        if (!newComment.trim() || isSubmitting || commentBlockInfo?.isBlocked) return;
         setIsSubmitting(true);
         try {
             const res = await fetch('/api/comments', {
@@ -6709,7 +6727,22 @@ function TestComments({ testId, userName }) {
             });
             if (res.ok) {
                 setNewComment('');
+                setCommentBlockInfo(null);
                 fetchComments();
+            } else {
+                let data = null;
+                try {
+                    data = await res.json();
+                } catch {
+                    data = null;
+                }
+
+                if (res.status === 403) {
+                    setCommentBlockInfo({
+                        isBlocked: true,
+                        reason: data?.reason || data?.error || 'Blocked by admin',
+                    });
+                }
             }
         } catch (e) {
             console.error('Failed to post comment', e);
@@ -6732,10 +6765,22 @@ function TestComments({ testId, userName }) {
                         {userName.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
+                        {commentBlockInfo?.isBlocked && (
+                            <div className="mb-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700/70 dark:bg-amber-900/20 dark:text-amber-200">
+                                <div className="flex items-start gap-2">
+                                    <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                                    <div>
+                                        <p className="font-semibold">You are blocked from posting comments.</p>
+                                        <p className="opacity-90">Reason: {commentBlockInfo.reason}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <textarea
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             placeholder="Share your thoughts about this test..."
+                            disabled={commentBlockInfo?.isBlocked}
                             className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900 dark:text-gray-100"
                             rows={2}
                             maxLength={5000}
@@ -6744,11 +6789,11 @@ function TestComments({ testId, userName }) {
                             <span className="text-[10px] text-gray-400">{newComment.length}/5000</span>
                             <button
                                 onClick={handleSubmitComment}
-                                disabled={!newComment.trim() || isSubmitting}
+                                disabled={!newComment.trim() || isSubmitting || commentBlockInfo?.isBlocked}
                                 className="px-4 py-1.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                             >
                                 {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                                Post
+                                {commentBlockInfo?.isBlocked ? 'Blocked' : 'Post'}
                             </button>
                         </div>
                     </div>

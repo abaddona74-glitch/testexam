@@ -6,7 +6,16 @@ import { requireAdminAuth } from '@/lib/admin-auth';
 
 // Initialize global blocked cache
 if (!global._blockedCache) {
-  global._blockedCache = { ips: new Set(), deviceIds: new Set(), loaded: false };
+  global._blockedCache = {
+    ips: new Set(),
+    deviceIds: new Set(),
+    userNames: new Set(),
+    userNameReasons: new Map(),
+    loaded: false,
+  };
+}
+if (!global._blockedCache.userNameReasons) {
+  global._blockedCache.userNameReasons = new Map();
 }
 
 /**
@@ -18,6 +27,17 @@ export async function loadBlockedCache() {
     const blocked = await BlockedIP.find({ isActive: true }).lean();
     global._blockedCache.ips = new Set(blocked.filter(b => b.ip).map(b => b.ip));
     global._blockedCache.deviceIds = new Set(blocked.filter(b => b.deviceId).map(b => b.deviceId));
+    const normalizedUsers = blocked
+      .filter(b => b.userName)
+      .map(b => ({
+        userName: String(b.userName).trim().toLowerCase(),
+        reason: typeof b.reason === 'string' && b.reason.trim() ? b.reason.trim() : 'Blocked by admin',
+      }))
+      .filter(entry => entry.userName);
+    global._blockedCache.userNames = new Set(normalizedUsers.map(entry => entry.userName));
+    global._blockedCache.userNameReasons = new Map(
+      normalizedUsers.map(entry => [entry.userName, entry.reason])
+    );
     global._blockedCache.loaded = true;
   } catch (err) {
     console.error('Failed to load blocked cache:', err.message);
@@ -34,6 +54,27 @@ export function isBlocked(ip, deviceId) {
   if (ip && cache.ips.has(ip)) return true;
   if (deviceId && cache.deviceIds.has(deviceId)) return true;
   return false;
+}
+
+/**
+ * Check if a comment userName is blocked
+ */
+export function isUserNameBlocked(userName) {
+  const cache = global._blockedCache;
+  if (!cache.loaded) return false;
+  if (!userName) return false;
+  const normalized = String(userName).trim().toLowerCase();
+  if (!normalized) return false;
+  return cache.userNames.has(normalized);
+}
+
+export function getUserNameBlockReason(userName) {
+  const cache = global._blockedCache;
+  if (!cache.loaded) return null;
+  if (!userName) return null;
+  const normalized = String(userName).trim().toLowerCase();
+  if (!normalized) return null;
+  return cache.userNameReasons.get(normalized) || 'Blocked by admin';
 }
 
 // GET - List blocked IPs/devices
@@ -65,10 +106,11 @@ export async function POST(request) {
   await dbConnect();
 
   try {
-    const { ip, deviceId, reason, duration } = await request.json();
+    const { ip, deviceId, userName, reason, duration } = await request.json();
+    const normalizedUserName = typeof userName === 'string' ? userName.trim() : '';
 
-    if (!ip && !deviceId) {
-      return NextResponse.json({ error: 'IP or deviceId required' }, { status: 400 });
+    if (!ip && !deviceId && !normalizedUserName) {
+      return NextResponse.json({ error: 'IP, deviceId, or userName required' }, { status: 400 });
     }
 
     let expiresAt = null;
@@ -88,6 +130,7 @@ export async function POST(request) {
     const existingQuery = {};
     if (ip) existingQuery.ip = ip;
     if (deviceId) existingQuery.deviceId = deviceId;
+    if (normalizedUserName) existingQuery.userName = normalizedUserName;
     
     const existing = await BlockedIP.findOne({ ...existingQuery, isActive: true });
     if (existing) {
@@ -97,6 +140,7 @@ export async function POST(request) {
     const blocked = await BlockedIP.create({
       ip,
       deviceId,
+      userName: normalizedUserName || undefined,
       reason: reason || 'Blocked by admin',
       expiresAt,
     });
@@ -104,11 +148,17 @@ export async function POST(request) {
     // Update in-memory cache
     if (ip) global._blockedCache.ips.add(ip);
     if (deviceId) global._blockedCache.deviceIds.add(deviceId);
+    if (normalizedUserName) {
+      const normalized = normalizedUserName.toLowerCase();
+      const normalizedReason = typeof reason === 'string' && reason.trim() ? reason.trim() : 'Blocked by admin';
+      global._blockedCache.userNames.add(normalized);
+      global._blockedCache.userNameReasons.set(normalized, normalizedReason);
+    }
 
     // Log the action
     await logActivity({
       type: 'block_action',
-      details: { action: 'block', ip, deviceId, reason, duration },
+      details: { action: 'block', ip, deviceId, userName: normalizedUserName || null, reason, duration },
     });
 
     return NextResponse.json({ success: true, blocked });
@@ -144,10 +194,15 @@ export async function DELETE(request) {
     // Update cache
     if (blocked.ip) global._blockedCache.ips.delete(blocked.ip);
     if (blocked.deviceId) global._blockedCache.deviceIds.delete(blocked.deviceId);
+    if (blocked.userName) {
+      const normalized = String(blocked.userName).trim().toLowerCase();
+      global._blockedCache.userNames.delete(normalized);
+      global._blockedCache.userNameReasons.delete(normalized);
+    }
 
     await logActivity({
       type: 'block_action',
-      details: { action: 'unblock', ip: blocked.ip, deviceId: blocked.deviceId },
+      details: { action: 'unblock', ip: blocked.ip, deviceId: blocked.deviceId, userName: blocked.userName || null },
     });
 
     return NextResponse.json({ success: true });
