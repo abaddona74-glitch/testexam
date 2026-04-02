@@ -2017,6 +2017,24 @@ export default function Home() {
             if (warningEl) warningEl.style.display = 'none';
         };
 
+        const getAppRoot = () => document.getElementById('app-root') || document.body;
+        const applyProtectionMask = () => {
+            const appRoot = getAppRoot();
+            if (appRoot) appRoot.style.filter = 'blur(24px)';
+            document.title = '⚠️ Return to test!';
+            showWarning();
+        };
+        const removeProtectionMask = () => {
+            const appRoot = getAppRoot();
+            if (appRoot) appRoot.style.filter = 'none';
+            document.title = 'Exam App';
+            hideWarning();
+        };
+        const isFocusCompromised = () => {
+            const hasFocus = typeof document.hasFocus === 'function' ? document.hasFocus() : true;
+            return document.hidden || !hasFocus;
+        };
+
         const WARNING_HOLD_MS = 4500;
         let warningHideTimeout = null;
         let warningLockedUntil = 0;
@@ -2024,16 +2042,21 @@ export default function Home() {
         const holdWarning = (ms = WARNING_HOLD_MS) => {
             const now = Date.now();
             warningLockedUntil = Math.max(warningLockedUntil, now + ms);
-            showWarning();
+            applyProtectionMask();
             if (warningHideTimeout) clearTimeout(warningHideTimeout);
             warningHideTimeout = setTimeout(() => {
+                if (isFocusCompromised()) {
+                    // Keep warning locked while user is outside the test window.
+                    holdWarning(1200);
+                    return;
+                }
                 const remaining = warningLockedUntil - Date.now();
                 if (remaining > 0) {
                     holdWarning(remaining);
                     return;
                 }
                 warningLockedUntil = 0;
-                hideWarning();
+                removeProtectionMask();
             }, ms);
         };
 
@@ -2070,12 +2093,17 @@ export default function Home() {
             if (isGodmode) return;
             navigator.clipboard.writeText('').catch(() => { });
 
+            if (isFocusCompromised()) {
+                holdWarning(1200);
+                return;
+            }
+
             const remaining = warningLockedUntil - Date.now();
             if (remaining > 0) {
                 holdWarning(remaining);
                 return;
             }
-            hideWarning();
+            removeProtectionMask();
         };
 
         // Mobile: Handle page visibility change (browsers minimize/background)
@@ -2086,12 +2114,17 @@ export default function Home() {
             } else {
                 navigator.clipboard.writeText('').catch(() => { });
 
+                if (isFocusCompromised()) {
+                    holdWarning(1200);
+                    return;
+                }
+
                 const remaining = warningLockedUntil - Date.now();
                 if (remaining > 0) {
                     holdWarning(remaining);
                     return;
                 }
-                hideWarning();
+                removeProtectionMask();
             }
         };
 
@@ -2109,6 +2142,9 @@ export default function Home() {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             if (warningEl) warningEl.remove();
             if (warningHideTimeout) clearTimeout(warningHideTimeout);
+            const appRoot = getAppRoot();
+            if (appRoot) appRoot.style.filter = 'none';
+            document.title = 'Exam App';
         };
     }, [view, isGodmode]);
 
