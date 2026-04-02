@@ -3,19 +3,12 @@ import dbConnect from '@/lib/mongodb';
 import ChatMessage from '@/models/ChatMessage';
 import Comment from '@/models/Comment';
 import { logActivity } from '@/lib/activity-logger';
-
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
-
-function checkAuth(request) {
-  const { searchParams } = new URL(request.url);
-  return searchParams.get('secret') === ADMIN_SECRET;
-}
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 // GET - List chat messages or comments
 export async function GET(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await dbConnect();
 
@@ -78,9 +71,8 @@ export async function GET(request) {
 
 // DELETE - Delete chat message or comment
 export async function DELETE(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await dbConnect();
 

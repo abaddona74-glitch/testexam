@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getEventsSince } from '@/lib/activity-logger';
-
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 /**
  * Real-time events endpoint — admin polls this every 3 seconds.
@@ -9,11 +8,10 @@ const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
  * This is instant because it reads from memory, not MongoDB.
  */
 export async function GET(request) {
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
+
   const { searchParams } = new URL(request.url);
-  
-  if (searchParams.get('secret') !== ADMIN_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   const sinceId = parseInt(searchParams.get('since')) || 0;
   

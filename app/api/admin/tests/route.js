@@ -2,19 +2,12 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Test from '@/models/Test';
 import { logActivity } from '@/lib/activity-logger';
-
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
-
-function checkAuth(request) {
-  const { searchParams } = new URL(request.url);
-  return searchParams.get('secret') === ADMIN_SECRET;
-}
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 // GET - List all tests for admin management
 export async function GET(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await dbConnect();
 
@@ -38,9 +31,8 @@ export async function GET(request) {
 
 // DELETE - Delete a test
 export async function DELETE(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await dbConnect();
 

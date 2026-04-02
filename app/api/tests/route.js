@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Test from '../../../models/Test';
 import { getTestUploadMode, isTestUploadEnabled, isGodmodeUploadEnabled } from '../../../lib/featureFlags.server';
+import { isAdminAuthorizedRequest, requireAdminAuth } from '@/lib/admin-auth';
 
 // In-memory store for uploaded tests (persists only while server is running)
 // For permanent storage, you'd need a database (Postgres, MongoDB, etc.) or Blob storage.
@@ -14,13 +15,8 @@ export async function GET(request) {
   await dbConnect();
 
   const { searchParams } = new URL(request.url);
-  
-  // Security: Require 'secret' param to view hidden tests. 
-  // Example usage: /api/tests?showHidden=true&secret=admin123
-  const secret = searchParams.get('secret');
-  const isAuthorized = secret === 'admin123'; // Using same weak secret as admin endpoint for consistency
-  
-  const showHidden = searchParams.get('showHidden') === 'true' && isAuthorized;
+  const showHiddenRequested = searchParams.get('showHidden') === 'true';
+  const showHidden = showHiddenRequested && isAdminAuthorizedRequest(request);
 
   const uploadMode = getTestUploadMode();
 
@@ -262,7 +258,9 @@ export async function POST(request) {
     const godmodeOverrideAllowed = isGodmodeUploadEnabled();
     const godmodeOverrideRequested = godmode === true;
 
-    if (!uploadsEnabled && !(godmodeOverrideAllowed && godmodeOverrideRequested)) {
+    const canBypassUploadDisable = godmodeOverrideAllowed && godmodeOverrideRequested && isAdminAuthorizedRequest(request);
+
+    if (!uploadsEnabled && !canBypassUploadDisable) {
       return NextResponse.json(
         {
           error: "Test upload is temporarily disabled.",
@@ -318,16 +316,14 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
+
   await dbConnect();
 
   try {
     const { searchParams } = new URL(request.url);
     const testId = searchParams.get('id');
-    const godmode = searchParams.get('godmode');
-
-    if (godmode !== 'true') {
-      return NextResponse.json({ error: "Unauthorized. Godmode required." }, { status: 403 });
-    }
 
     if (!testId) {
       return NextResponse.json({ error: "Test ID is required." }, { status: 400 });

@@ -31,6 +31,17 @@ const DIFFICULTIES = [
 
 const CAMERA_GUARD_MAX_ATTEMPTS = 3;
 const CAMERA_GUARD_MODES = new Set(['insane', 'impossible']);
+const PUBLIC_PROMO_CODES = new Set(['dontgiveup', 'haveluckyday']);
+const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123']);
+const ALLOWED_PROMO_CODES = process.env.NODE_ENV === 'production'
+    ? PUBLIC_PROMO_CODES
+    : new Set([...PUBLIC_PROMO_CODES, ...DEV_PROMO_CODES]);
+
+function sanitizeActivatedCheats(codes) {
+    if (!Array.isArray(codes)) return [];
+    const allowed = new Set(ALLOWED_PROMO_CODES);
+    return Array.from(new Set(codes.filter(code => typeof code === 'string' && allowed.has(code))));
+}
 
 const EXAM_SCHEDULE = [
     { isHeader: true, title: "Call 1" },
@@ -1589,7 +1600,7 @@ export default function Home() {
         if (storedCheats) {
             try {
                 const parsedCheats = JSON.parse(storedCheats);
-                if (Array.isArray(parsedCheats)) setActivatedCheats(parsedCheats);
+                setActivatedCheats(sanitizeActivatedCheats(parsedCheats));
             } catch (e) { }
         }
         setIsCheatsLoaded(true);
@@ -2003,6 +2014,26 @@ export default function Home() {
             if (warningEl) warningEl.style.display = 'none';
         };
 
+        const WARNING_HOLD_MS = 4500;
+        let warningHideTimeout = null;
+        let warningLockedUntil = 0;
+
+        const holdWarning = (ms = WARNING_HOLD_MS) => {
+            const now = Date.now();
+            warningLockedUntil = Math.max(warningLockedUntil, now + ms);
+            showWarning();
+            if (warningHideTimeout) clearTimeout(warningHideTimeout);
+            warningHideTimeout = setTimeout(() => {
+                const remaining = warningLockedUntil - Date.now();
+                if (remaining > 0) {
+                    holdWarning(remaining);
+                    return;
+                }
+                warningLockedUntil = 0;
+                hideWarning();
+            }, ms);
+        };
+
         const handleKeyDown = (e) => {
             if (isGodmode) return;
             const isPrintScreen = e.key === 'PrintScreen' || e.keyCode === 44;
@@ -2012,65 +2043,52 @@ export default function Home() {
             if (isPrintScreen || isSnippingTool || isMeta) {
                 if (isPrintScreen || isSnippingTool) e.preventDefault();
 
-                showWarning();
+                holdWarning();
                 navigator.clipboard.writeText('').catch(() => { });
-
-                // For PrintScreen/Snipping, keep the warning visible for 3 seconds
-                if (isPrintScreen || isSnippingTool) {
-                    // Clear any existing timeout to avoid premature hiding if pressed multiple times
-                    if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
-
-                    window.screenshotTimeout = setTimeout(() => {
-                        hideWarning();
-                    }, 3000);
-                }
             }
         };
 
         const handleKeyUp = (e) => {
             if (isGodmode) return;
-            // Restore visibility when Meta key is released
-            if (e.key === 'Meta') {
-                setTimeout(hideWarning, 300);
-            }
             if (e.key === 'PrintScreen' || e.keyCode === 44) {
                 navigator.clipboard.writeText('').catch(() => { });
                 // Re-enforce warning on keyup just in case
-                showWarning();
-                if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
-                window.screenshotTimeout = setTimeout(() => {
-                    hideWarning();
-                }, 3000);
+                holdWarning();
             }
         };
 
         // Also hide when window loses focus (e.g. switching to Snipping Tool overlay or Mobile App Switcher)
         const handleBlur = () => {
             if (isGodmode) return;
-            showWarning();
+            holdWarning();
         };
 
         const handleFocus = () => {
             if (isGodmode) return;
-            // Only hide if we aren't currently showing the screenshot warning timer
-            // But for simplicity, we usually want to recover on focus
-            // Unless it was a blur caused by Snipping Tool... 
-
-            // Let's just clear clipboard and hide warning, assuming user returned to app
             navigator.clipboard.writeText('').catch(() => { });
 
-            // Wait a tiny bit before hiding to ensure no screenshot is being finished
-            setTimeout(hideWarning, 200);
+            const remaining = warningLockedUntil - Date.now();
+            if (remaining > 0) {
+                holdWarning(remaining);
+                return;
+            }
+            hideWarning();
         };
 
         // Mobile: Handle page visibility change (browsers minimize/background)
         const handleVisibilityChange = () => {
             if (isGodmode) return;
             if (document.hidden) {
-                showWarning();
+                holdWarning();
             } else {
-                hideWarning();
                 navigator.clipboard.writeText('').catch(() => { });
+
+                const remaining = warningLockedUntil - Date.now();
+                if (remaining > 0) {
+                    holdWarning(remaining);
+                    return;
+                }
+                hideWarning();
             }
         };
 
@@ -2087,7 +2105,7 @@ export default function Home() {
             window.removeEventListener('focus', handleFocus);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             if (warningEl) warningEl.remove();
-            if (window.screenshotTimeout) clearTimeout(window.screenshotTimeout);
+            if (warningHideTimeout) clearTimeout(warningHideTimeout);
         };
     }, [view, isGodmode]);
 
@@ -2345,13 +2363,8 @@ export default function Home() {
     const fetchTests = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
-            const hasSecret = activatedCheats.includes('admin123'); // Cheat code matches backend secret
-            const showHidden = activatedCheats.includes('showhidden') || hasSecret;
-            
-            let url = `/api/tests?showHidden=${showHidden}`;
-            if (hasSecret) {
-                url += `&secret=admin123`;
-            }
+            const showHidden = activatedCheats.includes('showhidden');
+            const url = `/api/tests?showHidden=${showHidden}`;
 
             const res = await fetch(url);
             const data = await res.json();
@@ -2526,12 +2539,9 @@ export default function Home() {
         e.preventDefault();
         const code = promoInput.toLowerCase().trim();
 
-        // 'admin123' is the server secret that unlocks hidden content
-        let validCodes = ['dontgiveup', 'haveluckyday', 'godmode', 'showhidden', 'admin123'];
-
-        if (validCodes.includes(code)) {
-            // Special toggle logic for godmode, showhidden, or the secret key
-            if ((code === 'godmode' || code === 'showhidden' || code === 'admin123') && activatedCheats.includes(code)) {
+        if (ALLOWED_PROMO_CODES.has(code)) {
+            // Certain modes are toggleable when available.
+            if ((code === 'godmode' || code === 'showhidden') && activatedCheats.includes(code)) {
                 setActivatedCheats(prev => prev.filter(c => c !== code));
                 addToast('Cheat Deactivated', `${code} mode disabled`, 'info');
                 setPromoInput('');
@@ -2540,12 +2550,7 @@ export default function Home() {
 
             if (!activatedCheats.includes(code)) {
                 setActivatedCheats(prev => [...prev, code]);
-                
-                if (code === 'admin123') {
-                     addToast('ACCESS GRANTED', 'Developer mode unlocked. Hidden tests visible.', 'success');
-                } else {
-                     addToast('Cheat Activated!', `${code} mode enabled`, 'success');
-                }
+                addToast('Cheat Activated!', `${code} mode enabled`, 'success');
             } else {
                 addToast('Already Active', `${code} is already running`, 'info');
             }
@@ -2641,30 +2646,6 @@ export default function Home() {
                         setShowDifficultyModal(true);
                     }
                 }
-            }
-            return;
-        }
-
-        // Admin Secret to Generate Keys (Hidden Feature)
-        if (keyInput.startsWith('admin:gen:')) {
-            const secret = keyInput.split(':')[2];
-            try {
-                const res = await fetch('/api/admin/generate-key', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adminSecret: secret || 'admin123', count: 1 })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    const newKey = data.keys[0];
-                    await navigator.clipboard.writeText(newKey);
-                    alert(`NEW KEY GENERATED & COPIED TO CLIPBOARD:\n${newKey}`);
-                    setKeyInput('');
-                } else {
-                    setKeyError(data.message);
-                }
-            } catch (err) {
-                setKeyError('Failed to contact server');
             }
             return;
         }
@@ -4414,10 +4395,7 @@ export default function Home() {
                                         if (idxB !== -1) return 1;
                                         
                                         return catA.localeCompare(catB);
-                                    }).filter(([, categoryTests]) => {
-                                        if (activatedCheats.includes('admin123')) return true;
-                                        return categoryTests.length > 0;
-                                    }).map(([category, categoryTests]) => (
+                                    }).filter(([, categoryTests]) => categoryTests.length > 0).map(([category, categoryTests]) => (
                                         <div key={category} className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-6 border border-gray-100 dark:border-gray-800/30">
                                             <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
                                                 <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 p-2 rounded-lg">
@@ -7976,6 +7954,99 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             }, 150);
         }
     };
+
+    useEffect(() => {
+        if (isFinished) return;
+        if (activatedCheats?.includes('godmode')) return;
+
+        const startedAt = Date.now();
+        let hiddenSince = null;
+        let blurSince = null;
+
+        const REPORT_AFTER_HIDDEN_MS = 900;
+        const REPORT_AFTER_BLUR_MS = 1500;
+        const WARMUP_MS = 7000;
+
+        const shouldIgnoreWarmup = () => (Date.now() - startedAt) < WARMUP_MS;
+
+        const reportFocusLoss = (source, durationMs) => {
+            if (shouldIgnoreWarmup()) return;
+            void reportCheatViolation(
+                'external_navigation',
+                'Test oynasidan chiqish aniqlandi',
+                {
+                    source,
+                    durationMs: Math.max(0, Math.round(durationMs || 0)),
+                    hidden: Boolean(document.hidden),
+                    hasFocus: typeof document.hasFocus === 'function' ? document.hasFocus() : true,
+                }
+            );
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                hiddenSince = Date.now();
+                return;
+            }
+
+            if (hiddenSince) {
+                const duration = Date.now() - hiddenSince;
+                hiddenSince = null;
+                if (duration >= REPORT_AFTER_HIDDEN_MS) {
+                    reportFocusLoss('visibilitychange', duration);
+                }
+            }
+        };
+
+        const handleBlur = () => {
+            blurSince = Date.now();
+        };
+
+        const handleFocus = () => {
+            if (!blurSince) return;
+            const duration = Date.now() - blurSince;
+            blurSince = null;
+            if (duration >= REPORT_AFTER_BLUR_MS) {
+                reportFocusLoss('blur', duration);
+            }
+        };
+
+        const handleKeyDown = (e) => {
+            const key = (e.key || '').toLowerCase();
+            const ctrlOrMeta = e.ctrlKey || e.metaKey;
+
+            const suspiciousShortcut =
+                (ctrlOrMeta && ['t', 'n', 'l', 'k', 'w'].includes(key)) ||
+                (e.altKey && key === 'tab') ||
+                (e.metaKey && key === 'tab');
+
+            if (!suspiciousShortcut || shouldIgnoreWarmup()) return;
+
+            void reportCheatViolation(
+                'external_navigation_shortcut',
+                'Tashqi tab yoki oynaga o`tish shortcut urinish aniqlandi',
+                {
+                    key,
+                    ctrlKey: e.ctrlKey,
+                    shiftKey: e.shiftKey,
+                    altKey: e.altKey,
+                    metaKey: e.metaKey,
+                }
+            );
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('keydown', handleKeyDown, true);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('blur', handleBlur);
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('keydown', handleKeyDown, true);
+        };
+    }, [isFinished, activatedCheats, reportCheatViolation]);
 
     useEffect(() => {
         if (!cheatGuardEnabled || isFinished) {

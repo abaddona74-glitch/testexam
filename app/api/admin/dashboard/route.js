@@ -9,19 +9,11 @@ import LicenseKey from '@/models/LicenseKey';
 import BlockedIP from '@/models/BlockedIP';
 import { getDDoSStatus } from '@/lib/security';
 import { loadBlockedCache } from '@/app/api/admin/block/route';
-
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
-
-function checkAuth(request) {
-  const { searchParams } = new URL(request.url);
-  const secret = searchParams.get('secret');
-  return secret === ADMIN_SECRET;
-}
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await dbConnect();
 

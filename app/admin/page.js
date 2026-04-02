@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const ADMIN_SECRET_KEY = 'admin_secret_cached';
+const ADMIN_SECRET_KEY = 'admin_secret_session';
 const TABS = [
   { id: 'overview', label: '📊 Overview', icon: '📊' },
   { id: 'live', label: '👥 Live Monitor', icon: '👥' },
@@ -381,7 +381,7 @@ export default function AdminPage() {
 
   // Check cached secret on mount
   useEffect(() => {
-    const cached = localStorage.getItem(ADMIN_SECRET_KEY);
+    const cached = sessionStorage.getItem(ADMIN_SECRET_KEY);
     if (cached) {
       setSecret(cached);
       setIsAuthed(true);
@@ -391,14 +391,26 @@ export default function AdminPage() {
   // ─── API Helpers ──────────────────────────────────────────
 
   const api = useCallback(async (url, opts = {}) => {
-    const sep = url.includes('?') ? '&' : '?';
-    const res = await fetch(`${url}${sep}secret=${encodeURIComponent(secret)}`, opts);
+    const res = await fetch(url, {
+      ...opts,
+      headers: {
+        ...(opts.headers || {}),
+        'x-admin-secret': secret,
+      },
+    });
+
     if (res.status === 401) {
       setIsAuthed(false);
-      localStorage.removeItem(ADMIN_SECRET_KEY);
+      sessionStorage.removeItem(ADMIN_SECRET_KEY);
       throw new Error('Unauthorized');
     }
-    return res.json();
+
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(payload?.error || `Request failed (${res.status})`);
+    }
+
+    return payload;
   }, [secret]);
 
   // ─── Data Fetchers ────────────────────────────────────────
@@ -473,7 +485,11 @@ export default function AdminPage() {
   // ─── Real-Time Event Polling (every 3 seconds, from memory — instant) ─
   const pollRealtime = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/realtime?secret=${encodeURIComponent(secret)}&since=${lastEventId}`);
+      const res = await fetch(`/api/admin/realtime?since=${lastEventId}`, {
+        headers: {
+          'x-admin-secret': secret,
+        },
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (data.events && data.events.length > 0) {
@@ -519,15 +535,25 @@ export default function AdminPage() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch(`/api/admin/dashboard?period=24h&secret=${encodeURIComponent(secret)}`);
-      if (res.status === 401) {
-        setError("Noto'g'ri parol!");
+      const res = await fetch('/api/admin/dashboard?period=24h', {
+        headers: {
+          'x-admin-secret': secret,
+        },
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError("Noto'g'ri parol!");
+          return;
+        }
+        setError(data?.error || 'Server xatoligi');
         return;
       }
-      const data = await res.json();
+
       setDashboard(data);
       setIsAuthed(true);
-      localStorage.setItem(ADMIN_SECRET_KEY, secret);
+      sessionStorage.setItem(ADMIN_SECRET_KEY, secret);
       setError('');
     } catch (err) {
       setError('Server xatoligi');
@@ -595,7 +621,7 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(ADMIN_SECRET_KEY);
+    sessionStorage.removeItem(ADMIN_SECRET_KEY);
     setIsAuthed(false);
     setSecret('');
     setDashboard(null);

@@ -2,9 +2,13 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import LicenseKey from '@/models/LicenseKey';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 export async function POST(request) {
     try {
+        const authError = requireAdminAuth(request);
+        if (authError) return authError;
+
         const ip = getClientIp(request);
         // Strict Limit: 5 attempts per minute prevents brute force
         if (!rateLimit(ip, 5, 60 * 1000)) {
@@ -15,13 +19,7 @@ export async function POST(request) {
         }
 
         await dbConnect();
-        const { adminSecret, count = 1, type = 'weekly' } = await request.json();
-
-        // Simple protection. In production, use real auth.
-        // CHANGE THIS TO YOUR OWN SECRET PASSWORD
-        if (adminSecret !== 'admin123') { 
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-        }
+        const { count = 1, type = 'weekly' } = await request.json();
 
         const keys = [];
         for (let i = 0; i < count; i++) {

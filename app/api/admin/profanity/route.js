@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getBadWords, addCustomWord, removeCustomWord, setCustomWords, getCustomWords } from '@/lib/profanity';
 import dbConnect from '@/lib/mongodb';
-
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
-
-function checkAuth(request) {
-  const { searchParams } = new URL(request.url);
-  return searchParams.get('secret') === ADMIN_SECRET;
-}
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 // We store custom words in a simple MongoDB collection
 // Using mongoose directly for a lightweight approach
@@ -55,9 +49,8 @@ async function saveToDb(words) {
 
 // GET — List all bad words
 export async function GET(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await ensureLoaded();
   return NextResponse.json(getBadWords());
@@ -65,9 +58,8 @@ export async function GET(request) {
 
 // POST — Add a custom word or bulk add
 export async function POST(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await ensureLoaded();
 
@@ -107,9 +99,8 @@ export async function POST(request) {
 
 // DELETE — Remove a custom word
 export async function DELETE(request) {
-  if (!checkAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   await ensureLoaded();
 
