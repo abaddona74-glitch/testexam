@@ -4442,7 +4442,7 @@ export default function Home() {
                                                 </span>
                                                 {category}
                                             </h3>
-                                            <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="grid md:grid-cols-2 gap-4 items-start">
                                                 {categoryTests.length > 0 ? categoryTests.map(test => {
                                                     const isCommunity = test.type === 'uploaded';
                                                     const badgeLabel = isCommunity ? "Community" : "Official";
@@ -4510,7 +4510,7 @@ export default function Home() {
                                                 </span>
                                                 Uploaded / Community
                                             </h3>
-                                            <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="grid md:grid-cols-2 gap-4 items-start">
                                                 {filteredUploadedTests.map(test => (
                                                     <TestCard
                                                         key={test.id}
@@ -6091,7 +6091,7 @@ function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 te
 
     return (
         <div className={clsx(
-            "p-6 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative",
+            "p-6 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative self-start",
             isHiddenTest
                 ? "bg-gray-900/10 dark:bg-gray-900/40 backdrop-blur-xl hidden-card-border"
                 : "bg-white/70 dark:bg-gray-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10"
