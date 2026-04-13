@@ -1,0 +1,1104 @@
+{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "What is the opportunity cost of attending college for a professional athlete who could earn $1 million per year?",
+      "options": {
+        "A": "Tuition only",
+        "B": "Tuition + books",
+        "C": "$1 million (foregone earnings)",
+        "D": "Nothing"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 2,
+      "question": "If the price of a good rises and total revenue falls, demand is:",
+      "options": {
+        "A": "Inelastic",
+        "B": "Elastic",
+        "C": "Unit elastic",
+        "D": "Perfectly inelastic"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 3,
+      "question": "A surplus occurs when:",
+      "options": {
+        "A": "Quantity demanded > quantity supplied",
+        "B": "Quantity supplied > quantity demanded",
+        "C": "Price is below equilibrium",
+        "D": "Demand increases"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 4,
+      "question": "Which of the following is NOT a determinant of demand?",
+      "options": {
+        "A": "Consumer income",
+        "B": "Price of related goods",
+        "C": "Technology",
+        "D": "Tastes and preferences"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 5,
+      "question": "If income elasticity of demand for a good is negative, the good is:",
+      "options": {
+        "A": "Normal",
+        "B": "Luxury",
+        "C": "Inferior",
+        "D": "Substitute"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 6,
+      "question": "Nominal GDP is calculated using:",
+      "options": {
+        "A": "Base year prices",
+        "B": "Current year prices",
+        "C": "Average of base and current prices",
+        "D": "International prices"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 7,
+      "question": "The Malthusian trap suggests that:",
+      "options": {
+        "A": "Population growth always leads to higher living standards",
+        "B": "Income growth is neutralized by population growth",
+        "C": "Technology stops progress",
+        "D": "Capital accumulation is unlimited"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 8,
+      "question": "Comparative advantage means:",
+      "options": {
+        "A": "Producing more than another country",
+        "B": "Producing at lower opportunity cost",
+        "C": "Using fewer inputs",
+        "D": "Having better technology"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 9,
+      "question": "If cross-price elasticity of demand between two goods is positive, they are:",
+      "options": {
+        "A": "Complements",
+        "B": "Substitutes",
+        "C": "Unrelated",
+        "D": "Inferior"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 10,
+      "question": "In the Solow model, long-run growth comes from:",
+      "options": {
+        "A": "Capital accumulation",
+        "B": "Population growth",
+        "C": "Technological progress",
+        "D": "Higher savings rate"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 11,
+      "question": "A tariff on imports will:",
+      "options": {
+        "A": "Increase domestic producer surplus",
+        "B": "Decrease domestic producer surplus",
+        "C": "Always increase total surplus",
+        "D": "Eliminate deadweight loss"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 12,
+      "question": "Which of the following is a short-run trade-off according to the 10 principles?",
+      "options": {
+        "A": "Efficiency vs equality",
+        "B": "Inflation vs unemployment",
+        "C": "Trade vs self-sufficiency",
+        "D": "Savings vs consumption"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 13,
+      "question": "If price increases from $10 to $12 and quantity demanded falls from 100 to 80, price elasticity of demand (midpoint method) is:",
+      "options": {
+        "A": "0.5",
+        "B": "1.0",
+        "C": "1.22",
+        "D": "2.0"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 14,
+      "question": "In a perfectly competitive market, firms are:",
+      "options": {
+        "A": "Price makers",
+        "B": "Price takers",
+        "C": "Price setters",
+        "D": "Price discriminators"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 15,
+      "question": "The marginal rate of substitution (MRS) is:",
+      "options": {
+        "A": "The slope of the budget line",
+        "B": "The slope of the indifference curve",
+        "C": "The price ratio",
+        "D": "Total utility divided by quantity"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 16,
+      "question": "If the government imposes a price ceiling below equilibrium, it causes:",
+      "options": {
+        "A": "Surplus",
+        "B": "Shortage",
+        "C": "No change",
+        "D": "Increased supply"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 17,
+      "question": "Real GDP is nominal GDP adjusted for:",
+      "options": {
+        "A": "Population",
+        "B": "Inflation",
+        "C": "Unemployment",
+        "D": "Trade balance"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 18,
+      "question": "Which of the following is NOT a barrier to trade?",
+      "options": {
+        "A": "Tariff",
+        "B": "Quota",
+        "C": "Comparative advantage",
+        "D": "Import license"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 19,
+      "question": "The Consumer Price Index (CPI) measures:",
+      "options": {
+        "A": "Average prices of all goods produced",
+        "B": "Average prices of goods consumed by households",
+        "C": "Wholesale prices",
+        "D": "Stock market prices"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 20,
+      "question": "If the nominal interest rate is 8% and inflation is 3%, the real interest rate is:",
+      "options": {
+        "A": "11%",
+        "B": "5%",
+        "C": "8%",
+        "D": "3%"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 21,
+      "question": "If the price of coffee increases and the demand for tea increases, coffee and tea are:",
+      "options": {
+        "A": "Complements",
+        "B": "Substitutes",
+        "C": "Unrelated",
+        "D": "Inferior goods"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 22,
+      "question": "Which of the following would shift the demand curve for cars to the right?",
+      "options": {
+        "A": "An increase in the price of cars",
+        "B": "A decrease in consumer income (if cars are normal goods)",
+        "C": "An increase in the price of gasoline",
+        "D": "A decrease in the price of public transportation"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 23,
+      "question": "The law of supply states that, ceteris paribus:",
+      "options": {
+        "A": "Price and quantity supplied are inversely related",
+        "B": "Price and quantity supplied are positively related",
+        "C": "Supply creates its own demand",
+        "D": "Demand creates its own supply"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 24,
+      "question": "If a 10% increase in price causes a 5% decrease in quantity demanded, demand is:",
+      "options": {
+        "A": "Elastic",
+        "B": "Inelastic",
+        "C": "Unit elastic",
+        "D": "Perfectly elastic"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 25,
+      "question": "Which of the following is NOT a factor of production?",
+      "options": {
+        "A": "Land",
+        "B": "Labor",
+        "C": "Money",
+        "D": "Capital"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 26,
+      "question": "In the circular flow diagram, firms:",
+      "options": {
+        "A": "Buy goods and services from households",
+        "B": "Sell goods and services to households",
+        "C": "Receive wages from households",
+        "D": "Are the only producers of all goods"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 27,
+      "question": "Which of the following is a positive statement?",
+      "options": {
+        "A": "The government should reduce taxes",
+        "B": "Inflation is more harmful than unemployment",
+        "C": "An increase in minimum wage reduces employment",
+        "D": "We ought to help the poor"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 28,
+      "question": "If two indifference curves intersect, this violates:",
+      "options": {
+        "A": "Completeness",
+        "B": "Transitivity",
+        "C": "More is better",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 29,
+      "question": "The budget line shifts outward (to the right) when:",
+      "options": {
+        "A": "Income decreases",
+        "B": "Price of one good increases",
+        "C": "Income increases",
+        "D": "Both prices double"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 30,
+      "question": "A rational consumer will consume more of a good if:",
+      "options": {
+        "A": "Marginal benefit > marginal cost",
+        "B": "Total benefit > total cost",
+        "C": "Average benefit > average cost",
+        "D": "Marginal benefit < marginal cost"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 31,
+      "question": "In the long run, a monopolist can earn:",
+      "options": {
+        "A": "Normal profit only",
+        "B": "Zero economic profit",
+        "C": "Positive economic profit",
+        "D": "Negative profit always"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 32,
+      "question": "A natural monopoly occurs when:",
+      "options": {
+        "A": "One firm controls all natural resources",
+        "B": "Economies of scale make one firm most efficient",
+        "C": "The government grants exclusive rights",
+        "D": "There are many small firms"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 33,
+      "question": "GDP excludes:",
+      "options": {
+        "A": "Government spending",
+        "B": "Household consumption",
+        "C": "Intermediate goods",
+        "D": "Exports"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 34,
+      "question": "If a country's GDP per capita grows at 2% per year, approximately how many years to double?",
+      "options": {
+        "A": "25 years",
+        "B": "35 years",
+        "C": "70 years",
+        "D": "10 years"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 35,
+      "question": "Which of the following is an example of human capital?",
+      "options": {
+        "A": "A factory building",
+        "B": "A computer",
+        "C": "A worker's education and skills",
+        "D": "Natural resources"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 36,
+      "question": "In the Solow model, an increase in the savings rate leads to:",
+      "options": {
+        "A": "Higher long-run growth rate",
+        "B": "Higher steady-state capital per worker",
+        "C": "No change in steady-state output",
+        "D": "Lower consumption in the long run"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 37,
+      "question": "According to Acemoglu, Johnson & Robinson, the main cause of long-run growth is:",
+      "options": {
+        "A": "Geography",
+        "B": "Culture",
+        "C": "Institutions",
+        "D": "Natural resources"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 38,
+      "question": "If the cross-price elasticity between bread and butter is -0.5, they are:",
+      "options": {
+        "A": "Substitutes",
+        "B": "Complements",
+        "C": "Unrelated",
+        "D": "Inferior goods"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 39,
+      "question": "A price floor set above equilibrium creates:",
+      "options": {
+        "A": "Shortage",
+        "B": "Surplus",
+        "C": "Equilibrium",
+        "D": "Black market only"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 40,
+      "question": "Which of the following is a public good?",
+      "options": {
+        "A": "Bread",
+        "B": "National defense",
+        "C": "A car",
+        "D": "A movie ticket"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 41,
+      "question": "The principal of comparative advantage was developed by:",
+      "options": {
+        "A": "Adam Smith",
+        "B": "David Ricardo",
+        "C": "John Maynard Keynes",
+        "D": "Milton Friedman"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 42,
+      "question": "If the price of a good is below the equilibrium price, there will be:",
+      "options": {
+        "A": "Excess supply",
+        "B": "Excess demand",
+        "C": "No change",
+        "D": "A decrease in demand"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 43,
+      "question": "Which of the following would cause a leftward shift in the supply curve?",
+      "options": {
+        "A": "A decrease in input costs",
+        "B": "An improvement in technology",
+        "C": "An increase in the number of sellers",
+        "D": "An increase in input costs"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 44,
+      "question": "The formula for price elasticity of demand (midpoint method) is:",
+      "options": {
+        "A": "(ΔQ/Q) / (ΔP/P)",
+        "B": "(ΔQ/avgQ) / (ΔP/avgP)",
+        "C": "(ΔP/P) / (ΔQ/Q)",
+        "D": "(ΔP/avgP) / (ΔQ/avgQ)"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 45,
+      "question": "If demand is perfectly inelastic, the demand curve is:",
+      "options": {
+        "A": "Horizontal",
+        "B": "Vertical",
+        "C": "Downward sloping",
+        "D": "Upward sloping"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 46,
+      "question": "In a monopoly, marginal revenue is:",
+      "options": {
+        "A": "Equal to price",
+        "B": "Greater than price",
+        "C": "Less than price",
+        "D": "Unrelated to price"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 47,
+      "question": "The GDP deflator is calculated as:",
+      "options": {
+        "A": "(Nominal GDP / Real GDP) × 100",
+        "B": "(Real GDP / Nominal GDP) × 100",
+        "C": "Nominal GDP - Real GDP",
+        "D": "Real GDP / Population"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 48,
+      "question": "If the CPI is 120 in 2020 and 132 in 2021, the inflation rate is:",
+      "options": {
+        "A": "10%",
+        "B": "12%",
+        "C": "15%",
+        "D": "8%"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 49,
+      "question": "In the short run, an increase in the money supply leads to:",
+      "options": {
+        "A": "Lower inflation",
+        "B": "Higher unemployment",
+        "C": "Lower output",
+        "D": "Higher output"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 50,
+      "question": "Which of the following is NOT a reason for trade restrictions?",
+      "options": {
+        "A": "National security",
+        "B": "Infant industry protection",
+        "C": "Comparative advantage",
+        "D": "Unfair competition"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 51,
+      "question": "Diminishing marginal utility means:",
+      "options": {
+        "A": "Total utility decreases as consumption increases",
+        "B": "Marginal utility decreases as consumption increases",
+        "C": "Marginal utility increases as consumption increases",
+        "D": "Total utility is constant"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 52,
+      "question": "A Giffen good is a type of:",
+      "options": {
+        "A": "Normal good",
+        "B": "Inferior good",
+        "C": "Luxury good",
+        "D": "Veblen good"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 53,
+      "question": "If the income elasticity of demand is 2.5, the good is:",
+      "options": {
+        "A": "Inferior",
+        "B": "Necessity",
+        "C": "Luxury",
+        "D": "Substitute"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 54,
+      "question": "In the long run, all costs are:",
+      "options": {
+        "A": "Fixed",
+        "B": "Variable",
+        "C": "Sunk",
+        "D": "Marginal"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 55,
+      "question": "The Laffer curve shows the relationship between:",
+      "options": {
+        "A": "Inflation and unemployment",
+        "B": "Tax rates and tax revenue",
+        "C": "Savings and investment",
+        "D": "Exports and imports"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 56,
+      "question": "Which of the following is included in GDP?",
+      "options": {
+        "A": "Used car sales",
+        "B": "Illegal drug trade",
+        "C": "Household production (cooking at home)",
+        "D": "Government purchase of military equipment"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 57,
+      "question": "If the price of a product increases and total revenue increases, demand is:",
+      "options": {
+        "A": "Elastic",
+        "B": "Inelastic",
+        "C": "Unit elastic",
+        "D": "Perfectly elastic"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 58,
+      "question": "A firm maximizes profit where:",
+      "options": {
+        "A": "Total revenue = total cost",
+        "B": "Marginal revenue = marginal cost",
+        "C": "Average revenue = average cost",
+        "D": "Price = average cost"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 59,
+      "question": "In perfect competition, in the long run, price equals:",
+      "options": {
+        "A": "Marginal cost only",
+        "B": "Average total cost only",
+        "C": "Both marginal cost and average total cost",
+        "D": "Marginal revenue only"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 60,
+      "question": "The Phillips curve shows the relationship between:",
+      "options": {
+        "A": "Inflation and unemployment",
+        "B": "GDP and inflation",
+        "C": "Unemployment and GDP",
+        "D": "Taxes and growth"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 61,
+      "question": "Which of the following is an example of a negative externality?",
+      "options": {
+        "A": "A bee pollinating a neighbor's garden",
+        "B": "A factory polluting a river",
+        "C": "A person getting a vaccination",
+        "D": "Education"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 62,
+      "question": "The tragedy of the commons occurs with:",
+      "options": {
+        "A": "Private goods",
+        "B": "Club goods",
+        "C": "Common resources",
+        "D": "Public goods"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 63,
+      "question": "In the Solow model, the steady state occurs when:",
+      "options": {
+        "A": "Investment > depreciation",
+        "B": "Investment < depreciation",
+        "C": "Investment = depreciation",
+        "D": "Capital = 0"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 64,
+      "question": "Absolute advantage is about:",
+      "options": {
+        "A": "Lower opportunity cost",
+        "B": "Producing more with the same inputs",
+        "C": "Specialization",
+        "D": "Trade balance"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 65,
+      "question": "A binding price ceiling creates:",
+      "options": {
+        "A": "Surplus",
+        "B": "Shortage",
+        "C": "Equilibrium",
+        "D": "No effect"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 66,
+      "question": "Which of the following shifts the supply curve to the right?",
+      "options": {
+        "A": "Higher taxes",
+        "B": "Higher input prices",
+        "C": "Technological improvement",
+        "D": "Fewer sellers"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 67,
+      "question": "Consumer surplus is:",
+      "options": {
+        "A": "Price - willingness to pay",
+        "B": "Willingness to pay - price",
+        "C": "Price × quantity",
+        "D": "Marginal cost × quantity"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 68,
+      "question": "Deadweight loss occurs when:",
+      "options": {
+        "A": "Markets are perfectly competitive",
+        "B": "Markets are not in equilibrium",
+        "C": "Taxes or price controls exist",
+        "D": "There is no trade"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 69,
+      "question": "Which of the following is a macroeconomic topic?",
+      "options": {
+        "A": "A firm's pricing decision",
+        "B": "Consumer choice",
+        "C": "National unemployment rate",
+        "D": "Elasticity of demand"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 70,
+      "question": "If the quantity demanded changes significantly when price changes, demand is:",
+      "options": {
+        "A": "Inelastic",
+        "B": "Elastic",
+        "C": "Unit elastic",
+        "D": "Perfectly inelastic"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 71,
+      "question": "A cartel is an example of:",
+      "options": {
+        "A": "Perfect competition",
+        "B": "Monopolistic competition",
+        "C": "Oligopoly",
+        "D": "Monopoly"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 72,
+      "question": "The Fisher effect states that:",
+      "options": {
+        "A": "Nominal interest rate = real interest rate - inflation",
+        "B": "Real interest rate = nominal interest rate - inflation",
+        "C": "Inflation = nominal - real",
+        "D": "All of the above"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 73,
+      "question": "In the Solow model, conditional convergence means:",
+      "options": {
+        "A": "All countries grow at the same rate",
+        "B": "Poor countries grow faster than rich ones if they have the same steady state",
+        "C": "Rich countries always grow faster",
+        "D": "No convergence at all"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 74,
+      "question": "The Industrial Revolution began in:",
+      "options": {
+        "A": "France",
+        "B": "Germany",
+        "C": "England",
+        "D": "USA"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 75,
+      "question": "Which of the following is NOT a characteristic of a public good?",
+      "options": {
+        "A": "Non-excludable",
+        "B": "Non-rival",
+        "C": "Rival in consumption",
+        "D": "Free-rider problem"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 76,
+      "question": "If the marginal propensity to consume (MPC) is 0.8, the multiplier is:",
+      "options": {
+        "A": "2",
+        "B": "3",
+        "C": "4",
+        "D": "5"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 77,
+      "question": "A recession is typically defined as:",
+      "options": {
+        "A": "Two consecutive quarters of negative GDP growth",
+        "B": "High inflation",
+        "C": "High unemployment only",
+        "D": "Decrease in trade"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 78,
+      "question": "Frictional unemployment is caused by:",
+      "options": {
+        "A": "Recession",
+        "B": "Workers searching for better jobs",
+        "C": "Minimum wage laws",
+        "D": "Technological change"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 79,
+      "question": "The quantity theory of money states that:",
+      "options": {
+        "A": "Money supply × velocity = price level × output",
+        "B": "Money supply = price level",
+        "C": "Velocity is constant",
+        "D": "Both A and C"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 80,
+      "question": "An increase in government spending shifts the aggregate demand curve:",
+      "options": {
+        "A": "Left",
+        "B": "Right",
+        "C": "Upward",
+        "D": "Downward"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 81,
+      "question": "Which of the following is a tool of monetary policy?",
+      "options": {
+        "A": "Government spending",
+        "B": "Taxation",
+        "C": "Open market operations",
+        "D": "Minimum wage"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 82,
+      "question": "If a country has a trade deficit, it means:",
+      "options": {
+        "A": "Exports > imports",
+        "B": "Imports > exports",
+        "C": "Exports = imports",
+        "D": "No trade"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 83,
+      "question": "Purchasing Power Parity (PPP) suggests that:",
+      "options": {
+        "A": "Exchange rates adjust to equalize prices",
+        "B": "Prices are always higher in rich countries",
+        "C": "Inflation is the same everywhere",
+        "D": "Trade is zero"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 84,
+      "question": "Which of the following is an example of foreign direct investment?",
+      "options": {
+        "A": "Buying foreign stocks",
+        "B": "Building a factory in another country",
+        "C": "Buying foreign bonds",
+        "D": "Tourism"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 85,
+      "question": "The World Bank and IMF were established after:",
+      "options": {
+        "A": "World War I",
+        "B": "World War II",
+        "C": "The Great Depression",
+        "D": "The Cold War"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 86,
+      "question": "Human capital refers to:",
+      "options": {
+        "A": "Machines and equipment",
+        "B": "Natural resources",
+        "C": "Knowledge and skills of workers",
+        "D": "Financial assets"
+      },
+      "correct_answer": "C"
+    },
+    {
+      "id": 87,
+      "question": "In the short run, a firm should shut down if:",
+      "options": {
+        "A": "Price > average variable cost",
+        "B": "Price < average variable cost",
+        "C": "Price = average total cost",
+        "D": "Marginal revenue = marginal cost"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 88,
+      "question": "A natural monopoly exists when:",
+      "options": {
+        "A": "One firm controls all resources",
+        "B": "Economies of scale are very large",
+        "C": "The government gives exclusive rights",
+        "D": "There are many small firms"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 89,
+      "question": "Price discrimination requires:",
+      "options": {
+        "A": "Market power",
+        "B": "Ability to prevent resale",
+        "C": "Different willingness to pay",
+        "D": "All of the above"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 90,
+      "question": "The marginal product of labor is:",
+      "options": {
+        "A": "Total output divided by labor",
+        "B": "Change in output from one more worker",
+        "C": "Average output per worker",
+        "D": "Revenue per worker"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 91,
+      "question": "In the long run, a perfectly competitive firm earns:",
+      "options": {
+        "A": "Positive economic profit",
+        "B": "Zero economic profit",
+        "C": "Negative economic profit",
+        "D": "Monopoly profit"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 92,
+      "question": "If the government imposes a tax on sellers, the supply curve shifts:",
+      "options": {
+        "A": "Right",
+        "B": "Left",
+        "C": "Upward",
+        "D": "Downward"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 93,
+      "question": "The incidence of a tax depends on:",
+      "options": {
+        "A": "Who pays the tax legally",
+        "B": "Elasticities of supply and demand",
+        "C": "Government policy only",
+        "D": "The size of the tax only"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 94,
+      "question": "A progressive tax means:",
+      "options": {
+        "A": "Higher income pays higher percentage",
+        "B": "Everyone pays the same percentage",
+        "C": "Lower income pays higher percentage",
+        "D": "No tax on rich"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 95,
+      "question": "Crowding out occurs when:",
+      "options": {
+        "A": "Government spending reduces private investment",
+        "B": "Taxes increase",
+        "C": "Exports decrease",
+        "D": "Imports increase"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 96,
+      "question": "Automatic stabilizers include:",
+      "options": {
+        "A": "Unemployment benefits",
+        "B": "Discretionary spending",
+        "C": "Tax rate changes by Congress",
+        "D": "Monetary policy"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 97,
+      "question": "The classical dichotomy states that in the long run:",
+      "options": {
+        "A": "Nominal variables affect real variables",
+        "B": "Nominal variables do not affect real variables",
+        "C": "Money is neutral",
+        "D": "Both B and C"
+      },
+      "correct_answer": "D"
+    },
+    {
+      "id": 98,
+      "question": "Menu costs refer to:",
+      "options": {
+        "A": "Costs of changing prices",
+        "B": "Costs of eating out",
+        "C": "Production costs",
+        "D": "Labor costs"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 99,
+      "question": "If the real exchange rate rises, net exports:",
+      "options": {
+        "A": "Increase",
+        "B": "Decrease",
+        "C": "Stay the same",
+        "D": "Become zero"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 100,
+      "question": "Which of the following best defines 'development' according to Amartya Sen?",
+      "options": {
+        "A": "Increase in GDP per capita",
+        "B": "Expansion of real freedoms people enjoy",
+        "C": "Industrialization",
+        "D": "Increase in trade"
+      },
+      "correct_answer": "B"
+    }
+  ]
+}
