@@ -33,10 +33,8 @@ const DIFFICULTIES = [
 const CAMERA_GUARD_MAX_ATTEMPTS = 3;
 const CAMERA_GUARD_MODES = new Set(['insane', 'impossible']);
 const PUBLIC_PROMO_CODES = new Set(['dontgiveup', 'haveluckyday']);
-const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123']);
-const ALLOWED_PROMO_CODES = process.env.NODE_ENV === 'production'
-    ? PUBLIC_PROMO_CODES
-    : new Set([...PUBLIC_PROMO_CODES, ...DEV_PROMO_CODES]);
+const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123', 'upload_privilege', 'copy_paste_privilege', 'show_correct']);
+const ALLOWED_PROMO_CODES = new Set([...PUBLIC_PROMO_CODES, ...DEV_PROMO_CODES]);
 
 function sanitizeActivatedCheats(codes) {
     if (!Array.isArray(codes)) return [];
@@ -2235,11 +2233,14 @@ export default function Home() {
         }
     }, [view, isNameSet, userName, userId, userCountry, userStars, resolvedTheme, sessionId]); // Re-run when stars change too
 
+    const canCopyPaste = isGodmode || activatedCheats.includes('copy_paste_privilege');
+    const showCorrectAnswersInfo = isGodmode || activatedCheats.includes('show_correct');
+
     // Disable copy/paste/context menu and some keys when taking a test
     useEffect(() => {
         if (view === 'test') {
-            if (isGodmode) {
-                // If Godmode is active, we attach a "Force Copy" listener to help with clipboard issues
+            if (canCopyPaste) {
+                // If allowed, we attach a "Force Copy" listener to help with clipboard issues
                 const handleGodmodeKeys = (e) => {
                     // Force Copy on Ctrl+C
                     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
@@ -2257,19 +2258,19 @@ export default function Home() {
             }
 
             const handleContextMenu = (e) => {
-                if (isGodmode) return;
+                if (canCopyPaste) return;
                 e.preventDefault();
                 return false;
             };
 
             const handleCopyPaste = (e) => {
-                if (isGodmode) return;
+                if (canCopyPaste) return;
                 e.preventDefault();
                 return false;
             };
 
             const handleKeyDown = (e) => {
-                if (isGodmode) return;
+                if (canCopyPaste) return;
                 // Disable PrintScreen
                 if (e.key === 'PrintScreen') {
                     navigator.clipboard.writeText('').catch(() => { }); // Clear clipboard (best effort)
