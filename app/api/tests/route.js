@@ -222,6 +222,7 @@ export async function GET(request) {
             direction: 'General', 
             type: 'uploaded', 
             questionsCount: qCount,
+            isPrivate: test.isPrivate,
             content: null, // Content moved to /api/tests/content?id=...
             updatedAt: test.updatedAt || test.createdAt
         });
@@ -296,6 +297,10 @@ export async function POST(request) {
     if (existingTest) {
         existingTest.content = content;
         existingTest.updatedAt = Date.now();
+        if (body.isPrivate !== undefined) {
+            existingTest.isPrivate = body.isPrivate;
+            existingTest.password = body.password;
+        }
         await existingTest.save();
         return NextResponse.json({ success: true, test: existingTest, type: 'updated' });
     } else {
@@ -304,6 +309,8 @@ export async function POST(request) {
             name,
             content,
             folder: folder || 'General',
+            isPrivate: body.isPrivate || false,
+            password: body.password || '',
             updatedAt: Date.now()
         });
         return NextResponse.json({ success: true, test: newTest, type: 'created' });

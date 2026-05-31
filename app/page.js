@@ -33,7 +33,7 @@ const DIFFICULTIES = [
 const CAMERA_GUARD_MAX_ATTEMPTS = 3;
 const CAMERA_GUARD_MODES = new Set(['insane', 'impossible']);
 const PUBLIC_PROMO_CODES = new Set(['dontgiveup', 'haveluckyday']);
-const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123', 'upload_privilege', 'copy_paste_privilege', 'show_correct']);
+const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123', 'upload_privilege', 'copy_paste_privilege', 'show_correct', 'no_copy_paste', 'correct_answers']);
 const ALLOWED_PROMO_CODES = new Set([...PUBLIC_PROMO_CODES, ...DEV_PROMO_CODES]);
 
 function sanitizeActivatedCheats(codes) {
@@ -1348,6 +1348,9 @@ export default function Home() {
     const [showKeyModal, setShowKeyModal] = useState(false);
     const [keyInput, setKeyInput] = useState('');
     const [targetTestForUnlock, setTargetTestForUnlock] = useState(null);
+    const [targetTestForPassword, setTargetTestForPassword] = useState(null);
+    const [testPasswordInput, setTestPasswordInput] = useState('');
+    const [testPasswordError, setTestPasswordError] = useState('');
     const [keyError, setKeyError] = useState('');
     const [showPaymentOptions, setShowPaymentOptions] = useState(false);
 
@@ -1538,6 +1541,8 @@ export default function Home() {
     const [testName, setTestName] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [jsonError, setJsonError] = useState(null);
+    const [isPrivateUpload, setIsPrivateUpload] = useState(false);
+    const [uploadPassword, setUploadPassword] = useState('');
 
     // Upload feature flag (server-driven via GET /api/tests)
     const [testUploadMode, setTestUploadMode] = useState('off');
@@ -2233,8 +2238,8 @@ export default function Home() {
         }
     }, [view, isNameSet, userName, userId, userCountry, userStars, resolvedTheme, sessionId]); // Re-run when stars change too
 
-    const canCopyPaste = isGodmode || activatedCheats.includes('copy_paste_privilege');
-    const showCorrectAnswersInfo = isGodmode || activatedCheats.includes('show_correct');
+    const canCopyPaste = isGodmode || activatedCheats.includes('copy_paste_privilege') || activatedCheats.includes('no_copy_paste');
+    const showCorrectAnswersInfo = isGodmode || activatedCheats.includes('show_correct') || activatedCheats.includes('correct_answers');
 
     // Disable copy/paste/context menu and some keys when taking a test
     useEffect(() => {
@@ -2768,7 +2773,7 @@ export default function Home() {
         }
     };
 
-    const ensureTestContent = async (test) => {
+    const ensureTestContent = async (test, password = '') => {
         if (test.content) return test;
         
         // Use baseId if available to avoid looking for "TestID_en" when file is "TestID.json"
@@ -2777,9 +2782,15 @@ export default function Home() {
         try {
              // addToast('Loading...', 'Downloading test data', 'info'); 
              
-             const res = await fetch(`/api/tests/content?id=${encodeURIComponent(fetchId)}`);
-             if (!res.ok) throw new Error("Failed to load content");
+             let url = `/api/tests/content?id=${encodeURIComponent(fetchId)}`;
+             if (password) url += `&password=${encodeURIComponent(password)}`;
+             
+             const res = await fetch(url);
              const data = await res.json();
+             
+             if (!res.ok) {
+                 throw new Error(data.error || "Failed to load content");
+             }
              
              if (!data.content && !data.error) {
                  throw new Error("Empty content received");
@@ -2792,8 +2803,20 @@ export default function Home() {
              };
         } catch (e) {
              console.error(e);
-             addToast('Error', 'Failed to load test content. Check connection.', 'error');
-             return null;
+             throw e;
+        }
+    };
+
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+        setTestPasswordError('');
+        try {
+            const test = await ensureTestContent(targetTestForPassword, testPasswordInput);
+            setTargetTestForPassword(null);
+            setTestPasswordInput('');
+            if (test) await startTestRoutine(test);
+        } catch (err) {
+            setTestPasswordError(err.message || 'Incorrect password');
         }
     };
 
@@ -2807,15 +2830,26 @@ export default function Home() {
             return;
         }
 
-        // FETCH CONTENT NOW (Secure Mode)
-        const test = await ensureTestContent(testMetadata);
-        if (!test) return;
+        if (testMetadata.isPrivate) {
+            setTargetTestForPassword(testMetadata);
+            return;
+        }
+
+        try {
+            const test = await ensureTestContent(testMetadata);
+            if (test) await startTestRoutine(test);
+        } catch (err) {
+            addToast('Error', 'Failed to load test content. Check connection.', 'error');
+        }
+    };
+
+    const startTestRoutine = async (test) => {
 
         // Check if there is a translation available (auto-detect counterpart in same folder)
         let translationContent = null;
         
         // Priority: Function argument preference -> explicit translations -> legacy
-        const langPref = testMetadata.preferredLanguage;
+        const langPref = test.preferredLanguage;
 
         // Method 1: New API Grouping Logic (test.translations object)
         if (test.translations) {
@@ -4139,6 +4173,28 @@ export default function Home() {
                                         />
                                         <Upload className="mx-auto text-gray-400 mb-2" />
                                         <p className="text-sm text-gray-500">Click or Drag JSON file here</p>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-100 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={isPrivateUpload}
+                                                onChange={(e) => setIsPrivateUpload(e.target.checked)}
+                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                            />
+                                            Private Test (Require Password)
+                                        </label>
+                                        {isPrivateUpload && (
+                                            <input
+                                                type="text"
+                                                placeholder="Enter test password"
+                                                value={uploadPassword}
+                                                onChange={(e) => setUploadPassword(e.target.value)}
+                                                required={isPrivateUpload}
+                                                className="w-full px-4 py-3 mt-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-900/70 text-gray-900 dark:text-gray-100"
+                                            />
+                                        )}
                                     </div>
 
                                     <button

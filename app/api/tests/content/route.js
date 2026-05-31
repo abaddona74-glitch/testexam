@@ -7,6 +7,7 @@ import Test from '@/models/Test';
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const password = searchParams.get('password');
 
     if (!id) {
         return NextResponse.json({ error: "Test ID is required" }, { status: 400 });
@@ -19,6 +20,9 @@ export async function GET(request) {
         try {
             const test = await Test.findById(id);
             if (test) {
+                if (test.isPrivate && test.password && test.password !== password) {
+                    return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
+                }
                 return NextResponse.json({ 
                     content: test.content,
                     translations: {} // DB tests currently don't support multi-lang efficiently in this schema

@@ -14,6 +14,14 @@ const TestSchema = new mongoose.Schema({
     type: Object, // Changed from Array to Object to support { test_questions: [...] } structure
     required: true,
   },
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  password: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
