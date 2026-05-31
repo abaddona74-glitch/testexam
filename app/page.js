@@ -2574,28 +2574,41 @@ export default function Home() {
         return () => clearInterval(interval);
     }, [filterPeriod, leaderboardPage, leaderboardLimit, activatedCheats, leaderboardLocation, userLocation, isLowPerformance, isMediumPerformance]);
 
-    const handlePromoSubmit = (e) => {
+    const handlePromoSubmit = async (e) => {
         e.preventDefault();
         const code = promoInput.toLowerCase().trim();
+        if(!code) return;
 
-        if (ALLOWED_PROMO_CODES.has(code)) {
-            // Certain modes are toggleable when available.
-            if ((code === 'godmode' || code === 'showhidden') && activatedCheats.includes(code)) {
-                setActivatedCheats(prev => prev.filter(c => c !== code));
-                addToast('Cheat Deactivated', `${code} mode disabled`, 'info');
+        try {
+            const res = await fetch('/api/promo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const action = data.action;
+                // Certain modes are toggleable
+                if ((action === 'godmode' || action === 'showhidden') && activatedCheats.includes(action)) {
+                    setActivatedCheats(prev => prev.filter(c => c !== action));
+                    addToast('Cheat Deactivated', `${action} mode disabled`, 'info');
+                    setPromoInput('');
+                    return;
+                }
+
+                if (!activatedCheats.includes(action)) {
+                    setActivatedCheats(prev => [...prev, action]);
+                    addToast('Cheat Activated!', `${action} mode enabled`, 'success');
+                } else {
+                    addToast('Already Active', `${action} is already running`, 'info');
+                }
                 setPromoInput('');
-                return;
-            }
-
-            if (!activatedCheats.includes(code)) {
-                setActivatedCheats(prev => [...prev, code]);
-                addToast('Cheat Activated!', `${code} mode enabled`, 'success');
             } else {
-                addToast('Already Active', `${code} is already running`, 'info');
+                addToast('Invalid Code', data.message || 'That code does not exist', 'error');
             }
-            setPromoInput('');
-        } else {
-            addToast('Invalid Code', 'That code does not exist', 'error');
+        } catch (err) {
+            addToast('Error', 'Could not validate code', 'error');
         }
     };
 

@@ -10,6 +10,7 @@ const TABS = [
   { id: 'security', label: '🛡️ Security', icon: '🛡️' },
   { id: 'ai', label: '🤖 AI Requests', icon: '🤖' },
   { id: 'content', label: '📝 Content', icon: '📝' },
+  { id: 'promocodes', label: '🎁 Promo Codes', icon: '🎁' },
   { id: 'blocklist', label: '🚫 Block List', icon: '🚫' },
   { id: 'profanity', label: '🤬 So\'z filtr', icon: '🤬' },
 ];
@@ -351,6 +352,10 @@ export default function AdminPage() {
   const [blocklist, setBlocklist] = useState([]);
   const [blockForm, setBlockForm] = useState({ ip: '', deviceId: '', userName: '', reason: '', duration: 'permanent' });
 
+  // PromoCodes state
+  const [promoCodes, setPromoCodes] = useState([]);
+  const [promoForm, setPromoForm] = useState({ code: '', action: '', description: '' });
+
   // Tests state
   const [tests, setTests] = useState([]);
 
@@ -526,6 +531,7 @@ export default function AdminPage() {
     if (activeTab === 'overview' || activeTab === 'ai' || activeTab === 'security') fetchDashboard();
     if (activeTab === 'logs') fetchLogs();
     if (activeTab === 'content') { fetchMessages(); fetchTests(); }
+    if (activeTab === 'promocodes') fetchPromoCodes();
     if (activeTab === 'blocklist') fetchBlocklist();
     if (activeTab === 'profanity') fetchProfanity();
   }, [isAuthed, activeTab, period]);
@@ -548,6 +554,44 @@ export default function AdminPage() {
   }, [isAuthed, activeTab, fetchDashboard]);
 
   // ─── Actions ──────────────────────────────────────────────
+
+  const fetchPromoCodes = async () => {
+    try {
+      setLoading(true);
+      const res = await api('/api/admin/promocode');
+      const data = await res.json();
+      if (data.success) setPromoCodes(data.codes);
+    } catch(err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddPromoCode = async () => {
+    if (!promoForm.code || !promoForm.action) return;
+    try {
+      await api('/api/admin/promocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(promoForm),
+      });
+      setPromoForm({ code: '', action: '', description: '' });
+      fetchPromoCodes();
+    } catch(err) {
+      console.error('Failed to add promo code', err);
+    }
+  };
+
+  const handleDeletePromoCode = async (id) => {
+    if (!confirm('Ushbu promo codeni o\'chirmoqchimisiz?')) return;
+    try {
+      await api(`/api/admin/promocode?id=${id}`, { method: 'DELETE' });
+      fetchPromoCodes();
+    } catch(err) {
+      console.error('Failed to delete promo code', err);
+    }
+  };
 
   const handleLogin = async () => {
     try {
@@ -1321,6 +1365,89 @@ export default function AdminPage() {
                 ))}
                 {tests.length === 0 && <p className="text-center text-gray-500 py-6 text-sm">Testlar topilmadi</p>}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── PROMO CODES TAB ─── */}
+        {activeTab === 'promocodes' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+              <h3 className="font-bold text-gray-800 dark:text-white mb-4">🎁 Yangi Promo Code Qo'shish</h3>
+              <div className="grid md:grid-cols-3 gap-3">
+                <input
+                  placeholder="Promo Code (masalan: havluckyday)"
+                  className="border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 dark:text-white"
+                  value={promoForm.code}
+                  onChange={e => setPromoForm({ ...promoForm, code: e.target.value })}
+                />
+                <select
+                  className="border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 dark:text-white"
+                  value={promoForm.action}
+                  onChange={e => setPromoForm({ ...promoForm, action: e.target.value })}
+                >
+                  <option value="">-- Amalni tanlang --</option>
+                  <option value="dontgiveup">Dont Give Up</option>
+                  <option value="haveluckyday">Have Lucky Day</option>
+                  <option value="godmode">God Mode (Toggle)</option>
+                  <option value="showhidden">Show Hidden (Toggle)</option>
+                  <option value="admin123">Admin 123</option>
+                  <option value="upload_privilege">Upload Privilege</option>
+                </select>
+                <input
+                  placeholder="Eslatma / Izoh (masalan: Imtihon uchun omad)"
+                  className="border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 dark:text-white"
+                  value={promoForm.description}
+                  onChange={e => setPromoForm({ ...promoForm, description: e.target.value })}
+                />
+              </div>
+              <button
+                onClick={handleAddPromoCode}
+                disabled={!promoForm.code || !promoForm.action}
+                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition"
+              >
+                Qo'shish
+              </button>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow overflow-x-auto">
+              <h3 className="font-bold text-gray-800 dark:text-white mb-4">Mavjud Promo Codelar</h3>
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b dark:border-gray-700">
+                    <th className="p-2 dark:text-gray-300">Code</th>
+                    <th className="p-2 dark:text-gray-300">Action</th>
+                    <th className="p-2 dark:text-gray-300">Eslatma</th>
+                    <th className="p-2 dark:text-gray-300">Amallar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {promoCodes.map((p) => (
+                    <tr key={p._id} className="border-b dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/20">
+                      <td className="p-2 font-mono text-blue-600 dark:text-blue-400 font-bold">{p.code}</td>
+                      <td className="p-2 dark:text-gray-300">
+                        <span className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-xs">
+                          {p.action}
+                        </span>
+                      </td>
+                      <td className="p-2 text-sm text-gray-600 dark:text-gray-400">{p.description}</td>
+                      <td className="p-2">
+                        <button
+                          onClick={() => handleDeletePromoCode(p._id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          🗑️ O'chirish
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {promoCodes.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="text-center p-4 text-gray-500">Hech qanday promo code topilmadi.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
