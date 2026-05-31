@@ -6,10 +6,8 @@ import { logActivity } from '@/lib/activity-logger';
 
 export async function GET(request) {
   try {
-    const auth = await requireAdminAuth(request);
-    if (!auth.success) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authError = requireAdminAuth(request);
+    if (authError) return authError;
 
     await dbConnect();
     
@@ -21,7 +19,10 @@ export async function GET(request) {
         { code: 'haveluckyday', action: 'haveluckyday', description: 'Omadli kun tilash (Public)' },
         { code: 'godmode', action: 'godmode', description: 'God Mode - barcha filtrlarni o\'chirish (Dev)' },
         { code: 'showhidden', action: 'showhidden', description: 'Yashirin narsalarni ko\'rsatish (Dev)' },
-        { code: 'admin123', action: 'admin123', description: 'Admin huquqi (Dev)' }
+        { code: 'admin123', action: 'admin123', description: 'Admin huquqi (Dev)' },
+        { code: 'upload_privilege', action: 'upload_privilege', description: 'Upload ruxsati (Dev)' },
+        { code: 'no_copy_paste', action: 'copy_paste_privilege', description: 'Copy-Paste ruxsati (Dev)' },
+        { code: 'correct_answers', action: 'show_correct', description: 'To\'g\'ri javoblarni ko\'rsatish (Dev)' }
       ];
       await PromoCode.insertMany(defaultCodes);
     }
@@ -36,10 +37,8 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const auth = await requireAdminAuth(request);
-    if (!auth.success) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authError = requireAdminAuth(request);
+    if (authError) return authError;
 
     await dbConnect();
     const data = await request.json();
@@ -73,10 +72,8 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
-    const auth = await requireAdminAuth(request);
-    if (!auth.success) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authError = requireAdminAuth(request);
+    if (authError) return authError;
 
     await dbConnect();
     const { searchParams } = new URL(request.url);
@@ -100,10 +97,8 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
   try {
-    const auth = await requireAdminAuth(request);
-    if (!auth.success) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authError = requireAdminAuth(request);
+    if (authError) return authError;
 
     await dbConnect();
     const data = await request.json();

@@ -558,8 +558,7 @@ export default function AdminPage() {
   const fetchPromoCodes = async () => {
     try {
       setLoading(true);
-      const res = await api('/api/admin/promocode');
-      const data = await res.json();
+      const data = await api('/api/admin/promocode');
       if (data.success) setPromoCodes(data.codes);
     } catch(err) {
       console.error(err);
@@ -1393,6 +1392,8 @@ export default function AdminPage() {
                   <option value="showhidden">Show Hidden (Toggle)</option>
                   <option value="admin123">Admin 123</option>
                   <option value="upload_privilege">Upload Privilege</option>
+                  <option value="copy_paste_privilege">Copy-Paste Privilege</option>
+                  <option value="show_correct">Show Correct Answers</option>
                 </select>
                 <input
                   placeholder="Eslatma / Izoh (masalan: Imtihon uchun omad)"
