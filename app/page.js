@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff, ClipboardPaste, Info, FileJson, Download } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff, ClipboardPaste, Info, FileJson, Download, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import clsx from 'clsx';
@@ -813,6 +813,8 @@ export default function Home() {
     const [activeReview, setActiveReview] = useState(null); // For history review
     const [headerExpanded, setHeaderExpanded] = useState(true); // Navbar toggle state
     const [showDifficultyModal, setShowDifficultyModal] = useState(false);
+    const [editingTest, setEditingTest] = useState(null);
+    const [editTestJson, setEditTestJson] = useState('');
     const [showAchievements, setShowAchievements] = useState(false);
     const [pendingTest, setPendingTest] = useState(null);
     const [hasVideoInput, setHasVideoInput] = useState(true);
@@ -3052,6 +3054,48 @@ export default function Home() {
         }
     };
 
+    const handleEditTestOpen = async (test) => {
+        if (!test.mongoId) {
+            addToast('Error', 'Test requires a database ID to edit', 'error');
+            return;
+        }
+        try {
+            const data = await fetch(`/api/tests/content?id=${test.mongoId}`).then(r => r.json());
+            if (data.error) throw new Error(data.error);
+            setEditingTest(test);
+            setEditTestJson(JSON.stringify(data.content, null, 2));
+        } catch (e) {
+            addToast('Error', 'Failed to load test content: ' + e.message, 'error');
+        }
+    };
+
+    const handleEditTestSave = async () => {
+        try {
+            const parsed = JSON.parse(editTestJson); // validate JSON
+            const res = await fetch('/api/tests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: editingTest.name, 
+                    folder: editingTest.folder || 'General',
+                    content: parsed,
+                    uploaderId: userId 
+                })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                addToast('Success', 'Test updated successfully.', 'success');
+                setEditingTest(null);
+                fetchTests();
+            } else {
+                throw new Error(data.error || 'Failed to update test.');
+            }
+        } catch (e) {
+            addToast('Error', 'Update failed: ' + e.message, 'error');
+        }
+    };
+
     const handleUploadSubmit = async (e) => {
         e.preventDefault();
 
@@ -4682,6 +4726,7 @@ export default function Home() {
                                                             activeUsers={globalActiveUsers}
                                                             onStart={(t) => startTest(t || test)}
                                                             onDelete={handleDeleteTest}
+                                                            onEdit={handleEditTestOpen}
                                                             badge={badgeLabel}
                                                             badgeColor={badgeColor}
                                                             isUpdated={isUpdated}
@@ -4733,6 +4778,7 @@ export default function Home() {
                                                         activeUsers={globalActiveUsers}
                                                         onStart={(t) => startTest(t || test)}
                                                         onDelete={handleDeleteTest}
+                                                        onEdit={handleEditTestOpen}
                                                         badge="Community"
                                                         badgeColor="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                                                         hasProgress={!!savedProgress[test.id]}
@@ -4740,6 +4786,7 @@ export default function Home() {
                                                         isUnlocked={false}
                                                         isGodmode={isGodmode}
                                                         userName={userName}
+                                                        currentUserId={userId}
                                                     />
                                                 ))}
                                             </div>
@@ -5811,6 +5858,44 @@ export default function Home() {
                 )
             }
 
+            {/* Edit Test Modal */}
+            {editingTest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-800/50 flex justify-between items-center bg-gray-50 dark:bg-gray-950/50 rounded-t-3xl">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                <Pencil className="text-yellow-500" size={24} />
+                                Edit Test: {editingTest.name}
+                            </h3>
+                            <button onClick={() => setEditingTest(null)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 flex-1 overflow-hidden flex flex-col">
+                            <textarea
+                                className="flex-1 w-full p-4 font-mono text-sm border-2 border-gray-200 dark:border-gray-700 focus:border-yellow-500 dark:focus:border-yellow-600 bg-gray-50 dark:bg-gray-900 rounded-xl dark:text-gray-100 resize-none outline-none transition-colors"
+                                value={editTestJson}
+                                onChange={(e) => setEditTestJson(e.target.value)}
+                            />
+                        </div>
+                        <div className="p-6 border-t border-gray-100 dark:border-gray-800/50 bg-gray-50 dark:bg-gray-950/50 rounded-b-3xl flex justify-end gap-3">
+                            <button
+                                onClick={() => setEditingTest(null)}
+                                className="px-5 py-2.5 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleEditTestSave}
+                                className="px-5 py-2.5 bg-yellow-500 text-white font-bold rounded-xl hover:bg-yellow-600 shadow-md transition-colors"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Difficulty Selection Modal */}
             {
                 showDifficultyModal && pendingTest && (
@@ -6314,7 +6399,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked, isGodmode = false, userName, currentUserId }) {
+function TestCard({ test, onStart, onDelete, onEdit, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked, isGodmode = false, userName, currentUserId }) {
     // START: Language logic (Support both loaded 'translations' and metadata 'availableLanguages')
     const availableLangs = test.translations ? Object.keys(test.translations) : (test.availableLanguages || []);
     
@@ -6511,13 +6596,25 @@ function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 te
                     )}
                 </div>
             </div>
-            {((isGodmode || (test.uploaderId && test.uploaderId === currentUserId)) && onDelete && test.mongoId) && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(test.mongoId, test.name); }}
-                    className="mt-3 w-full py-2 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 font-medium transition-all flex items-center justify-center gap-2 text-sm"
-                >
-                    <XCircle size={16} /> Remove
-                </button>
+            {((isGodmode || (test.uploaderId && test.uploaderId === currentUserId)) && test.mongoId) && (
+                <div className="flex gap-2 mt-3">
+                    {onEdit && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onEdit(test); }}
+                            className="flex-1 py-2 rounded-lg border border-yellow-300 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 font-medium transition-all flex items-center justify-center gap-2 text-sm"
+                        >
+                            <Pencil size={16} /> Edit
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(test.mongoId, test.name); }}
+                            className="flex-1 py-2 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 font-medium transition-all flex items-center justify-center gap-2 text-sm"
+                        >
+                            <XCircle size={16} /> Remove
+                        </button>
+                    )}
+                </div>
             )}
             <button
                 onClick={handleStart}
