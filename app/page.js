@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff, ClipboardPaste, Info, FileJson, Download } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import clsx from 'clsx';
@@ -1543,6 +1543,9 @@ export default function Home() {
     const [jsonError, setJsonError] = useState(null);
     const [isPrivateUpload, setIsPrivateUpload] = useState(false);
     const [uploadPassword, setUploadPassword] = useState('');
+    const [jsonUploadMethod, setJsonUploadMethod] = useState('file'); // 'file' | 'paste'
+    const [jsonPasteContent, setJsonPasteContent] = useState('');
+    const [showJsonGuideModal, setShowJsonGuideModal] = useState(false);
 
     // Upload feature flag (server-driven via GET /api/tests)
     const [testUploadMode, setTestUploadMode] = useState('off');
@@ -3021,32 +3024,49 @@ export default function Home() {
             return;
         }
 
-        const fileInput = e.target.elements.fileInput;
-        const file = fileInput?.files[0];
+        let json;
+        let name;
 
-        if (!file) return;
+        if (jsonUploadMethod === 'file') {
+            const fileInput = e.target.elements.fileInput;
+            const file = fileInput?.files[0];
+            if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            let json;
             try {
-                json = JSON.parse(event.target.result);
+                const text = await file.text();
+                json = JSON.parse(text);
+                name = file.name.replace('.json', '');
             } catch (err) {
                 setJsonError("Invalid JSON syntax. Please check your file format.");
                 return;
             }
-
-            // Validation
-            const validation = validateJson(json);
-            if (!validation.valid) {
-                setJsonError(validation.error);
+        } else {
+            if (!jsonPasteContent.trim()) {
+                setJsonError("Please paste JSON content first.");
                 return;
             }
-
-            const name = file.name.replace('.json', '');
-
+            if (!testName.trim()) {
+                setJsonError("Please enter a test name.");
+                return;
+            }
             try {
-                const res = await fetch('/api/tests', {
+                json = JSON.parse(jsonPasteContent);
+                name = testName;
+            } catch (err) {
+                setJsonError("Invalid JSON syntax. Please check your pasted content.");
+                return;
+            }
+        }
+
+        // Validation
+        const validation = validateJson(json);
+        if (!validation.valid) {
+            setJsonError(validation.error);
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/tests', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3087,8 +3107,6 @@ export default function Home() {
             } catch (err) {
                 setJsonError("Upload request failed. Check internet/Vercel logs and try again.");
             }
-        };
-        reader.readAsText(file);
     };
 
     const handleGenerateSubmit = async (e) => {
@@ -4162,18 +4180,80 @@ export default function Home() {
                                         ))}
                                     </datalist>
 
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Test File (JSON)</label>
-                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 dark:bg-gray-950 transition-colors mb-6 relative">
-                                        <input
-                                            type="file"
-                                            name="fileInput"
-                                            accept=".json"
-                                            required
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                        />
-                                        <Upload className="mx-auto text-gray-400 mb-2" />
-                                        <p className="text-sm text-gray-500">Click or Drag JSON file here</p>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-100">Upload Method</label>
+                                        <button type="button" onClick={() => setShowJsonGuideModal(true)} className="text-xs text-blue-600 hover:text-blue-500 hover:underline flex items-center gap-1">
+                                            <Info size={14} /> JSON Guide & Template
+                                        </button>
                                     </div>
+                                    <div className="flex bg-gray-100 dark:bg-gray-900 rounded-lg p-1 mb-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setJsonUploadMethod('file')}
+                                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jsonUploadMethod === 'file' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                                        >
+                                            <Upload size={16} /> File
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setJsonUploadMethod('paste')}
+                                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jsonUploadMethod === 'paste' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                                        >
+                                            <ClipboardPaste size={16} /> Paste Code
+                                        </button>
+                                    </div>
+
+                                    {jsonUploadMethod === 'file' ? (
+                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 dark:bg-gray-950 transition-colors mb-6 relative">
+                                            <input
+                                                type="file"
+                                                name="fileInput"
+                                                accept=".json"
+                                                required
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                            <Upload className="mx-auto text-gray-400 mb-2" />
+                                            <p className="text-sm text-gray-500">Click or Drag JSON file here</p>
+                                        </div>
+                                    ) : (
+                                        <div className="mb-6">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Test Name</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none mb-4 bg-white dark:bg-gray-900/70 text-gray-900 dark:text-gray-100"
+                                                placeholder="e.g. Exam Test"
+                                                value={testName}
+                                                onChange={(e) => setTestName(e.target.value)}
+                                                required
+                                            />
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">JSON Content</label>
+                                            <div className="relative">
+                                                <textarea
+                                                    className="w-full px-4 py-3 pb-12 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-900/70 text-gray-900 dark:text-gray-100 min-h-[160px] font-mono text-xs resize-y"
+                                                    placeholder="Paste your JSON string here..."
+                                                    value={jsonPasteContent}
+                                                    onChange={(e) => setJsonPasteContent(e.target.value)}
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        try {
+                                                            const text = await navigator.clipboard.readText();
+                                                            setJsonPasteContent(text);
+                                                            addToast('Success', 'Pasted from clipboard!', 'success');
+                                                        } catch (err) {
+                                                            alert('Pasting failed. Please manually paste if your browser blocks clipboard access.');
+                                                        }
+                                                    }}
+                                                    className="absolute bottom-3 right-3 bg-gray-800 text-white p-2 rounded hover:bg-gray-700 shadow-md transition-colors flex items-center justify-center gap-1 text-xs"
+                                                    title="Paste from clipboard"
+                                                >
+                                                    <ClipboardPaste size={16} /> Paste
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="mb-4">
                                         <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-100 cursor-pointer">
@@ -6084,6 +6164,84 @@ export default function Home() {
                     </div>
                 )
             }
+
+            {/* JSON Guide Modal */}
+            {showJsonGuideModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+                            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                                <FileJson className="text-blue-500" /> JSON Format Guide
+                            </h3>
+                            <button onClick={() => setShowJsonGuideModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <XCircle size={24} />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm leading-relaxed">
+                                    To create your own test using JSON, please format your data exactly like the example below. 
+                                    The root structure must be an object containing a <code>test_questions</code> array. Each question must include an <code>id</code>, <code>question</code> text, <code>options</code> (mapping letters to answers), and the <code>correct_answer</code> key.
+                                </p>
+                                
+                                <div className="bg-[#282c34] rounded-xl p-4 overflow-x-auto relative group">
+                                    <pre className="text-sm font-mono text-blue-300"><code className="language-json">
+{`{
+  "test_questions": [
+    {
+      "id": 1,
+      "question": "Выберите правильный вариант пропущенного слова: «Мой друг живёт в ... Москве».",
+      "options": {
+        "A": "в",
+        "B": "на",
+        "C": "у",
+        "D": "о"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 2,
+      "question": "Как правильно сказать: «Я вчера ... книгу» (прочитать)?",
+      "options": {
+        "A": "прочитаю",
+        "B": "прочитал",
+        "C": "прочитаю",
+        "D": "прочитает"
+      },
+      "correct_answer": "B"
+    }
+  ]
+}`}
+                                    </code></pre>
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button 
+                                    onClick={() => {
+                                        const jsonTpl = `{\n  "test_questions": [\n    {\n      "id": 1,\n      "question": "Sample Question?",\n      "options": {\n        "A": "Option 1",\n        "B": "Option 2",\n        "C": "Option 3",\n        "D": "Option 4"\n      },\n      "correct_answer": "A"\n    }\n  ]\n}`;
+                                        const blob = new Blob([jsonTpl], { type: "application/json" });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = 'sample_test_template.json';
+                                        a.click();
+                                        URL.revokeObjectURL(url);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    <Download size={16} /> Download Template
+                                </button>
+                                <button 
+                                    onClick={() => setShowJsonGuideModal(false)}
+                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                                >
+                                    Got it
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <ToastContainer toasts={toasts} removeToast={removeToast} />
 
