@@ -59,3 +59,43 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Failed to delete test' }, { status: 500 });
   }
 }
+
+// PUT - Update a test content
+export async function PUT(request) {
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
+
+  await dbConnect();
+
+  try {
+    const { id, content, name } = await request.json();
+    if (!id || !content) {
+      return NextResponse.json({ error: 'Test ID and content required' }, { status: 400 });
+    }
+
+    const test = await Test.findById(id);
+    if (!test) {
+      return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    }
+
+    let parsedContent = content;
+    if (typeof content === 'string') {
+      parsedContent = JSON.parse(content);
+    }
+    
+    test.content = parsedContent;
+    if (name) test.name = name;
+    
+    await test.save();
+
+    await logActivity({
+      type: 'admin_action',
+      details: { action: 'update_test', testId: id, testName: test.name },
+    });
+
+    return NextResponse.json({ success: true, updated: test.name });
+  } catch (error) {
+    console.error('Update test error:', error);
+    return NextResponse.json({ error: 'Failed to update test. Make sure JSON is valid.' }, { status: 500 });
+  }
+}

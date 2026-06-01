@@ -358,6 +358,8 @@ export default function AdminPage() {
 
   // Tests state
   const [tests, setTests] = useState([]);
+  const [editingTest, setEditingTest] = useState(null);
+  const [editTestJson, setEditTestJson] = useState('');
 
   // Profanity state
   const [profanityData, setProfanityData] = useState({ defaults: [], custom: [], total: 0 });
@@ -653,6 +655,31 @@ export default function AdminPage() {
         setConfirmModal({ open: false });
       },
     });
+  };
+
+  const handleEditTestOpen = async (test) => {
+    try {
+      const data = await api(`/api/tests/content?id=${test._id}`);
+      setEditingTest(test);
+      setEditTestJson(JSON.stringify(data.content, null, 2));
+    } catch(e) {
+      alert('Failed to load test content: ' + e.message);
+    }
+  };
+
+  const handleEditTestSave = async () => {
+    try {
+      JSON.parse(editTestJson); // validate
+      await api('/api/admin/tests', {
+         method: 'PUT',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ id: editingTest._id, content: editTestJson })
+      });
+      setEditingTest(null);
+      fetchTests();
+    } catch(e) {
+      alert('Error updating test: ' + e.message);
+    }
   };
 
   const handleBlock = async () => {
@@ -1354,17 +1381,53 @@ export default function AdminPage() {
                         📁 {test.folder || 'General'} | 📅 {new Date(test.createdAt).toLocaleDateString('uz')}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteTest(test._id, test.name)}
-                      className="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 opacity-0 group-hover:opacity-100 transition"
-                    >
-                      🗑️ O'chirish
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditTestOpen(test)}
+                        className="px-3 py-1 bg-yellow-500 text-white text-xs rounded-lg hover:bg-yellow-600 opacity-0 group-hover:opacity-100 transition"
+                      >
+                        ✏️ Edit JSON
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTest(test._id, test.name)}
+                        className="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 opacity-0 group-hover:opacity-100 transition"
+                      >
+                        🗑️ O'chirish
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {tests.length === 0 && <p className="text-center text-gray-500 py-6 text-sm">Testlar topilmadi</p>}
               </div>
             </div>
+
+            {/* Edit Test Modal */}
+            {editingTest && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-2xl w-full flex flex-col max-h-[90vh]">
+                  <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-4">Edit Test: {editingTest.name}</h3>
+                  <textarea
+                    className="flex-1 w-full p-3 font-mono text-xs border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-lg dark:text-white resize-none"
+                    value={editTestJson}
+                    onChange={(e) => setEditTestJson(e.target.value)}
+                  />
+                  <div className="flex justify-end gap-3 mt-4">
+                    <button
+                      onClick={() => setEditingTest(null)}
+                      className="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-lg"
+                    >
+                      Bekor qilish
+                    </button>
+                    <button
+                      onClick={handleEditTestSave}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                      Saqlash
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
