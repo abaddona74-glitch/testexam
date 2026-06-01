@@ -4,6 +4,8 @@ import Test from '@/models/Test';
 import { logActivity } from '@/lib/activity-logger';
 import { requireAdminAuth } from '@/lib/admin-auth';
 
+export const dynamic = 'force-dynamic';
+
 // GET - List all tests for admin management
 export async function GET(request) {
   const authError = requireAdminAuth(request);
@@ -83,17 +85,17 @@ export async function PUT(request) {
       parsedContent = JSON.parse(content);
     }
     
-    test.content = parsedContent;
-    if (name) test.name = name;
+    const updateData = { content: parsedContent };
+    if (name) updateData.name = name;
     
-    await test.save();
+    await Test.updateOne({ _id: test._id }, { $set: updateData });
 
     await logActivity({
       type: 'admin_action',
-      details: { action: 'update_test', testId: id, testName: test.name },
+      details: { action: 'update_test', testId: id, testName: name || test.name },
     });
 
-    return NextResponse.json({ success: true, updated: test.name });
+    return NextResponse.json({ success: true, updated: name || test.name });
   } catch (error) {
     console.error('Update test error:', error);
     return NextResponse.json({ error: 'Failed to update test. Make sure JSON is valid.' }, { status: 500 });

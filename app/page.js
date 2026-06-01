@@ -3082,6 +3082,7 @@ export default function Home() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
+                    id: editingTest.mongoId,
                     name: editingTest.name, 
                     folder: editingTest.folder || 'General',
                     content: parsed,

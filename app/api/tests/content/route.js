@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Test from '@/models/Test';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

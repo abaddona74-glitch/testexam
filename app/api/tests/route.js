@@ -6,6 +6,8 @@ import Test from '../../../models/Test';
 import { getTestUploadMode, isTestUploadEnabled, isGodmodeUploadEnabled } from '../../../lib/featureFlags.server';
 import { isAdminAuthorizedRequest, requireAdminAuth } from '@/lib/admin-auth';
 
+export const dynamic = 'force-dynamic';
+
 // In-memory store for uploaded tests (persists only while server is running)
 // For permanent storage, you'd need a database (Postgres, MongoDB, etc.) or Blob storage.
 // NOW USING MONGODB
@@ -297,18 +299,31 @@ export async function POST(request) {
     }
 
     // Check if test exists (Update vs Create)
-    const existingTest = await Test.findOne({ name, folder: folder || 'General' });
+    let existingTest;
+    if (body.id) {
+        existingTest = await Test.findById(body.id);
+    }
+    if (!existingTest) {
+        existingTest = await Test.findOne({ name, folder: folder || 'General' });
+    }
 
     if (existingTest) {
-        existingTest.content = content;
-        existingTest.updatedAt = Date.now();
-        if (body.uploaderId) existingTest.uploaderId = body.uploaderId;
+        const updateData = {
+            content: content,
+            updatedAt: Date.now()
+        };
+        if (body.uploaderId) updateData.uploaderId = body.uploaderId;
         if (body.isPrivate !== undefined) {
-            existingTest.isPrivate = body.isPrivate;
-            existingTest.password = body.password;
+            updateData.isPrivate = body.isPrivate;
+            updateData.password = body.password;
         }
-        await existingTest.save();
-        return NextResponse.json({ success: true, test: existingTest, type: 'updated' });
+
+        await Test.updateOne({ _id: existingTest._id }, { $set: updateData });
+        
+        // Refetch to return the updated document
+        const updatedTest = await Test.findById(existingTest._id);
+        
+        return NextResponse.json({ success: true, test: updatedTest, type: 'updated' });
     } else {
         // Save to MongoDB
         const newTest = await Test.create({
