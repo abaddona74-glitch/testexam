@@ -33,7 +33,7 @@ const DIFFICULTIES = [
 const CAMERA_GUARD_MAX_ATTEMPTS = 3;
 const CAMERA_GUARD_MODES = new Set(['insane', 'impossible']);
 const PUBLIC_PROMO_CODES = new Set(['dontgiveup', 'haveluckyday']);
-const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123', 'upload_privilege', 'copy_paste_privilege', 'show_correct', 'no_copy_paste', 'correct_answers']);
+const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123', 'upload_privilege', 'copy_paste_privilege', 'show_correct', 'no_copy_paste', 'correct_answers', 'sudo_access']);
 const ALLOWED_PROMO_CODES = new Set([...PUBLIC_PROMO_CODES, ...DEV_PROMO_CODES]);
 
 function sanitizeActivatedCheats(codes) {
@@ -1590,7 +1590,8 @@ export default function Home() {
     const [testUploadMode, setTestUploadMode] = useState('off');
     const testUploadsEnabled = testUploadMode !== 'off';
     const isGodmode = activatedCheats.includes('godmode');
-    const canUploadTests = testUploadsEnabled || isGodmode;
+    const hasAdminRights = isGodmode || activatedCheats.includes('sudo_access');
+    const canUploadTests = testUploadsEnabled || isGodmode || hasAdminRights;
 
     const handleUploadModeChange = useCallback((nextMode) => {
         if (nextMode === uploadMode) return;
@@ -3041,7 +3042,9 @@ export default function Home() {
     const handleDeleteTest = async (testId, testName) => {
         if (!confirm(`Delete "${testName}" from database? This cannot be undone.`)) return;
         try {
-            const res = await fetch(`/api/tests?id=${testId}&godmode=true&uploaderId=${userId}`, { method: 'DELETE' });
+            const hasSudo = activatedCheats.includes('sudo_access');
+            const sudoParam = hasSudo || isGodmode ? '&bypass=sudo_access' : '';
+            const res = await fetch(`/api/tests?id=${testId}&godmode=true&uploaderId=${userId}${sudoParam}`, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) {
                 addToast('Deleted', `"${testName}" has been removed.`, 'success');
@@ -3060,7 +3063,9 @@ export default function Home() {
             return;
         }
         try {
-            const data = await fetch(`/api/tests/content?id=${test.mongoId}`).then(r => r.json());
+            const hasSudo = activatedCheats.includes('sudo_access');
+            const sudoParam = hasSudo || isGodmode ? '&bypass=sudo_access' : '';
+            const data = await fetch(`/api/tests/content?id=${test.mongoId}${sudoParam}`).then(r => r.json());
             if (data.error) throw new Error(data.error);
             setEditingTest(test);
             setEditTestJson(JSON.stringify(data.content, null, 2));
@@ -3072,6 +3077,7 @@ export default function Home() {
     const handleEditTestSave = async () => {
         try {
             const parsed = JSON.parse(editTestJson); // validate JSON
+            const hasSudo = activatedCheats.includes('sudo_access');
             const res = await fetch('/api/tests', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3079,7 +3085,8 @@ export default function Home() {
                     name: editingTest.name, 
                     folder: editingTest.folder || 'General',
                     content: parsed,
-                    uploaderId: userId 
+                    uploaderId: userId,
+                    bypass: hasSudo || isGodmode ? 'sudo_access' : undefined
                 })
             });
             const data = await res.json();
@@ -4734,7 +4741,7 @@ export default function Home() {
                                                             hasProgress={!!savedProgress[test.id]}
                                                             isLocked={test.isPremium && !testIsUnlocked}
                                                             isUnlocked={test.isPremium && testIsUnlocked}
-                                                            isGodmode={isGodmode}
+                                                            isGodmode={hasAdminRights}
                                                             userName={userName}
                                                             currentUserId={userId}
                                                         />
@@ -4784,7 +4791,7 @@ export default function Home() {
                                                         hasProgress={!!savedProgress[test.id]}
                                                         isLocked={false}
                                                         isUnlocked={false}
-                                                        isGodmode={isGodmode}
+                                                        isGodmode={hasAdminRights}
                                                         userName={userName}
                                                         currentUserId={userId}
                                                     />
@@ -5861,7 +5868,7 @@ export default function Home() {
             {/* Edit Test Modal */}
             {editingTest && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh]">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-5xl w-full flex flex-col h-[90vh] max-h-[90vh]">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-800/50 flex justify-between items-center bg-gray-50 dark:bg-gray-950/50 rounded-t-3xl">
                             <h3 className="text-xl font-bold flex items-center gap-2">
                                 <Pencil className="text-yellow-500" size={24} />
@@ -7364,7 +7371,19 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             stopCelebrationSound();
             return;
         }
-        const score = test.questions.reduce((acc, q, idx) => acc + (answers[idx] === q.correct_answer ? 1 : 0), 0);
+        const score = test.questions.reduce((acc, q, idx) => {
+            const ua = answers[idx];
+            const ca = q.correct_answer;
+            const norm = (s) => s ? s.split(',').map(x => x.trim()).sort().join(',') : '';
+            if (norm(ua) === norm(ca)) return acc + 1;
+            if (ca && ca.includes(',')) {
+                const correctIds = ca.split(',').map(s => s.trim());
+                const userIds = (ua || '').split(',').map(s => s.trim()).filter(id => id && id !== 'NO_MATCH');
+                const correctMatches = userIds.filter(id => correctIds.includes(id)).length;
+                if (correctIds.length > 0) return acc + (correctMatches / correctIds.length);
+            }
+            return acc;
+        }, 0);
         const totalQuestions = test.questions.length;
         const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
 
@@ -7390,7 +7409,19 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
     useEffect(() => {
         if (isFinished) {
-            const score = test.questions.reduce((acc, q, idx) => acc + (answers[idx] === q.correct_answer ? 1 : 0), 0);
+            const score = test.questions.reduce((acc, q, idx) => {
+                const ua = answers[idx];
+                const ca = q.correct_answer;
+                const norm = (s) => s ? s.split(',').map(x => x.trim()).sort().join(',') : '';
+                if (norm(ua) === norm(ca)) return acc + 1;
+                if (ca && ca.includes(',')) {
+                    const correctIds = ca.split(',').map(s => s.trim());
+                    const userIds = (ua || '').split(',').map(s => s.trim()).filter(id => id && id !== 'NO_MATCH');
+                    const correctMatches = userIds.filter(id => correctIds.includes(id)).length;
+                    if (correctIds.length > 0) return acc + (correctMatches / correctIds.length);
+                }
+                return acc;
+            }, 0);
             const totalQuestions = test.questions.length;
             const percentage = Math.round((score / totalQuestions) * 100);
 

