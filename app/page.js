@@ -912,6 +912,7 @@ export default function Home() {
     const [universityStructure, setUniversityStructure] = useState({});
     const [selectedUniversity, setSelectedUniversity] = useState('All');
     const [selectedDirection, setSelectedDirection] = useState('All');
+    const [testSortOrder, setTestSortOrder] = useState('name-asc');
     const [isFiltersInitialized, setIsFiltersInitialized] = useState(false);
 
     // Chat State
@@ -1166,14 +1167,32 @@ export default function Home() {
             list = list.filter(test => test.direction === selectedDirection);
         }
 
-        if (!searchQuery) return list;
-        return list.filter(test => {
-            const name = test.name || '';
-            // Search in Name AND Folder/Category
-            const category = test.category || test.folder || 'General';
-            return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+        let filteredList = list;
+        if (searchQuery) {
+            filteredList = list.filter(test => {
+                const name = test.name || '';
+                // Search in Name AND Folder/Category
+                const category = test.category || test.folder || 'General';
+                return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+            });
+        }
+
+        return [...filteredList].sort((a, b) => {
+            if (testSortOrder === 'name-asc') return (a.name || '').localeCompare(b.name || '');
+            if (testSortOrder === 'name-desc') return (b.name || '').localeCompare(a.name || '');
+            if (testSortOrder === 'created-desc') {
+                const timeA = new Date(a.createdAt || 0).getTime();
+                const timeB = new Date(b.createdAt || 0).getTime();
+                return timeB - timeA;
+            }
+            if (testSortOrder === 'updated-desc') {
+                const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+                const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+                return timeB - timeA;
+            }
+            return 0;
         });
-    }, [tests.defaultTests, searchQuery, fuzzyMatch, selectedUniversity, selectedDirection]);
+    }, [tests.defaultTests, searchQuery, fuzzyMatch, selectedUniversity, selectedDirection, testSortOrder]);
 
     const filteredUploadedTests = useMemo(() => {
         let list = tests.uploadedTests || [];
@@ -1188,13 +1207,31 @@ export default function Home() {
             list = list.filter(test => test.direction === selectedDirection);
         }
 
-        if (!searchQuery) return list;
-        return list.filter(test => {
-            const name = test.name || '';
-            const category = test.category || test.folder || 'General';
-            return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+        let filteredList = list;
+        if (searchQuery) {
+            filteredList = list.filter(test => {
+                const name = test.name || '';
+                const category = test.category || test.folder || 'General';
+                return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+            });
+        }
+
+        return [...filteredList].sort((a, b) => {
+            if (testSortOrder === 'name-asc') return (a.name || '').localeCompare(b.name || '');
+            if (testSortOrder === 'name-desc') return (b.name || '').localeCompare(a.name || '');
+            if (testSortOrder === 'created-desc') {
+                const timeA = new Date(a.createdAt || 0).getTime();
+                const timeB = new Date(b.createdAt || 0).getTime();
+                return timeB - timeA;
+            }
+            if (testSortOrder === 'updated-desc') {
+                const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+                const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+                return timeB - timeA;
+            }
+            return 0;
         });
-    }, [tests.uploadedTests, searchQuery, fuzzyMatch, selectedUniversity, selectedDirection]);
+    }, [tests.uploadedTests, searchQuery, fuzzyMatch, selectedUniversity, selectedDirection, testSortOrder]);
 
     // Directions based on University
     const availableDirections = useMemo(() => {
@@ -3002,7 +3039,7 @@ export default function Home() {
     const handleDeleteTest = async (testId, testName) => {
         if (!confirm(`Delete "${testName}" from database? This cannot be undone.`)) return;
         try {
-            const res = await fetch(`/api/tests?id=${testId}&godmode=true`, { method: 'DELETE' });
+            const res = await fetch(`/api/tests?id=${testId}&godmode=true&uploaderId=${userId}`, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) {
                 addToast('Deleted', `"${testName}" has been removed.`, 'success');
@@ -3073,7 +3110,8 @@ export default function Home() {
                         name,
                         content: json,
                         folder: uploadFolder,
-                        godmode: isGodmode
+                        godmode: isGodmode,
+                        uploaderId: userId
                     })
                 });
 
@@ -3161,7 +3199,8 @@ export default function Home() {
                     name: testName,
                     content: genData.content,
                     folder: uploadFolder,
-                    godmode: isGodmode
+                    godmode: isGodmode,
+                    uploaderId: userId
                 })
             });
 
@@ -4418,28 +4457,47 @@ export default function Home() {
                                     </div>
                                 </div>
 
-                                {/* University Filter */}
-                                {universities.length > 0 && (
-                                    <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide mask-fade-sides no-scrollbar">
-                                        {universities.map(uni => (
-                                            <button
-                                                key={uni}
-                                                onClick={() => {
-                                                    setSelectedUniversity(uni);
-                                                    setSelectedDirection('All'); // Reset direction when university changes
-                                                }}
-                                                className={clsx(
-                                                    "px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all border-2",
-                                                    selectedUniversity === uni
-                                                        ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                                        : "border-transparent bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                                )}
-                                            >
-                                                {uni}
-                                            </button>
-                                        ))}
+                                {/* Filter and Sort Row */}
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                                    {/* University Filter */}
+                                    {universities.length > 0 ? (
+                                        <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide mask-fade-sides no-scrollbar">
+                                            {universities.map(uni => (
+                                                <button
+                                                    key={uni}
+                                                    onClick={() => {
+                                                        setSelectedUniversity(uni);
+                                                        setSelectedDirection('All'); // Reset direction when university changes
+                                                    }}
+                                                    className={clsx(
+                                                        "px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all border-2",
+                                                        selectedUniversity === uni
+                                                            ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                                            : "border-transparent bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                                    )}
+                                                >
+                                                    {uni}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : <div></div>}
+
+                                    {/* Sorting Dropdown */}
+                                    <div className="flex items-center gap-3 shrink-0 self-start lg:self-auto">
+                                        <label htmlFor="testSortOrder" className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Sort by:</label>
+                                        <select
+                                            id="testSortOrder"
+                                            value={testSortOrder}
+                                            onChange={(e) => setTestSortOrder(e.target.value)}
+                                            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm"
+                                        >
+                                            <option value="name-asc">Alphabetical (A-Z)</option>
+                                            <option value="name-desc">Alphabetical (Z-A)</option>
+                                            <option value="created-desc">Newest Added</option>
+                                            <option value="updated-desc">Recently Edited</option>
+                                        </select>
                                     </div>
-                                )}
+                                </div>
 
                                 {/* Direction Filter (Only if University selected) */}
                                 {selectedUniversity !== 'All' && availableDirections.length > 2 && ( // > 2 because 'All' is always there, and if only 1 real direction exists (e.g. 'General'), maybe we don't need to show? User asked for buttons though. 
@@ -4583,6 +4641,12 @@ export default function Home() {
                                         if (idxA !== -1) return -1;
                                         if (idxB !== -1) return 1;
                                         
+                                        if (testSortOrder === 'name-desc') return catB.localeCompare(catA);
+                                        if (testSortOrder === 'updated-desc' || testSortOrder === 'created-desc') {
+                                            const timeA = testsA[0] ? new Date(testsA[0].updatedAt || testsA[0].createdAt || 0).getTime() : 0;
+                                            const timeB = testsB[0] ? new Date(testsB[0].updatedAt || testsB[0].createdAt || 0).getTime() : 0;
+                                            return timeB - timeA;
+                                        }
                                         return catA.localeCompare(catB);
                                     }).filter(([, categoryTests]) => categoryTests.length > 0).map(([category, categoryTests]) => (
                                         <div key={category} className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-6 border border-gray-100 dark:border-gray-800/30">
@@ -4627,6 +4691,7 @@ export default function Home() {
                                                             isUnlocked={test.isPremium && testIsUnlocked}
                                                             isGodmode={isGodmode}
                                                             userName={userName}
+                                                            currentUserId={userId}
                                                         />
                                                     );
                                                 }) : (
@@ -6249,7 +6314,7 @@ export default function Home() {
     );
 }
 
-function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked, isGodmode = false, userName }) {
+function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 text-blue-700", hasProgress, isUpdated, isNew, activeUsers = [], isLocked, isUnlocked, isGodmode = false, userName, currentUserId }) {
     // START: Language logic (Support both loaded 'translations' and metadata 'availableLanguages')
     const availableLangs = test.translations ? Object.keys(test.translations) : (test.availableLanguages || []);
     
@@ -6446,7 +6511,7 @@ function TestCard({ test, onStart, onDelete, badge, badgeColor = "bg-blue-100 te
                     )}
                 </div>
             </div>
-            {isGodmode && onDelete && test.mongoId && (
+            {((isGodmode || (test.uploaderId && test.uploaderId === currentUserId)) && onDelete && test.mongoId) && (
                 <button
                     onClick={(e) => { e.stopPropagation(); onDelete(test.mongoId, test.name); }}
                     className="mt-3 w-full py-2 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 font-medium transition-all flex items-center justify-center gap-2 text-sm"

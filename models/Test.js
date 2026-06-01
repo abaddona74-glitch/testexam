@@ -22,6 +22,10 @@ const TestSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  uploaderId: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

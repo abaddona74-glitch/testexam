@@ -93,6 +93,8 @@ export async function GET(request) {
               const filePath = path.join(currentPath, filename);
               
               try {
+                  const filePath = path.join(currentPath, filename);
+                  const stat = await fs.stat(filePath);
                   const fileContents = await fs.readFile(filePath, 'utf8');
                   const json = JSON.parse(fileContents);
 
@@ -107,7 +109,7 @@ export async function GET(request) {
                   } else if (baseName === 'en' || baseName === 'uz') {
                       lang = baseName;
                       // Use category (folder name) as test name if file is just en.json/uz.json
-                      baseName = category === 'General' ? 'Test' : category; 
+                      baseName = category === 'General' ? 'Test' : category;
                   }
 
                   // ID creation: use path to avoid collisions
@@ -129,11 +131,11 @@ export async function GET(request) {
                   }
                   
                   groupedFiles.get(baseName).variants[lang] = json;
-                  groupedFiles.get(baseName).variantsUpdatedAt[lang] = json.updatedAt ? new Date(json.updatedAt) : null;
-                  groupedFiles.get(baseName).variantsCreatedAt[lang] = json.createdAt ? new Date(json.createdAt) : null;
+                  groupedFiles.get(baseName).variantsUpdatedAt[lang] = json.updatedAt ? new Date(json.updatedAt) : stat.mtime;
+                  groupedFiles.get(baseName).variantsCreatedAt[lang] = json.createdAt ? new Date(json.createdAt) : stat.birthtime;
 
               } catch (e) {
-                  console.error(`Error processing file ${filePath}`, e);
+                  console.error(`Error processing file ${filename}`, e);
               }
           }
 
@@ -223,8 +225,10 @@ export async function GET(request) {
             type: 'uploaded', 
             questionsCount: qCount,
             isPrivate: test.isPrivate,
+            uploaderId: test.uploaderId,
             content: null, // Content moved to /api/tests/content?id=...
-            updatedAt: test.updatedAt || test.createdAt
+            updatedAt: test.updatedAt || test.createdAt,
+            createdAt: test.createdAt
         });
         if (test.folder) folders.add(test.folder);
         universities.add('Uploaded');
@@ -297,6 +301,7 @@ export async function POST(request) {
     if (existingTest) {
         existingTest.content = content;
         existingTest.updatedAt = Date.now();
+        if (body.uploaderId) existingTest.uploaderId = body.uploaderId;
         if (body.isPrivate !== undefined) {
             existingTest.isPrivate = body.isPrivate;
             existingTest.password = body.password;
@@ -311,6 +316,7 @@ export async function POST(request) {
             folder: folder || 'General',
             isPrivate: body.isPrivate || false,
             password: body.password || '',
+            uploaderId: body.uploaderId || null,
             updatedAt: Date.now()
         });
         return NextResponse.json({ success: true, test: newTest, type: 'created' });
@@ -323,24 +329,39 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
-  const authError = requireAdminAuth(request);
-  if (authError) return authError;
-
   await dbConnect();
 
   try {
     const { searchParams } = new URL(request.url);
     const testId = searchParams.get('id');
+    const requestUploaderId = searchParams.get('uploaderId');
 
     if (!testId) {
       return NextResponse.json({ error: "Test ID is required." }, { status: 400 });
     }
 
-    const deleted = await Test.findByIdAndDelete(testId);
-
-    if (!deleted) {
+    const testToDelete = await Test.findById(testId);
+    if (!testToDelete) {
       return NextResponse.json({ error: "Test not found." }, { status: 404 });
     }
+
+    // Allow deletion if the user is the original uploader
+    let isAuthorized = false;
+    if (requestUploaderId && testToDelete.uploaderId && requestUploaderId === testToDelete.uploaderId) {
+        isAuthorized = true;
+    } else {
+        // Fallback to Admin check if not the uploader
+        const authError = requireAdminAuth(request);
+        if (!authError) {
+             isAuthorized = true;
+        }
+    }
+
+    if (!isAuthorized) {
+        return NextResponse.json({ error: "Unauthorized. You can only delete tests you uploaded." }, { status: 401 });
+    }
+
+    await Test.findByIdAndDelete(testId);
 
     return NextResponse.json({ success: true, message: "Test deleted." });
   } catch (error) {
