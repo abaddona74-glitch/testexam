@@ -1459,6 +1459,7 @@ export default function AdminPage() {
                   <option value="upload_privilege">Upload Privilege</option>
                   <option value="copy_paste_privilege">Copy-Paste Privilege</option>
                   <option value="show_correct">Show Correct Answers</option>
+                  <option value="sudo_access">Sudo Access (Edit/Remove Tests)</option>
                 </select>
                 <input
                   placeholder="Eslatma / Izoh (masalan: Imtihon uchun omad)"

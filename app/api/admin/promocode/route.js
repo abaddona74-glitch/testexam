@@ -11,21 +11,25 @@ export async function GET(request) {
 
     await dbConnect();
     
-    // Seed default codes if collection is empty
-    const count = await PromoCode.countDocuments();
-    if (count === 0) {
-      const defaultCodes = [
-        { code: 'dontgiveup', action: 'dontgiveup', description: 'Imtihon topshirish uchun motivatsiya (Public)' },
-        { code: 'haveluckyday', action: 'haveluckyday', description: 'Omadli kun tilash (Public)' },
-        { code: 'godmode', action: 'godmode', description: 'God Mode - barcha filtrlarni o\'chirish (Dev)' },
-        { code: 'showhidden', action: 'showhidden', description: 'Yashirin narsalarni ko\'rsatish (Dev)' },
-        { code: 'admin123', action: 'admin123', description: 'Admin huquqi (Dev)' },
-        { code: 'upload_privilege', action: 'upload_privilege', description: 'Upload ruxsati (Dev)' },
-        { code: 'no_copy_paste', action: 'copy_paste_privilege', description: 'Copy-Paste ruxsati (Dev)' },
-        { code: 'correct_answers', action: 'show_correct', description: 'To\'g\'ri javoblarni ko\'rsatish (Dev)' }
-      ];
-      await PromoCode.insertMany(defaultCodes);
-    }
+    const defaultCodes = [
+      { code: 'dontgiveup', action: 'dontgiveup', description: 'Imtihon topshirish uchun motivatsiya (Public)' },
+      { code: 'haveluckyday', action: 'haveluckyday', description: 'Omadli kun tilash (Public)' },
+      { code: 'godmode', action: 'godmode', description: 'God Mode - barcha filtrlarni o\'chirish (Dev)' },
+      { code: 'showhidden', action: 'showhidden', description: 'Yashirin narsalarni ko\'rsatish (Dev)' },
+      { code: 'admin123', action: 'admin123', description: 'Admin huquqi (Dev)' },
+      { code: 'upload_privilege', action: 'upload_privilege', description: 'Upload ruxsati (Dev)' },
+      { code: 'no_copy_paste', action: 'copy_paste_privilege', description: 'Copy-Paste ruxsati (Dev)' },
+      { code: 'correct_answers', action: 'show_correct', description: 'To\'g\'ri javoblarni ko\'rsatish (Dev)' },
+      { code: 'sudo_access', action: 'sudo_access', description: 'Testlarni o\'chirish va tahrirlash (Admin)' }
+    ];
+
+    await Promise.all(defaultCodes.map((promo) => (
+      PromoCode.updateOne(
+        { code: promo.code },
+        { $setOnInsert: promo },
+        { upsert: true }
+      )
+    )));
 
     const codes = await PromoCode.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, codes });
