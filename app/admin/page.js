@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import JsonImageUploader from '@/components/JsonImageUploader';
 
 const ADMIN_CSRF_KEY = 'admin_csrf_token';
 const TABS = [
@@ -1406,6 +1407,7 @@ export default function AdminPage() {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-5xl w-full flex flex-col h-[90vh] max-h-[90vh]">
                   <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-4">Edit Test: {editingTest.name}</h3>
+                  <JsonImageUploader />
                   <textarea
                     className="flex-1 w-full p-3 font-mono text-xs border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-lg dark:text-white resize-none"
                     value={editTestJson}

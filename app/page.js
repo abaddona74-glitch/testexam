@@ -14,6 +14,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
 import { sanitizeMarkdownText } from '@/lib/sanitize';
 
+import JsonImageUploader from '@/components/JsonImageUploader';
 const LazyLiquidGlassClock = dynamic(
     () => import('@/components/liquid-clock').then((m) => m.LiquidGlassClock),
     { ssr: false, loading: () => null }
@@ -5880,6 +5881,7 @@ export default function Home() {
                             </button>
                         </div>
                         <div className="p-6 flex-1 overflow-hidden flex flex-col">
+                            <JsonImageUploader />
                             <textarea
                                 className="flex-1 w-full p-4 font-mono text-sm border-2 border-gray-200 dark:border-gray-700 focus:border-yellow-500 dark:focus:border-yellow-600 bg-gray-50 dark:bg-gray-900 rounded-xl dark:text-gray-100 resize-none outline-none transition-colors"
                                 value={editTestJson}
@@ -9366,13 +9368,13 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                     </div>
 
                     {/* Image Support */}
-                    {question.image && (
+                    {(question.image || question.image_url) && (
                         <div
-                            onClick={() => setExpandedImage(question.image)}
+                            onClick={() => setExpandedImage(question.image || question.image_url)}
                             className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 bg-gray-50 flex justify-center cursor-zoom-in hover:opacity-95 transition-opacity"
                         >
                             <img
-                                src={question.image}
+                                src={`/api/blob?url=${encodeURIComponent(question.image || question.image_url)}`}
                                 alt="Question diagram"
                                 className="max-w-full h-auto max-h-[400px] object-contain"
                             />
