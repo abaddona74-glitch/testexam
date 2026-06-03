@@ -9374,7 +9374,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 bg-gray-50 flex justify-center cursor-zoom-in hover:opacity-95 transition-opacity"
                         >
                             <img
-                                src={`/api/blob?url=${encodeURIComponent(question.image || question.image_url)}`}
+                                src={(question.image || question.image_url)?.startsWith('http') ? `/api/blob?url=${encodeURIComponent(question.image || question.image_url)}` : (question.image || question.image_url)}
                                 alt="Question diagram"
                                 className="max-w-full h-auto max-h-[400px] object-contain"
                             />

@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -7,11 +10,14 @@ export async function GET(request) {
   if (!url) {
     return new Response('URL parameter is missing', { status: 400 });
   }
-
-  // Premium tekshirish logikasini shu yerga qo'shishingiz mumkin:
-  // misol uchun:
-  // const session = await getServerSession();
-  // if (!session?.user?.isPremium) return new Response('Forbidden', { status: 403 });
+  
+  // Checking if the URL is valid
+  if (!url.startsWith('http')) {
+    // Agar bu nisbiy URL (masalan: static rasm) bo'lsa
+    // Uni o'zimizning serverdan olib kelishimiz kerak bo'lishi mumkin yoki shunchaki xato qaytaramiz
+    // Vercel Blob bo'lmagani uchun to'g'ridan-to'g'ri qaytarish yaxshiroq
+    return new Response('Noto\'g\'ri rasm formati', { status: 400 });
+  }
 
   try {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
@@ -21,19 +27,21 @@ export async function GET(request) {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`
-      }
+      },
+      cache: 'no-store'
     });
 
     if (!response.ok) {
-      return new Response('Rasmga kirish taqiqlangan yoki rasm topilmadi. (Private Access)', { status: response.status });
+      console.error(`Private image load error: status ${response.status} for URL: ${url}`);
+      return new Response(`Rasmga kirish taqiqlangan yoki rasm topilmadi. (Private Access - Status: ${response.status})`, { status: response.status });
     }
 
     // Binary faylni foydalanuvchi sahifasiga proxy qilib (xavfsiz tarzda) jo'natamiz
     return new Response(response.body, {
       headers: {
         'Content-Type': response.headers.get('content-type') || 'image/jpeg',
-        // Kelajakda yengil ishlashi uchun keshlab olamiz
-        'Cache-Control': 'public, max-age=86400'
+        // Kelajakda yengil ishlashi uchun keshlab olamiz (faqat mijoza, serverda emas)
+        'Cache-Control': 'public, max-age=86400, stale-while-revalidate=43200'
       }
     });
   } catch (error) {
