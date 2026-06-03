@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 import { NextResponse } from 'next/server';
+import { get } from '@vercel/blob';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -13,39 +14,34 @@ export async function GET(request) {
   
   // Checking if the URL is valid
   if (!url.startsWith('http')) {
-    // Agar bu nisbiy URL (masalan: static rasm) bo'lsa
-    // Uni o'zimizning serverdan olib kelishimiz kerak bo'lishi mumkin yoki shunchaki xato qaytaramiz
-    // Vercel Blob bo'lmagani uchun to'g'ridan-to'g'ri qaytarish yaxshiroq
     return new Response('Noto\'g\'ri rasm formati', { status: 400 });
   }
 
   try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN;
-    
-    // Vercel Blob private url'ni o'qish uchun maxsus fetch (server to server)
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      cache: 'no-store'
+    // Vercel Blob SDK orqali rasmni xavfsiz yuklab olish
+    const blobResponse = await get(url, {
+      access: 'private',
     });
 
-    if (!response.ok) {
-      console.error(`Private image load error: status ${response.status} for URL: ${url}`);
-      return new Response(`Rasmga kirish taqiqlangan yoki rasm topilmadi. (Private Access - Status: ${response.status})`, { status: response.status });
+    if (!blobResponse) {
+      console.error(`Private image not found for URL: ${url}`);
+      return new Response('Rasm topilmadi. (Private Access)', { status: 404 });
+    }
+
+    if (blobResponse.statusCode === 304) {
+       return new Response(null, { status: 304 });
     }
 
     // Binary faylni foydalanuvchi sahifasiga proxy qilib (xavfsiz tarzda) jo'natamiz
-    return new Response(response.body, {
+    return new Response(blobResponse.stream, {
       headers: {
-        'Content-Type': response.headers.get('content-type') || 'image/jpeg',
-        // Kelajakda yengil ishlashi uchun keshlab olamiz (faqat mijoza, serverda emas)
+        'Content-Type': blobResponse.blob.contentType || 'image/jpeg',
+        // Keshni yengillashtirish uchun faqat foydalanuvchida keshlanadi
         'Cache-Control': 'public, max-age=86400, stale-while-revalidate=43200'
       }
     });
   } catch (error) {
-    console.error("Private image load error:", error);
+    console.error("Private image load error via SDK:", error);
     return new Response('Server error: ' + error.message, { status: 500 });
   }
 }
