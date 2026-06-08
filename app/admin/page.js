@@ -361,6 +361,7 @@ export default function AdminPage() {
   const [tests, setTests] = useState([]);
   const [editingTest, setEditingTest] = useState(null);
   const [editTestJson, setEditTestJson] = useState('');
+  const [showJsonGuideModal, setShowJsonGuideModal] = useState(false);
 
   // Profanity state
   const [profanityData, setProfanityData] = useState({ defaults: [], custom: [], total: 0 });
@@ -1406,7 +1407,16 @@ export default function AdminPage() {
             {editingTest && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-5xl w-full flex flex-col h-[90vh] max-h-[90vh]">
-                  <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-4">Edit Test: {editingTest.name}</h3>
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="font-bold text-lg text-gray-800 dark:text-white">Edit Test: {editingTest.name}</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowJsonGuideModal(true)}
+                      className="text-xs text-blue-600 hover:text-blue-500 hover:underline"
+                    >
+                      JSON Guide & Template
+                    </button>
+                  </div>
                   <JsonImageUploader />
                   <textarea
                     className="flex-1 w-full p-3 font-mono text-xs border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-lg dark:text-white resize-none"
@@ -1425,6 +1435,66 @@ export default function AdminPage() {
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                     >
                       Saqlash
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showJsonGuideModal && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                  <div className="p-5 border-b dark:border-gray-700 flex items-center justify-between">
+                    <h3 className="font-bold text-lg text-gray-800 dark:text-white">JSON Format Guide</h3>
+                    <button
+                      onClick={() => setShowJsonGuideModal(false)}
+                      className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                    >
+                      X
+                    </button>
+                  </div>
+                  <div className="p-5 overflow-y-auto space-y-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Use <code>type: "text_input"</code> for written/code answers. These answers are saved for manual admin review and are not auto-scored yet.
+                    </p>
+                    <pre className="bg-gray-950 text-blue-200 rounded-lg p-4 overflow-x-auto text-xs font-mono">{`{
+  "test_questions": [
+    {
+      "id": 1,
+      "type": "choice",
+      "question": "What is 2 + 2?",
+      "options": {
+        "A": "3",
+        "B": "4"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "type": "text_input",
+      "question": "WRITE SQL CODE:",
+      "image_url": "https://example.com/image.png",
+      "placeholder": "SELECT ...",
+      "answer_format": "auto",
+      "language": "sql",
+      "grading": "manual"
+    }
+  ]
+}`}</pre>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                      <p><b>choice:</b> options object and correct_answer are required.</p>
+                      <p><b>multi_choice:</b> put multiple answers in correct_answer, for example "A, C".</p>
+                      <p><b>matching/drag-drop:</b> use option text like "left -&gt; right" and correct_answer like "A, B, C".</p>
+                      <p><b>text_input:</b> do not add options or correct_answer; use grading: "manual".</p>
+                      <p><b>image questions:</b> add image_url to any question type.</p>
+                    </div>
+                  </div>
+                  <div className="p-4 border-t dark:border-gray-700 flex justify-end">
+                    <button
+                      onClick={() => setShowJsonGuideModal(false)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Got it
                     </button>
                   </div>
                 </div>

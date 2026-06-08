@@ -316,7 +316,17 @@ function validateJson(json) {
     // Check structure of first 3 items or all
     for (let i = 0; i < Math.min(json.test_questions.length, 5); i++) {
         const q = json.test_questions[i];
+        const questionType = q.type || 'choice';
         if (!q.question) return { valid: false, error: `Question #${i + 1} is missing 'question' field.` };
+
+        if (questionType === 'text_input') {
+            if (q.options) return { valid: false, error: `Question #${i + 1}: 'text_input' questions must not include 'options'.` };
+            if (q.correct_answer && q.grading !== 'manual') {
+                return { valid: false, error: `Question #${i + 1}: text input answers are manual for now. Use "grading": "manual" instead of "correct_answer".` };
+            }
+            continue;
+        }
+
         if (!q.options) return { valid: false, error: `Question #${i + 1} is missing 'options' object.` };
         if (!q.correct_answer) return { valid: false, error: `Question #${i + 1} is missing 'correct_answer' field.` };
 
@@ -327,6 +337,22 @@ function validateJson(json) {
     }
 
     return { valid: true };
+}
+
+function isTextInputQuestion(question) {
+    return question?.type === 'text_input' || question?.answer_type === 'text';
+}
+
+function looksLikeCode(value = '') {
+    const text = String(value).trim();
+    if (!text) return false;
+    if (/```[\s\S]*```/.test(text)) return true;
+    if (/[{}();=<>]/.test(text) && /\b(function|const|let|var|return|if|else|class|import|export|SELECT|FROM|WHERE|def|print|public|static|void)\b/i.test(text)) return true;
+    return text.split('\n').length > 1 && /[{}()[\];]/.test(text);
+}
+
+function normalizeManualAnswer(value) {
+    return String(value || '').trim();
 }
 
 const SPINNER_ITEMS = [
@@ -2984,6 +3010,15 @@ export default function Home() {
         }
 
         const preparedQuestions = questionsPool.map(q => {
+            if (isTextInputQuestion(q)) {
+                return {
+                    ...q,
+                    grading: q.grading || 'manual',
+                    answer_format: q.answer_format || 'auto',
+                    shuffledOptions: []
+                };
+            }
+
             // Allow flexible options (object to array)
             const optionsArray = Object.entries(q.options).map(([key, value]) => ({
                 id: key,
@@ -5620,6 +5655,14 @@ export default function Home() {
                                 }
 
                                 const preparedQuestions = questionsPool.map(q => {
+                                    if (isTextInputQuestion(q)) {
+                                        return {
+                                            ...q,
+                                            grading: q.grading || 'manual',
+                                            answer_format: q.answer_format || 'auto',
+                                            shuffledOptions: []
+                                        };
+                                    }
                                     const optionsArray = Object.entries(q.options).map(([key, value]) => ({ id: key, text: value }));
                                     return { ...q, shuffledOptions: shuffleArray(optionsArray) };
                                 });
@@ -5876,9 +5919,18 @@ export default function Home() {
                                 <Pencil className="text-yellow-500" size={24} />
                                 Edit Test: {editingTest.name}
                             </h3>
-                            <button onClick={() => setEditingTest(null)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500">
-                                <X size={20} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowJsonGuideModal(true)}
+                                    className="text-xs text-blue-600 hover:text-blue-500 hover:underline flex items-center gap-1"
+                                >
+                                    <Info size={14} /> JSON Guide & Template
+                                </button>
+                                <button onClick={() => setEditingTest(null)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500">
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
                         <div className="p-6 flex-1 overflow-hidden flex flex-col">
                             <JsonImageUploader />
@@ -6340,8 +6392,7 @@ export default function Home() {
                         <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
                             <div>
                                 <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm leading-relaxed">
-                                    To create your own test using JSON, please format your data exactly like the example below. 
-                                    The root structure must be an object containing a <code>test_questions</code> array. Each question must include an <code>id</code>, <code>question</code> text, <code>options</code> (mapping letters to answers), and the <code>correct_answer</code> key.
+                                    To create your own test using JSON, use a root object with a <code>test_questions</code> array. Choice, multi-choice, matching/drag-drop, image, and manual text-input questions are supported. For code answers use <code>answer_format: "auto"</code>; the app shows syntax colors when the typed answer looks like code.
                                 </p>
                                 
                                 <div className="bg-[#282c34] rounded-xl p-4 overflow-x-auto relative group">
@@ -6350,25 +6401,58 @@ export default function Home() {
   "test_questions": [
     {
       "id": 1,
-      "question": "Выберите правильный вариант пропущенного слова: «Мой друг живёт в ... Москве».",
+      "type": "choice",
+      "question": "What is 2 + 2?",
       "options": {
-        "A": "в",
-        "B": "на",
-        "C": "у",
-        "D": "о"
+        "A": "3",
+        "B": "4",
+        "C": "5",
+        "D": "6"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "type": "multi_choice",
+      "question": "Select all JavaScript keywords.",
+      "options": {
+        "A": "const",
+        "B": "banana",
+        "C": "return",
+        "D": "table"
+      },
+      "correct_answer": "A, C"
+    },
+    {
+      "id": 3,
+      "type": "matching",
+      "question": "Match each HTML tag with its purpose.",
+      "options": {
+        "A": "img -> image",
+        "B": "a -> link",
+        "C": "p -> paragraph"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 4,
+      "type": "choice",
+      "question": "What does this diagram show?",
+      "image_url": "https://example.com/image.png",
+      "options": {
+        "A": "Stack",
+        "B": "Queue"
       },
       "correct_answer": "A"
     },
     {
-      "id": 2,
-      "question": "Как правильно сказать: «Я вчера ... книгу» (прочитать)?",
-      "options": {
-        "A": "прочитаю",
-        "B": "прочитал",
-        "C": "прочитаю",
-        "D": "прочитает"
-      },
-      "correct_answer": "B"
+      "id": 5,
+      "type": "text_input",
+      "question": "Write a function that returns the sum of two numbers.",
+      "placeholder": "function sum(a, b) { ... }",
+      "answer_format": "auto",
+      "language": "javascript",
+      "grading": "manual"
     }
   ]
 }`}
@@ -6378,7 +6462,65 @@ export default function Home() {
                             <div className="flex justify-end gap-3 pt-4">
                                 <button 
                                     onClick={() => {
-                                        const jsonTpl = `{\n  "test_questions": [\n    {\n      "id": 1,\n      "question": "Sample Question?",\n      "options": {\n        "A": "Option 1",\n        "B": "Option 2",\n        "C": "Option 3",\n        "D": "Option 4"\n      },\n      "correct_answer": "A"\n    }\n  ]\n}`;
+                                        const jsonTpl = `{
+  "test_questions": [
+    {
+      "id": 1,
+      "type": "choice",
+      "question": "What is 2 + 2?",
+      "options": {
+        "A": "3",
+        "B": "4",
+        "C": "5",
+        "D": "6"
+      },
+      "correct_answer": "B"
+    },
+    {
+      "id": 2,
+      "type": "multi_choice",
+      "question": "Select all JavaScript keywords.",
+      "options": {
+        "A": "const",
+        "B": "banana",
+        "C": "return",
+        "D": "table"
+      },
+      "correct_answer": "A, C"
+    },
+    {
+      "id": 3,
+      "type": "matching",
+      "question": "Match each HTML tag with its purpose.",
+      "options": {
+        "A": "img -> image",
+        "B": "a -> link",
+        "C": "p -> paragraph"
+      },
+      "correct_answer": "A, B, C"
+    },
+    {
+      "id": 4,
+      "type": "choice",
+      "question": "What does this diagram show?",
+      "image_url": "https://example.com/image.png",
+      "options": {
+        "A": "Stack",
+        "B": "Queue"
+      },
+      "correct_answer": "A"
+    },
+    {
+      "id": 5,
+      "type": "text_input",
+      "question": "Write a function that returns the sum of two numbers.",
+      "placeholder": "function sum(a, b) { ... }",
+      "answer_format": "auto",
+      "language": "javascript",
+      "grading": "manual"
+    }
+  ]
+}`;
                                         const blob = new Blob([jsonTpl], { type: "application/json" });
                                         const url = URL.createObjectURL(blob);
                                         const a = document.createElement('a');
@@ -8310,6 +8452,8 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         try {
             let score = 0;
             test.questions.forEach((q, idx) => {
+                if (isTextInputQuestion(q) && q.grading === 'manual') return;
+
                 const ua = answers[idx];
                 const ca = q.correct_answer;
 
@@ -8366,7 +8510,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                         testId: test.id, // Save ID for filtering
                         testName: test.name, // Ensure this matches schema
                         score: score,
-                        total: totalQuestions,
+                        total: test.questions.filter(q => !(isTextInputQuestion(q) && q.grading === 'manual')).length,
                         date: new Date().toISOString(),
                         duration: durationMs,
                         questions: test.questions, // Store snapshot
@@ -8969,6 +9113,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
                                 // Multi-Answer / Matching Logic check
                                 const isMulti = q.correct_answer && q.correct_answer.includes(',');
+                                const isManualInput = isTextInputQuestion(q) && q.grading === 'manual';
 
                                 // Helper to formatting
                                 const formatAnswer = (ansStr) => {
@@ -8990,7 +9135,9 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                     <div key={q.id} className="p-6 hover:bg-gray-50 dark:bg-gray-950 transition-colors group">
                                         <div className="flex gap-4">
                                             <div className="mt-1">
-                                                {isCorrect ? (
+                                                {isManualInput ? (
+                                                    <Pencil className="text-amber-500" size={24} />
+                                                ) : isCorrect ? (
                                                     <CheckCircle2 className="text-green-500" size={24} />
                                                 ) : (
                                                     <div className="relative">
@@ -9021,9 +9168,16 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                                     </button>
                                                 </div>
                                                 <div className="text-sm space-y-2 mt-3 p-3 bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-800/50">
-                                                    <div className={clsx("flex flex-col gap-1", isCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
+                                                    <div className={clsx("flex flex-col gap-1", isManualInput ? "text-amber-700 dark:text-amber-400" : isCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
                                                         <span className="font-bold text-xs uppercase tracking-wider opacity-70">Your Answer</span>
-                                                        {isMulti ? (
+                                                        {isManualInput ? (
+                                                            <div className="font-medium bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-sm border border-gray-100 dark:border-gray-700/50 whitespace-pre-wrap">
+                                                                {normalizeManualAnswer(userAnswer) || "No answer"}
+                                                                <div className="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                                                    Manual review required
+                                                                </div>
+                                                            </div>
+                                                        ) : isMulti ? (
                                                             <div className="flex flex-col gap-2 mt-1">
                                                                 {(() => {
                                                                     const selections = (userAnswer || "").split(',').filter(Boolean);
@@ -9068,7 +9222,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                                             </span>
                                                         )}
                                                     </div>
-                                                    {!isCorrect && (
+                                                    {!isManualInput && !isCorrect && (
                                                         <div className="flex flex-col gap-1 text-green-700 dark:text-green-400 mobile-mt-2">
                                                             <span className="font-bold text-xs uppercase tracking-wider opacity-70">Correct Answer</span>
                                                             {isMulti ? (
@@ -9383,7 +9537,28 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
                     <div className="space-y-3 flex-1">
                         {/* Check if it's a Matching Question (contains '→') */}
-                        {question.shuffledOptions?.every(o => String(o.text || '').includes('→')) ? (
+                        {isTextInputQuestion(question) ? (
+                            <div className="space-y-3">
+                                <textarea
+                                    value={answers[currentIndex] || ''}
+                                    onChange={(e) => handleAnswer(e.target.value, true)}
+                                    disabled={isCameraGuardPreparing}
+                                    placeholder={question.placeholder || "Write your answer here..."}
+                                    className="w-full min-h-[180px] rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-y"
+                                />
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>Grading: manual review by admin</span>
+                                    <span>Format: {question.answer_format === 'code' || (question.answer_format === 'auto' && looksLikeCode(answers[currentIndex])) ? 'code' : 'plain text'}</span>
+                                </div>
+                                {(question.answer_format === 'code' || (question.answer_format === 'auto' && looksLikeCode(answers[currentIndex]))) && (
+                                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-950 p-4 overflow-x-auto">
+                                        <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+                                            {"```" + (question.language || '') + "\n" + (answers[currentIndex] || '') + "\n```"}
+                                        </ReactMarkdown>
+                                    </div>
+                                )}
+                            </div>
+                        ) : question.shuffledOptions?.every(o => String(o.text || '').includes('→')) ? (
                             <MatchingQuestionComponent
                                 key={question.id} // Reset state on new question
                                 question={question}
