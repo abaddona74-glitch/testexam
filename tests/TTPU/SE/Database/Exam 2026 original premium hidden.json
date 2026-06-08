@@ -147,6 +147,21 @@
         "F": "WHERE CourseName = 'Software engineering'"
       },
       "correct_answer": "A,B,C,D,E,F"
+    },
+    {
+      "id": 15,
+      "type": "matching",
+      "question": "Drag and drop the SQL fragments into the correct order to build a query that returns teachers who do not teach the Software engineering course.",
+      "options": {
+        "A": "1 -> SELECT *",
+        "B": "2 -> FROM TEACHER",
+        "C": "3 -> WHERE TeacherCode NOT IN (",
+        "D": "4 -> SELECT CourseTeacher",
+        "E": "5 -> FROM COURSE",
+        "F": "6 -> WHERE CourseName = 'Software engineering'",
+        "G": "7 -> );"
+      },
+      "correct_answer": "A,B,C,D,E,F,G"
     }
   ]
 }

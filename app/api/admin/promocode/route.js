@@ -19,6 +19,7 @@ export async function GET(request) {
       { code: 'admin123', action: 'admin123', description: 'Admin huquqi (Dev)' },
       { code: 'upload_privilege', action: 'upload_privilege', description: 'Upload ruxsati (Dev)' },
       { code: 'no_copy_paste', action: 'copy_paste_privilege', description: 'Copy-Paste ruxsati (Dev)' },
+      { code: 'copy_paste_privilege', action: 'copy_paste_privilege', description: 'Copy-Paste ruxsati (Dev)' },
       { code: 'correct_answers', action: 'show_correct', description: 'To\'g\'ri javoblarni ko\'rsatish (Dev)' },
       { code: 'sudo_access', action: 'sudo_access', description: 'Testlarni o\'chirish va tahrirlash (Admin)' }
     ];

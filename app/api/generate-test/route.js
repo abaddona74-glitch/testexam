@@ -148,6 +148,16 @@ export async function POST(req) {
             "d": "Option D text"
           },
           "correct_answer": "a"
+        },
+        {
+          "type": "matching",
+          "question": "Drag and drop the SQL fragments into the correct order.",
+          "options": {
+            "A": "1 -> SELECT *",
+            "B": "2 -> FROM TEACHER",
+            "C": "3 -> WHERE TeacherCode NOT IN ("
+          },
+          "correct_answer": "A, B, C"
         }
       ]
     }
@@ -156,6 +166,8 @@ export async function POST(req) {
     - "options" MUST be an object with keys "a", "b", "c", "d" and string values. NOT an array.
     - Use "correct_answer" field (NOT "answer_id").
     - Each option value must be a plain string.
+    - You can create "choice", "multi_choice", "matching" (for drag-and-drop assembly) question types.
+    - For "matching" (drag and drop) questions, options must map labels/positions on the left to values on the right, e.g., "A": "1 -> SELECT *". The correct_answer is a comma-separated list of the keys in order.
     - Create between 10 and 30 questions depending on the length and depth of the content.
     - Ensure questions are accurate and directly derived from the text.
     - Return ONLY the raw JSON, no markdown code blocks.

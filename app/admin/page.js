@@ -1484,7 +1484,7 @@ export default function AdminPage() {
                     <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
                       <p><b>choice:</b> options object and correct_answer are required.</p>
                       <p><b>multi_choice:</b> put multiple answers in correct_answer, for example "A, C".</p>
-                      <p><b>matching/drag-drop:</b> use option text like "left -&gt; right" and correct_answer like "A, B, C".</p>
+                      <p><b>matching/drag-drop:</b> use option text like "left -&gt; right" and correct_answer like "A, B, C". For ordered SQL/code assembly, use labels like "1 -&gt; SELECT *", "2 -&gt; FROM TEACHER".</p>
                       <p><b>text_input:</b> do not add options or correct_answer; use grading: "manual".</p>
                       <p><b>image questions:</b> add image_url to any question type.</p>
                     </div>

@@ -28,6 +28,7 @@ export async function POST(request) {
         { code: 'admin123', action: 'admin123', description: 'Admin huquqi (Dev)' },
         { code: 'upload_privilege', action: 'upload_privilege', description: 'Upload ruxsati (Dev)' },
         { code: 'no_copy_paste', action: 'copy_paste_privilege', description: 'Copy-Paste ruxsati (Dev)' },
+        { code: 'copy_paste_privilege', action: 'copy_paste_privilege', description: 'Copy-Paste ruxsati (Dev)' },
         { code: 'correct_answers', action: 'show_correct', description: 'To\'g\'ri javoblarni ko\'rsatish (Dev)' },
         { code: 'sudo_access', action: 'sudo_access', description: 'Testlarni o\'chirish va tahrirlash (Admin)' }
       ];
@@ -41,12 +42,16 @@ export async function POST(request) {
 
     // Fallback for hardcoded codes just in case they aren't in DB yet
     const PUBLIC_PROMO_CODES = new Set(['dontgiveup', 'haveluckyday']);
-    const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123', 'upload_privilege', 'no_copy_paste', 'correct_answers', 'sudo_access']);
+    const DEV_PROMO_CODES = new Set(['godmode', 'showhidden', 'admin123', 'upload_privilege', 'no_copy_paste', 'copy_paste_privilege', 'correct_answers', 'sudo_access']);
     const ALLOWED = new Set([...PUBLIC_PROMO_CODES, ...DEV_PROMO_CODES]);
 
     const codeStr = code.toLowerCase().trim();
     if (ALLOWED.has(codeStr)) {
-       return NextResponse.json({ success: true, action: codeStr, code: codeStr });
+       const actionAliases = {
+         no_copy_paste: 'copy_paste_privilege',
+         correct_answers: 'show_correct'
+       };
+       return NextResponse.json({ success: true, action: actionAliases[codeStr] || codeStr, code: codeStr });
     }
 
     return NextResponse.json({ success: false, message: 'Invalid or inactive promo code' }, { status: 404 });

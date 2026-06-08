@@ -2221,6 +2221,9 @@ export default function Home() {
         };
     }, [view, isGodmode]);
 
+    const canCopyPaste = isGodmode || activatedCheats.includes('copy_paste_privilege') || activatedCheats.includes('no_copy_paste');
+    const showCorrectAnswersInfo = isGodmode || activatedCheats.includes('show_correct') || activatedCheats.includes('correct_answers');
+
     // Separate effect for main page heartbeat
     useEffect(() => {
         // Send heartbeat for all views EXCEPT 'test' (because TestRunner handles 'in-test' status)
@@ -2308,28 +2311,25 @@ export default function Home() {
         }
     }, [view, isNameSet, userName, userId, userCountry, userStars, resolvedTheme, sessionId]); // Re-run when stars change too
 
-    const canCopyPaste = isGodmode || activatedCheats.includes('copy_paste_privilege') || activatedCheats.includes('no_copy_paste');
-    const showCorrectAnswersInfo = isGodmode || activatedCheats.includes('show_correct') || activatedCheats.includes('correct_answers');
-
     // Disable copy/paste/context menu and some keys when taking a test
     useEffect(() => {
         if (view === 'test') {
-            if (canCopyPaste) {
-                // If allowed, we attach a "Force Copy" listener to help with clipboard issues
-                const handleGodmodeKeys = (e) => {
-                    // Force Copy on Ctrl+C
-                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-                        const selectedText = window.getSelection().toString();
-                        if (selectedText) {
-                            // Try both methods to be safe
-                            try {
-                                navigator.clipboard.writeText(selectedText);
-                            } catch (err) { }
-                        }
+            let style = document.createElement('style');
+            
+            const handleGodmodeKeys = (e) => {
+                // Force Copy on Ctrl+C
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                    const selectedText = window.getSelection().toString();
+                    if (selectedText) {
+                        try {
+                            navigator.clipboard.writeText(selectedText);
+                        } catch (err) { }
                     }
-                };
+                }
+            };
+
+            if (canCopyPaste) {
                 window.addEventListener('keydown', handleGodmodeKeys);
-                return () => window.removeEventListener('keydown', handleGodmodeKeys);
             }
 
             const handleContextMenu = (e) => {
@@ -2397,8 +2397,7 @@ export default function Home() {
             };
 
             // Aggressive CSS injection to stop selection on mobile
-            let style = document.createElement('style');
-            if (isGodmode) {
+            if (canCopyPaste) {
                  style.innerHTML = `
             body, #root, * {
                 user-select: text !important;
@@ -2440,6 +2439,9 @@ export default function Home() {
             window.addEventListener('focus', handleVisibilityChange);
 
             return () => {
+                if (canCopyPaste) {
+                    window.removeEventListener('keydown', handleGodmodeKeys);
+                }
                 if (style && style.parentNode) {
                     style.parentNode.removeChild(style);
                 }
@@ -2460,7 +2462,7 @@ export default function Home() {
                 document.title = "Exam App"; // Reset title
             };
         }
-    }, [view, isGodmode]);
+    }, [view, isGodmode, canCopyPaste]);
 
     const fetchGlobalActiveUsers = async () => {
         // Only fetch active users if user has entered their name
@@ -5796,7 +5798,7 @@ export default function Home() {
                                                     }
 
                                                     // Detect if this is a matching question (-> arrows)
-                                                    const isMatching = optionsArray.some(o => o.text.includes('→'));
+                                                    const isMatching = optionsArray.some(o => isMatchingOptionText(o.text));
 
                                                     // Current selected IDs (could be string like "A, B" or array)
                                                     let selectedAnswerIds = [];
@@ -5818,9 +5820,9 @@ export default function Home() {
                                                         const visualState = spectatingUser.visualState || {};
 
                                                         return optionsArray.map((option) => {
-                                                            const parts = option.text.split('→').map(s => s.trim());
-                                                            const left = parts[0];
-                                                            const correctRight = parts[1];
+                                                            const parts = parseMatchingOption(option.text);
+                                                            const left = parts?.left || option.text;
+                                                            const correctRight = parts?.right || option.text;
 
                                                             let userSelectedRight = null;
                                                             let isCorrectlyMatched = false;
@@ -6392,7 +6394,7 @@ export default function Home() {
                         <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
                             <div>
                                 <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm leading-relaxed">
-                                    To create your own test using JSON, use a root object with a <code>test_questions</code> array. Choice, multi-choice, matching/drag-drop, image, and manual text-input questions are supported. For code answers use <code>answer_format: "auto"</code>; the app shows syntax colors when the typed answer looks like code.
+                                    To create your own test using JSON, use a root object with a <code>test_questions</code> array. Choice, multi-choice, matching/drag-drop, image, and manual text-input questions are supported. For drag-and-drop assembly questions, put the position or label on the left and the draggable fragment on the right, for example <code>1 -&gt; SELECT *</code>. For code answers use <code>answer_format: "auto"</code>; the app shows syntax colors when the typed answer looks like code.
                                 </p>
                                 
                                 <div className="bg-[#282c34] rounded-xl p-4 overflow-x-auto relative group">
@@ -6501,6 +6503,21 @@ export default function Home() {
     },
     {
       "id": 4,
+      "type": "matching",
+      "question": "Drag and drop the SQL fragments into the correct order.",
+      "options": {
+        "A": "1 -> SELECT *",
+        "B": "2 -> FROM TEACHER",
+        "C": "3 -> WHERE TeacherCode NOT IN (",
+        "D": "4 -> SELECT CourseTeacher",
+        "E": "5 -> FROM COURSE",
+        "F": "6 -> WHERE CourseName = 'Software engineering'",
+        "G": "7 -> );"
+      },
+      "correct_answer": "A, B, C, D, E, F, G"
+    },
+    {
+      "id": 5,
       "type": "choice",
       "question": "What does this diagram show?",
       "image_url": "https://example.com/image.png",
@@ -6511,7 +6528,7 @@ export default function Home() {
       "correct_answer": "A"
     },
     {
-      "id": 5,
+      "id": 6,
       "type": "text_input",
       "question": "Write a function that returns the sum of two numbers.",
       "placeholder": "function sum(a, b) { ... }",
@@ -6920,6 +6937,24 @@ const MATCH_COLORS = [
     { border: 'border-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' },
 ];
 
+const parseMatchingOption = (text) => {
+    const value = String(text || '');
+    const separators = ['→', '->', ' - '];
+    const separator = separators.find(sep => value.includes(sep));
+    if (!separator) return null;
+
+    const [left, ...rightParts] = value.split(separator);
+    const right = rightParts.join(separator);
+    if (!left?.trim() || !right?.trim()) return null;
+
+    return {
+        left: left.trim(),
+        right: right.trim()
+    };
+};
+
+const isMatchingOptionText = (text) => Boolean(parseMatchingOption(text));
+
 function MatchingQuestionComponent({ question, answers, currentIndex, handleAnswer, revealedHints, activatedCheats, translatedQuestion, handleVisualUpdate, difficultyMode, showTranslation }) {
     // Determine the current confirmed answer from props (to avoid loop)
     const currentAnswerForQuestion = answers[currentIndex];
@@ -6936,11 +6971,11 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
         question.shuffledOptions.forEach(opt => {
              const translatedText = translatedQuestion.options[opt.id];
              if (translatedText) {
-                 const parts = translatedText.split('→').map(s => s.trim());
-                 if (parts.length === 2) {
+                 const parts = parseMatchingOption(translatedText);
+                 if (parts) {
                      map[opt.id] = {
-                         left: parts[0],
-                         right: parts[1]
+                         left: parts.left,
+                         right: parts.right
                      };
                  }
              }
@@ -6952,15 +6987,15 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     const rightTranslationMap = useMemo(() => {
         const map = {};
         question.shuffledOptions.forEach(opt => {
-            const originalParts = opt.text.split('→').map(s => s.trim());
+            const originalParts = parseMatchingOption(opt.text);
             const transText = translatedQuestion?.options?.[opt.id];
             
-            if (originalParts.length === 2 && transText) {
-                const transParts = transText.split('→').map(s => s.trim());
-                if (transParts.length === 2) {
+            if (originalParts && transText) {
+                const transParts = parseMatchingOption(transText);
+                if (transParts) {
                     // Map original right -> translated right
                     // Note: If multiple identical rights exist, they get same translation (expected)
-                    map[originalParts[1]] = transParts[1];
+                    map[originalParts.right] = transParts.right;
                 }
             }
         });
@@ -6977,11 +7012,11 @@ function MatchingQuestionComponent({ question, answers, currentIndex, handleAnsw
     // Let's parse all potential options first.
     const allPairs = useMemo(() => {
         return question.shuffledOptions.map(opt => {
-            const parts = opt.text.split('→').map(s => s.trim());
+            const parts = parseMatchingOption(opt.text);
             return {
                 id: opt.id,
-                left: parts[0],
-                right: parts[1], // This is the Correct Right for this Left
+                left: parts?.left || opt.text,
+                right: parts?.right || opt.text, // This is the Correct Right for this Left
             };
         });
     }, [question]);
@@ -7937,7 +7972,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             : [question.correct_answer];
 
         // Check if matching question (Drag & Drop)
-        const isMatching = question.shuffledOptions.some(o => o.text.includes('→'));
+        const isMatching = question.shuffledOptions.some(o => isMatchingOptionText(o.text));
 
         if (isMatching) {
             // Limit hints to number of correct pairs
@@ -8407,7 +8442,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                           (question.question && question.question.toLowerCase().includes('select all'));
                           
     const correctIds = (question.correct_answer && String(question.correct_answer).includes(',')) ? String(question.correct_answer).split(',').map(s => s.trim()) : [String(question.correct_answer || "")];
-    const isMatching = question.shuffledOptions?.every(o => String(o.text || '').includes('→')) ?? false;
+    const isMatching = question.shuffledOptions?.every(o => isMatchingOptionText(o.text)) ?? false;
 
     let isStudyComplete = false;
     
@@ -9558,7 +9593,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                     </div>
                                 )}
                             </div>
-                        ) : question.shuffledOptions?.every(o => String(o.text || '').includes('→')) ? (
+                        ) : question.shuffledOptions?.every(o => isMatchingOptionText(o.text)) ? (
                             <MatchingQuestionComponent
                                 key={question.id} // Reset state on new question
                                 question={question}
