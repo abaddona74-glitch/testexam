@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { requireAdminAuth } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -73,18 +74,19 @@ async function extractTextFromUploadedFile(file) {
 
 export async function POST(req) {
   try {
+    // ✅ Server-side admin auth check (session + CSRF) — never trust client body
+    const authError = requireAdminAuth(req);
+    if (authError) return authError;
+
     let lectureText = "";
-    let godmode = false;
 
     const contentType = req.headers.get("content-type") || "";
     if (contentType.includes("multipart/form-data")) {
       const form = await req.formData();
       const textInput = form.get("lectureText");
-      const godmodeInput = form.get("godmode");
       const lectureFile = form.get("lectureFile");
 
       lectureText = typeof textInput === "string" ? textInput.trim() : "";
-      godmode = godmodeInput === "true";
 
       if ((!lectureText || lectureText.length < 50) && lectureFile instanceof File) {
         lectureText = await extractTextFromUploadedFile(lectureFile);
@@ -92,15 +94,6 @@ export async function POST(req) {
     } else {
       const body = await req.json();
       lectureText = typeof body?.lectureText === "string" ? body.lectureText.trim() : "";
-      godmode = body?.godmode === true;
-    }
-
-    // Only godmode users can generate tests
-    if (godmode !== true) {
-      return NextResponse.json(
-        { error: "Unauthorized. Godmode required." },
-        { status: 403 }
-      );
     }
 
     if (!lectureText || lectureText.length < 50) {
