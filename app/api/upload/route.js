@@ -1,17 +1,11 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 export async function POST(request) {
-  // ✅ Avval auth tekshir
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json(
-      { error: "Ruxsat yo'q" },
-      { status: 401 }
-    );
-  }
+  // ✅ Avval admin auth tekshir (session + CSRF)
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
   try {
     const { searchParams } = new URL(request.url);

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Loader2, Image as ImageIcon, Copy, CheckCircle2 } from 'lucide-react';
 
-export default function JsonImageUploader() {
+export default function JsonImageUploader({ csrfToken }) {
     const [uploading, setUploading] = useState(false);
     const [uploadedUrl, setUploadedUrl] = useState('');
     const [copied, setCopied] = useState(false);
@@ -16,8 +16,13 @@ export default function JsonImageUploader() {
         setCopied(false);
 
         try {
+            const headers = {};
+            if (csrfToken) {
+                headers['x-csrf-token'] = csrfToken;
+            }
             const res = await fetch(`/api/upload?filename=${file.name}`, {
                 method: 'POST',
+                headers,
                 body: file
             });
             const data = await res.json();
