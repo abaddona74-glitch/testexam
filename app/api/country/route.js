@@ -4,55 +4,64 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    // 1. Try Vercel's specific header (Fastest & Free) ⚡
+    // 1. Vercel tizim headerlarini tekshiramiz ⚡
     const vercelCountry = request.headers.get('x-vercel-ip-country');
     const vercelCity = request.headers.get('x-vercel-ip-city');
     const vercelRegion = request.headers.get('x-vercel-ip-region');
 
-    // 🔥 BUG FIX: Faqat Vercel aniq "UZ" deb topsagina srazu javob beramiz.
-    // Agar VPN-siz adashib "PL" bersa, bu shartdan o'tib, pastdagi aniq API-ga tushadi!
+    // 🔥 Agarda Vercel aniq "UZ" deb topsagina srazu javob beramiz.
+    // Agar VPN-siz adashib "PL" yoki boshqa davlat bersa, bu shartni aylanib o'tib pastga tushadi.
     if (vercelCountry && vercelCountry.toUpperCase() === 'UZ') {
       return NextResponse.json({ 
           country_code: 'UZ',
-          country_code_lower: 'uz', // Frontendda bayroqlar uchun xavfsiz 🏴
+          country_code_lower: 'uz', // Frontend bayroqlari uchun 🏴
           city: vercelCity ? decodeURIComponent(vercelCity) : 'Tashkent',
           region: vercelRegion ? decodeURIComponent(vercelRegion) : 'Tashkent'
       });
     }
 
-    // 2. Fallback: Identify Client IP 🌐
+    // 2. Foydalanuvchining haqiqiy IP manzilini aniqlaymiz 🌐
     let ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
 
-    // Handle comma-separated IPs (x-forwarded-for: client, proxy1, proxy2)
+    // Comma-separated IP-larni tozalaymiz (Cloudflare/Vercel proksi)
     if (ip && ip.includes(',')) {
       ip = ip.split(',')[0].trim();
     }
 
-    // If running solely on localhost
+    // Localhost yoki yo'qligini tekshirish
     const isLocal = !ip || ip === '::1' || ip === '127.0.0.1' || ip.includes('::ffff:');
 
-    // Use ipwho.is as primary - it's free, no key, and robust.
+    // IPWhois API manzili
     const apiUrl = isLocal ? 'https://ipwho.is/' : `https://ipwho.is/${ip}`;
 
-    console.log(`Fetching country for IP: ${isLocal ? 'Localhost' : ip} from ${apiUrl}`);
+    console.log(`Fetching live country for IP: ${isLocal ? 'Localhost' : ip}`);
 
-    const response = await fetch(apiUrl);
+    // 🔥 BUG FIX: Next.js agresiv keshini 'no-store' orqali butunlay o'chiramiz! 🚫
+    const response = await fetch(apiUrl, {
+        cache: 'no-store',
+        next: { revalidate: 0 }
+    });
     const data = await response.json();
 
-    // Agar ipwho.is muvaffaqiyatli ishlasa (Siz sinab ko'rgan toza JSON) 🟢
+    // Agar ipwho.is muvaffaqiyatli ishlasa (Jonli va aniq natija) 🟢
     if (data.success) {
       return NextResponse.json({ 
-          country_code: data.country_code.toUpperCase(), // "UZ"
-          country_code_lower: data.country_code.toLowerCase(), // "uz"
+          country_code: data.country_code.toUpperCase(), // "UZ", "PL", "LV"
+          country_code_lower: data.country_code.toLowerCase(), // "uz", "pl", "lv"
           city: data.city || 'Tashkent',
           region: data.region || 'Tashkent'
       });
     }
 
-    // 3. Zaxira: Agar ipwho.is kutilmaganda muammoga duch kelsa 🔄
+    // 3. Zaxira variant: Agar ipwho.is kutilmaganda bloklansa yoki ishlamasa 🔄
     console.error("IPWhois failed:", data.message);
     const fallbackUrl = isLocal ? 'https://ipapi.co/json/' : `https://ipapi.co/${ip}/json/`;
-    const fallbackRes = await fetch(fallbackUrl);
+    
+    // Zaxira so'rovida ham keshni o'chiramiz 🚫
+    const fallbackRes = await fetch(fallbackUrl, {
+        cache: 'no-store',
+        next: { revalidate: 0 }
+    });
     
     if (fallbackRes.ok) {
         const fallbackData = await fallbackRes.json();
@@ -67,12 +76,12 @@ export async function GET(request) {
         }
     }
     
-    // Ultimate fallback (Agarda barcha xizmatlar o'chib qolsa) 🇺🇿
+    // Eng so'nggi ilojsiz chora (Ultimate Fallback) 🇺🇿
     return NextResponse.json({ country_code: 'UZ', country_code_lower: 'uz', city: 'Tashkent', region: 'Tashkent' });
 
   } catch (error) {
     console.error('Failed to fetch country:', error);
-    // Crash bo'lmasligi uchun xatolik holatida ham default UZ qaytaramiz 🛡️
+    // Tizim butunlay crash bo'lmasligi uchun default xavfsiz qiymat qaytaramiz 🛡️
     return NextResponse.json({ country_code: 'UZ', country_code_lower: 'uz', error: true }, { status: 500 });
   }
 }
