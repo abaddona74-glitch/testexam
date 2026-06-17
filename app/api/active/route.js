@@ -7,11 +7,11 @@ if (!global.activeSessions) {
 }
 let activeSessions = global.activeSessions;
 
-// 🟢 Ichki funksiya: IP orqali davlatni keshsiz aniqlash
-async function getLiveCountry(ip, vercelHeaders) {
+// 🌐 JONLI GEOLOKATSIYA: So'rov bo'lgan soniyada IP-dan davlatni aniqlash
+async function getLiveCountry(ip, vercelCountry) {
   try {
-    // Vercel faqat aniq UZ deb topsa ishonamiz
-    if (vercelHeaders.country && vercelHeaders.country.toUpperCase() === 'UZ') {
+    // Agar Vercel aniq UZ desa, srazu UZ qaytaramiz
+    if (vercelCountry && vercelCountry.toUpperCase() === 'UZ') {
       return 'UZ';
     }
 
@@ -19,7 +19,7 @@ async function getLiveCountry(ip, vercelHeaders) {
     const apiUrl = isLocal ? 'https://ipwho.is/' : `https://ipwho.is/${ip}`;
 
     const response = await fetch(apiUrl, {
-        cache: 'no-store',
+        cache: 'no-store', // Next.js keshini majburiy o'chirish 🚫
         next: { revalidate: 0 }
     });
     const data = await response.json();
@@ -27,51 +27,54 @@ async function getLiveCountry(ip, vercelHeaders) {
     if (data.success && data.country_code) {
       return data.country_code.toUpperCase();
     }
-
     return 'UZ'; // Fallback
   } catch (e) {
-    console.error("Internal geo check failed:", e);
+    console.error("Live geo fetch failed:", e);
     return 'UZ';
   }
 }
 
+// 📥 REAL-TIME GET: Ro'yxat so'ralganda har bir IP uchun davlatni JONLI aniqlaydi
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const testId = searchParams.get('testId');
-  
-  const now = Date.now();
-  const BROWSING_TTL_MS = 30 * 1000;
-  const AFK_TTL_MS = 2 * 60 * 1000;
-  const IN_TEST_TTL_MS = 3 * 60 * 1000;
+  try {
+    const { searchParams } = new URL(request.url);
+    const testId = searchParams.get('testId');
+    
+    const now = Date.now();
+    const BROWSING_TTL_MS = 30 * 1000;
+    const AFK_TTL_MS = 2 * 60 * 1000;
+    const IN_TEST_TTL_MS = 3 * 60 * 1000;
 
-  Object.keys(activeSessions).forEach(key => {
-    const session = activeSessions[key];
-    const ttl = session?.status === 'afk'
-      ? AFK_TTL_MS
-      : (session?.status === 'in-test' || session?.testId) ? IN_TEST_TTL_MS : BROWSING_TTL_MS;
-    if (!session?.lastUpdated || (now - session.lastUpdated > ttl)) {
-      delete activeSessions[key];
+    // 1. Cleanup stale sessions
+    Object.keys(activeSessions).forEach(key => {
+      const session = activeSessions[key];
+      const ttl = session?.status === 'afk'
+        ? AFK_TTL_MS
+        : (session?.status === 'in-test' || session?.testId) ? IN_TEST_TTL_MS : BROWSING_TTL_MS;
+      if (!session?.lastUpdated || (now - session.lastUpdated > ttl)) {
+        delete activeSessions[key];
+      }
+    });
+
+    let sessions = Object.values(activeSessions);
+
+    if (testId) {
+        sessions = sessions.filter(s => s.testId === testId);
     }
-  });
 
-  let sessions = Object.values(activeSessions);
-
-  if (testId) {
-      sessions = sessions.filter(s => s.testId === testId);
-  }
-
-  const uniqueUsers = {};
-  sessions.forEach(session => {
-      const existing = uniqueUsers[session.userId];
-      if (!existing) {
-          uniqueUsers[session.userId] = session;
-      } else {
-        const score = (s) => {
-          if (s.status === 'in-test') return 4;
-          if (s.status === 'browsing') return 3;
-          if (s.status === 'registering') return 2;
-          return 1;
-        };
+    // 2. Deduplicate by userId
+    const uniqueUsers = {};
+    sessions.forEach(session => {
+        const existing = uniqueUsers[session.userId];
+        if (!existing) {
+            uniqueUsers[session.userId] = session;
+        } else {
+          const score = (s) => {
+            if (s.status === 'in-test') return 4;
+            if (s.status === 'browsing') return 3;
+            if (s.status === 'registering') return 2;
+            return 1;
+          };
           if (score(session) > score(existing)) {
               uniqueUsers[session.userId] = session;
           } else if (score(session) === score(existing)) {
@@ -79,12 +82,39 @@ export async function GET(request) {
                    uniqueUsers[session.userId] = session;
                }
           }
-      }
-  });
+        }
+    });
 
-  return NextResponse.json(Object.values(uniqueUsers));
+    const finalUsers = Object.values(uniqueUsers);
+
+    // 🔥 REAL-TIME SEHRI SHU YERDA: 
+    // Ro'yxat frontendga ketishidan oldin, har bir faol foydalanuvchining joriy IP manzili 
+    // tekshiriladi va davlati JONLI (REAL-TIME) o'zgartirib yuboriladi! ⏱️💥
+    const updatedUsers = await Promise.all(
+      finalUsers.map(async (user) => {
+        // Agar foydalanuvchida IP bo'lsa, uni real-time tekshiramiz
+        const liveCountryCode = await getLiveCountry(user.ip, null); 
+        return {
+          ...user,
+          country: liveCountryCode, // Statik emas, ayni damdagi jonli davlat!
+        };
+      })
+    );
+
+    return NextResponse.json(updatedUsers, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
+
+  } catch (error) {
+    console.error('GET live list error:', error);
+    return NextResponse.json({ error: "Error" }, { status: 500 });
+  }
 }
 
+// 📤 POST: Faqat sessiya holatini va joriy IP-ni xotiraga yozadi (Davlat bu yerda aniqlanmaydi)
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -117,21 +147,13 @@ export async function POST(request) {
     const key = sessionId || userId; 
     const resolvedStatus = status || (testId ? 'in-test' : (name ? 'browsing' : 'registering'));
 
-    // 🔥 JONLI GEO TEKSHIRUV: Frontend yuborgan "country"ni butunlay o'chirib tashladik.
-    // Endi davlat faqat va faqat joriy request IP'sidan jonli hisoblanadi! 🕵️‍♂️🌍
-    const vercelHeaders = {
-      country: request.headers.get('x-vercel-ip-country'),
-      city: request.headers.get('x-vercel-ip-city'),
-      region: request.headers.get('x-vercel-ip-region')
-    };
-    const liveCountry = await getLiveCountry(reqInfo.ip, vercelHeaders);
-
     const safeSnapshot = (typeof cameraSnapshot === 'string'
       && cameraSnapshot.startsWith('data:image/')
       && cameraSnapshot.length <= 260000)
       ? cameraSnapshot
       : null;
 
+    // Xotiraga faqat jonli IP yoziladi, country esa GET so'rovida dinamik hisoblanadi! 🛡️
     activeSessions[key] = {
         testId,
         userId,
@@ -142,8 +164,7 @@ export async function POST(request) {
         difficulty: difficulty || null,
         status: resolvedStatus,
         device: device || 'desktop', 
-        country: liveCountry, // ✨ MANA JONLI DAVLAT! ("LV", "UZ", "PL")
-        ip: reqInfo.ip,
+        ip: reqInfo.ip, // 👈 Faqat IP-ni saqlaymiz
         currentAnswer: currentAnswer || null,
         visualState: visualState || null,
         cameraStatus: cameraStatus || null,
@@ -159,7 +180,7 @@ export async function POST(request) {
       logActivity({
         ...reqInfo, type: 'test_start', userName: name, userId,
         details: { testId, device: device || 'desktop' },
-        country: liveCountry, deviceId: userId,
+        country: 'UZ', deviceId: userId,
       });
     }
 
