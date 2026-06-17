@@ -4,60 +4,43 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    // 1. Vercel tizim headerlarini tekshiramiz ⚡
-    const vercelCountry = request.headers.get('x-vercel-ip-country');
-    const vercelCity = request.headers.get('x-vercel-ip-city');
-    const vercelRegion = request.headers.get('x-vercel-ip-region');
-
-    // 🔥 Agarda Vercel aniq "UZ" deb topsagina srazu javob beramiz.
-    // Agar VPN-siz adashib "PL" yoki boshqa davlat bersa, bu shartni aylanib o'tib pastga tushadi.
-    if (vercelCountry && vercelCountry.toUpperCase() === 'UZ') {
-      return NextResponse.json({ 
-          country_code: 'UZ',
-          country_code_lower: 'uz', // Frontend bayroqlari uchun 🏴
-          city: vercelCity ? decodeURIComponent(vercelCity) : 'Tashkent',
-          region: vercelRegion ? decodeURIComponent(vercelRegion) : 'Tashkent'
-      });
-    }
-
-    // 2. Foydalanuvchining haqiqiy IP manzilini aniqlaymiz 🌐
+    // 1. Foydalanuvchining haqiqiy IP manzilini aniqlaymiz 🌐
     let ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
 
-    // Comma-separated IP-larni tozalaymiz (Cloudflare/Vercel proksi)
+    // Cloudflare/Vercel proksi IP-larini tozalaymiz
     if (ip && ip.includes(',')) {
       ip = ip.split(',')[0].trim();
     }
 
-    // Localhost yoki yo'qligini tekshirish
+    // Localhost tekshiruvi
     const isLocal = !ip || ip === '::1' || ip === '127.0.0.1' || ip.includes('::ffff:');
 
-    // IPWhois API manzili
+    // 🔥 Har doim jonli IPWhois API'ga murojaat qilamiz (Vercel shartini olib tashladik)
     const apiUrl = isLocal ? 'https://ipwho.is/' : `https://ipwho.is/${ip}`;
 
-    console.log(`Fetching live country for IP: ${isLocal ? 'Localhost' : ip}`);
+    console.log(`Fetching 100% live country for IP: ${isLocal ? 'Localhost' : ip}`);
 
-    // 🔥 BUG FIX: Next.js agresiv keshini 'no-store' orqali butunlay o'chiramiz! 🚫
+    // Next.js keshini batamom o'chiramiz 🚫
     const response = await fetch(apiUrl, {
         cache: 'no-store',
         next: { revalidate: 0 }
     });
     const data = await response.json();
 
-    // Agar ipwho.is muvaffaqiyatli ishlasa (Jonli va aniq natija) 🟢
+    // Agar ipwho.is muvaffaqiyatli ishlasa 🟢
     if (data.success) {
       return NextResponse.json({ 
-          country_code: data.country_code.toUpperCase(), // "UZ", "PL", "LV"
-          country_code_lower: data.country_code.toLowerCase(), // "uz", "pl", "lv"
+          country_code: data.country_code.toUpperCase(), // "UZ", "LV", "PL"
+          country_code_lower: data.country_code.toLowerCase(), // frontend bayroqlari uchun
           city: data.city || 'Tashkent',
           region: data.region || 'Tashkent'
       });
     }
 
-    // 3. Zaxira variant: Agar ipwho.is kutilmaganda bloklansa yoki ishlamasa 🔄
+    // 2. Zaxira variant (Fallback): Agar ipwho.is limiti tugasa yoki ishlamasa 🔄
     console.error("IPWhois failed:", data.message);
     const fallbackUrl = isLocal ? 'https://ipapi.co/json/' : `https://ipapi.co/${ip}/json/`;
     
-    // Zaxira so'rovida ham keshni o'chiramiz 🚫
     const fallbackRes = await fetch(fallbackUrl, {
         cache: 'no-store',
         next: { revalidate: 0 }
@@ -76,12 +59,11 @@ export async function GET(request) {
         }
     }
     
-    // Eng so'nggi ilojsiz chora (Ultimate Fallback) 🇺🇿
+    // Eng so'nggi ilojsiz chora 🇺🇿
     return NextResponse.json({ country_code: 'UZ', country_code_lower: 'uz', city: 'Tashkent', region: 'Tashkent' });
 
   } catch (error) {
-    console.error('Failed to fetch country:', error);
-    // Tizim butunlay crash bo'lmasligi uchun default xavfsiz qiymat qaytaramiz 🛡️
+    console.error('Failed to fetch real-time country:', error);
     return NextResponse.json({ country_code: 'UZ', country_code_lower: 'uz', error: true }, { status: 500 });
   }
 }
