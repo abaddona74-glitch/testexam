@@ -4,7 +4,20 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    // 1. Try Vercel's specific header (Fastest & Free)
+    // 1. Try Cloudflare's CF-IPCountry header (Most reliable behind Cloudflare proxy)
+    const cfCountry = request.headers.get('cf-ipcountry');
+    const cfCity = request.headers.get('cf-ipcity');
+    const cfRegion = request.headers.get('cf-region');
+
+    if (cfCountry && cfCountry !== 'XX' && /^[A-Z]{2}$/.test(cfCountry)) {
+      return NextResponse.json({ 
+          country_code: cfCountry,
+          city: cfCity || null,
+          region: cfRegion || null
+      });
+    }
+
+    // 2. Try Vercel's specific header (Fastest & Free)
     const vercelCountry = request.headers.get('x-vercel-ip-country');
     const vercelCity = request.headers.get('x-vercel-ip-city');
     const vercelRegion = request.headers.get('x-vercel-ip-region');
@@ -17,8 +30,9 @@ export async function GET(request) {
       });
     }
 
-    // 2. Fallback: Identify Client IP
-    let ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
+    // 3. Fallback: Identify Client IP (use Cloudflare's real IP if available)
+    // CF-Connecting-IP is the real visitor IP behind Cloudflare proxy
+    let ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
 
     // Handle comma-separated IPs (x-forwarded-for: client, proxy1, proxy2)
     if (ip && ip.includes(',')) {
