@@ -3,109 +3,30 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
-  try {
-    // 1. Try Cloudflare's CF-IPCountry header (Most reliable behind Cloudflare proxy)
-    const cfCountry = request.headers.get('cf-ipcountry');
-    const cfCity = request.headers.get('cf-ipcity');
-    const cfRegion = request.headers.get('cf-region');
-
-    if (cfCountry && cfCountry !== 'XX' && /^[A-Z]{2}$/.test(cfCountry)) {
-      return NextResponse.json({ 
-          country_code: cfCountry,
-          city: cfCity || null,
-          region: cfRegion || null
-      });
+    try {
+      // 1. Vercel'dan keladigan IP headerlar (bular Vercel serverlarida 100% ishlaydi)
+      const country = request.headers.get('x-vercel-ip-country');
+      const city = request.headers.get('x-vercel-ip-city');
+      const region = request.headers.get('x-vercel-ip-region');
+  
+      if (country) {
+        return NextResponse.json({ 
+            country_code: country, 
+            city: city, 
+            region: region 
+        });
+      }
+  
+      // 2. Agar Vercel bermasa, Cloudflare'ni tekshiramiz
+      const cfCountry = request.headers.get('cf-ipcountry');
+      if (cfCountry) {
+          return NextResponse.json({ country_code: cfCountry });
+      }
+  
+      // 3. Fallback (agar hech narsa topilmasa)
+      return NextResponse.json({ country_code: 'UZ', city: 'Tashkent' });
+  
+    } catch (error) {
+      return NextResponse.json({ country_code: 'UZ' });
     }
-
-    // 2. Try Vercel's specific header (Fastest & Free)
-    const vercelCountry = request.headers.get('x-vercel-ip-country');
-    const vercelCity = request.headers.get('x-vercel-ip-city');
-    const vercelRegion = request.headers.get('x-vercel-ip-region');
-
-    if (vercelCountry) {
-      return NextResponse.json({ 
-          country_code: vercelCountry,
-          city: vercelCity,
-          region: vercelRegion
-      });
-    }
-
-    // 3. Fallback: Identify Client IP (use Cloudflare's real IP if available)
-    // CF-Connecting-IP is the real visitor IP behind Cloudflare proxy
-    let ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
-
-    // Handle comma-separated IPs (x-forwarded-for: client, proxy1, proxy2)
-    if (ip && ip.includes(',')) {
-      ip = ip.split(',')[0].trim();
-    }
-
-    // If running solely on localhost, ip might be ::1 or 127.0.0.1 or ::ffff:127.0.0.1
-    const isLocal = !ip || ip === '::1' || ip === '127.0.0.1' || ip.includes('::ffff:');
-
-    // Use ipwho.is as primary - it's free, no key, and robust.
-    // Documentation: https://ipwhois.io/documentation
-    const apiUrl = isLocal 
-      ? 'https://ipwho.is/' 
-      : `https://ipwho.is/${ip}`;
-
-    console.log(`Fetching country for IP: ${isLocal ? 'Localhost' : ip} from ${apiUrl}`);
-
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    if (!data.success) {
-        console.error("IPWhois failed:", data.message);
-        
-        // Fallback 1: ipapi.co
-        try {
-            const fallbackUrl = isLocal ? 'https://ipapi.co/json/' : `https://ipapi.co/${ip}/json/`;
-            const fallbackRes = await fetch(fallbackUrl);
-            if (fallbackRes.ok) {
-                const fallbackData = await fallbackRes.json();
-                if (fallbackData.country_code || fallbackData.countryCode) {
-                    return NextResponse.json({ 
-                        country_code: fallbackData.country_code || fallbackData.countryCode,
-                        city: fallbackData.city || null,
-                        region: fallbackData.region || null
-                    });
-                }
-            }
-        } catch (e) {
-            console.error("ipapi.co failed:", e);
-        }
-
-        // Fallback 2: ip-api.com (works well behind Cloudflare, no API key needed)
-        try {
-            const ipApiUrl = isLocal ? 'http://ip-api.com/json/' : `http://ip-api.com/json/${ip}`;
-            const ipApiRes = await fetch(ipApiUrl, {
-                headers: { 'Accept': 'application/json' }
-            });
-            if (ipApiRes.ok) {
-                const ipApiData = await ipApiRes.json();
-                if (ipApiData.status === 'success' && ipApiData.countryCode) {
-                    return NextResponse.json({ 
-                        country_code: ipApiData.countryCode,
-                        city: ipApiData.city || null,
-                        region: ipApiData.region || null
-                    });
-                }
-            }
-        } catch (e) {
-            console.error("ip-api.com failed:", e);
-        }
-
-        // Ultimate fallback: safe default
-        return NextResponse.json({ country_code: 'UZ', city: 'Tashkent', region: 'Tashkent' });
-    }
-
-    return NextResponse.json({ 
-        country_code: data.country_code,
-        city: data.city,
-        region: data.region
-    });
-
-  } catch (error) {
-    console.error('Failed to fetch country:', error);
-    return NextResponse.json({ country_code: null }, { status: 500 });
   }
-}
