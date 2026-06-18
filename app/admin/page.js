@@ -1417,7 +1417,7 @@ export default function AdminPage() {
                       JSON Guide & Template
                     </button>
                   </div>
-                  <JsonImageUploader />
+                  <JsonImageUploader csrfToken={csrfToken} />
                   <textarea
                     className="flex-1 w-full p-3 font-mono text-xs border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-lg dark:text-white resize-none"
                     value={editTestJson}

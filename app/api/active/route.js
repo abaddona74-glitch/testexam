@@ -2,70 +2,119 @@ import { NextResponse } from 'next/server';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { isBlocked } from '../admin/block/route';
 
-// Store active sessions in memory
-// We now use sessionId as key to support multiple tabs without race conditions
-// Key: sessionId (or userId if fallback), Value: { ... }
 if (!global.activeSessions) {
     global.activeSessions = {};
 }
 let activeSessions = global.activeSessions;
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const testId = searchParams.get('testId');
-  
-  const now = Date.now();
-  // Cleanup stale sessions.
-  const BROWSING_TTL_MS = 30 * 1000; // 30 seconds
-  const AFK_TTL_MS = 2 * 60 * 1000; // 2 minutes
-  const IN_TEST_TTL_MS = 3 * 60 * 1000; // 3 minutes
-
-  Object.keys(activeSessions).forEach(key => {
-    const session = activeSessions[key];
-    const ttl = session?.status === 'afk'
-      ? AFK_TTL_MS
-      : (session?.status === 'in-test' || session?.testId) ? IN_TEST_TTL_MS : BROWSING_TTL_MS;
-    if (!session?.lastUpdated || (now - session.lastUpdated > ttl)) {
-      delete activeSessions[key];
+// 🌐 JONLI GEOLOKATSIYA: So'rov bo'lgan soniyada IP-dan davlatni aniqlash
+async function getLiveCountry(ip, vercelCountry) {
+  try {
+    // Agar Vercel aniq UZ desa, srazu UZ qaytaramiz
+    if (vercelCountry && vercelCountry.toUpperCase() === 'UZ') {
+      return 'UZ';
     }
-  });
 
-  // Get all active sessions
-  let sessions = Object.values(activeSessions);
+    const isLocal = !ip || ip === '::1' || ip === '127.0.0.1' || ip.includes('::ffff:');
+    const apiUrl = isLocal ? 'https://ipwho.is/' : `https://ipwho.is/${ip}`;
 
-  // If specific test requested, filter by it
-  if (testId) {
-      sessions = sessions.filter(s => s.testId === testId);
+    const response = await fetch(apiUrl, {
+        cache: 'no-store', // Next.js keshini majburiy o'chirish 🚫
+        next: { revalidate: 0 }
+    });
+    const data = await response.json();
+
+    if (data.success && data.country_code) {
+      return data.country_code.toUpperCase();
+    }
+    return 'UZ'; // Fallback
+  } catch (e) {
+    console.error("Live geo fetch failed:", e);
+    return 'UZ';
   }
+}
 
-  // Deduplicate by userId
-  const uniqueUsers = {};
-  sessions.forEach(session => {
-      const existing = uniqueUsers[session.userId];
-      if (!existing) {
-          uniqueUsers[session.userId] = session;
-      } else {
-        // Priority: in-test > browsing > registering > afk
-        const score = (s) => {
-          if (s.status === 'in-test') return 4;
-          if (s.status === 'browsing') return 3;
-          if (s.status === 'registering') return 2;
-          return 1;
-        };
+// 📥 REAL-TIME GET: Ro'yxat so'ralganda har bir IP uchun davlatni JONLI aniqlaydi
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const testId = searchParams.get('testId');
+    
+    const now = Date.now();
+    const BROWSING_TTL_MS = 30 * 1000;
+    const AFK_TTL_MS = 2 * 60 * 1000;
+    const IN_TEST_TTL_MS = 3 * 60 * 1000;
+
+    // 1. Cleanup stale sessions
+    Object.keys(activeSessions).forEach(key => {
+      const session = activeSessions[key];
+      const ttl = session?.status === 'afk'
+        ? AFK_TTL_MS
+        : (session?.status === 'in-test' || session?.testId) ? IN_TEST_TTL_MS : BROWSING_TTL_MS;
+      if (!session?.lastUpdated || (now - session.lastUpdated > ttl)) {
+        delete activeSessions[key];
+      }
+    });
+
+    let sessions = Object.values(activeSessions);
+
+    if (testId) {
+        sessions = sessions.filter(s => s.testId === testId);
+    }
+
+    // 2. Deduplicate by userId
+    const uniqueUsers = {};
+    sessions.forEach(session => {
+        const existing = uniqueUsers[session.userId];
+        if (!existing) {
+            uniqueUsers[session.userId] = session;
+        } else {
+          const score = (s) => {
+            if (s.status === 'in-test') return 4;
+            if (s.status === 'browsing') return 3;
+            if (s.status === 'registering') return 2;
+            return 1;
+          };
           if (score(session) > score(existing)) {
               uniqueUsers[session.userId] = session;
           } else if (score(session) === score(existing)) {
-               // Use latest
                if (session.lastUpdated > existing.lastUpdated) {
                    uniqueUsers[session.userId] = session;
                }
           }
-      }
-  });
+        }
+    });
 
-  return NextResponse.json(Object.values(uniqueUsers));
+    const finalUsers = Object.values(uniqueUsers);
+
+    // 🔥 REAL-TIME SEHRI SHU YERDA: 
+    // Ro'yxat frontendga ketishidan oldin, har bir faol foydalanuvchining joriy IP manzili 
+    // tekshiriladi va davlati JONLI (REAL-TIME) o'zgartirib yuboriladi! ⏱️💥
+    const updatedUsers = await Promise.all(
+      finalUsers.map(async (user) => {
+        // Agar foydalanuvchida IP bo'lsa, uni real-time tekshiramiz
+        const liveCountryCode = await getLiveCountry(user.ip, null); 
+        return {
+          ...user,
+          country: liveCountryCode, // Statik emas, ayni damdagi jonli davlat!
+        };
+      })
+    );
+
+    return NextResponse.json(updatedUsers, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
+
+  } catch (error) {
+    console.error('GET live list error:', error);
+    return NextResponse.json({ error: "Error" }, { status: 500 });
+  }
 }
 
+// 📤 POST: Faqat sessiya holatini va joriy IP-ni xotiraga yozadi (Davlat bu yerda aniqlanmaydi)
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -78,7 +127,6 @@ export async function POST(request) {
       total,
       status,
       device,
-      country,
       currentAnswer,
       stars,
       theme,
@@ -92,13 +140,10 @@ export async function POST(request) {
 
     const reqInfo = extractRequestInfo(request);
 
-    // Check if this IP/device is blocked before storing session
     if (isBlocked(reqInfo.ip, userId)) {
       return NextResponse.json({ error: 'Blocked' }, { status: 403 });
     }
     
-    // Key by sessionId to ensure multiple tabs don "t conflict (race condition on reload)
-    // Fallback to userId for backward compatibility
     const key = sessionId || userId; 
     const resolvedStatus = status || (testId ? 'in-test' : (name ? 'browsing' : 'registering'));
 
@@ -108,18 +153,18 @@ export async function POST(request) {
       ? cameraSnapshot
       : null;
 
+    // Xotiraga faqat jonli IP yoziladi, country esa GET so'rovida dinamik hisoblanadi! 🛡️
     activeSessions[key] = {
-        testId, // can be null if just browsing
+        testId,
         userId,
         sessionId,
-      name: name || 'Registering...',
+        name: name || 'Registering...',
         progress: progress || 0,
         total: total || 0,
         difficulty: difficulty || null,
-      status: resolvedStatus,
+        status: resolvedStatus,
         device: device || 'desktop', 
-        country: country || null,
-      ip: reqInfo.ip,
+        ip: reqInfo.ip, // 👈 Faqat IP-ni saqlaymiz
         currentAnswer: currentAnswer || null,
         visualState: visualState || null,
         cameraStatus: cameraStatus || null,
@@ -131,17 +176,17 @@ export async function POST(request) {
         lastUpdated: Date.now()
     };
 
-    // Log test start (only when first entering a test)
     if (testId && status === 'in-test' && progress === 0) {
       logActivity({
         ...reqInfo, type: 'test_start', userName: name, userId,
         details: { testId, device: device || 'desktop' },
-        country, deviceId: userId,
+        country: 'UZ', deviceId: userId,
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Session update error:', error);
     return NextResponse.json({ error: "Error" }, { status: 500 });
   }
 }
@@ -151,11 +196,9 @@ export async function DELETE(request) {
     const userId = searchParams.get('userId');
     const sessionId = searchParams.get('sessionId');
 
-    // Prefer deleting by specific sessionId
     if (sessionId && activeSessions[sessionId]) {
         delete activeSessions[sessionId];
     } 
-    // Fallback: Delete all sessions for this userId
     else if (userId) {
          Object.keys(activeSessions).forEach(key => {
             if (activeSessions[key].userId === userId) {
