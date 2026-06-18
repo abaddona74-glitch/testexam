@@ -41,18 +41,47 @@ export async function GET(request) {
 
     if (!data.success) {
         console.error("IPWhois failed:", data.message);
-        // Fallback to ipapi.co if ipwhois fails
-        const fallbackUrl = isLocal ? 'https://ipapi.co/json/' : `https://ipapi.co/${ip}/json/`;
-        const fallbackRes = await fetch(fallbackUrl);
-        if (fallbackRes.ok) {
-            const fallbackData = await fallbackRes.json();
-            return NextResponse.json({ 
-                country_code: fallbackData.country_code || fallbackData.countryCode,
-                city: fallbackData.city,
-                region: fallbackData.region
-            });
+        
+        // Fallback 1: ipapi.co
+        try {
+            const fallbackUrl = isLocal ? 'https://ipapi.co/json/' : `https://ipapi.co/${ip}/json/`;
+            const fallbackRes = await fetch(fallbackUrl);
+            if (fallbackRes.ok) {
+                const fallbackData = await fallbackRes.json();
+                if (fallbackData.country_code || fallbackData.countryCode) {
+                    return NextResponse.json({ 
+                        country_code: fallbackData.country_code || fallbackData.countryCode,
+                        city: fallbackData.city || null,
+                        region: fallbackData.region || null
+                    });
+                }
+            }
+        } catch (e) {
+            console.error("ipapi.co failed:", e);
         }
-        return NextResponse.json({ country_code: 'UZ', city: 'Tashkent', region: 'Tashkent' }); // Ultimate fallback
+
+        // Fallback 2: ip-api.com (works well behind Cloudflare, no API key needed)
+        try {
+            const ipApiUrl = isLocal ? 'http://ip-api.com/json/' : `http://ip-api.com/json/${ip}`;
+            const ipApiRes = await fetch(ipApiUrl, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (ipApiRes.ok) {
+                const ipApiData = await ipApiRes.json();
+                if (ipApiData.status === 'success' && ipApiData.countryCode) {
+                    return NextResponse.json({ 
+                        country_code: ipApiData.countryCode,
+                        city: ipApiData.city || null,
+                        region: ipApiData.region || null
+                    });
+                }
+            }
+        } catch (e) {
+            console.error("ip-api.com failed:", e);
+        }
+
+        // Ultimate fallback: safe default
+        return NextResponse.json({ country_code: 'UZ', city: 'Tashkent', region: 'Tashkent' });
     }
 
     return NextResponse.json({ 

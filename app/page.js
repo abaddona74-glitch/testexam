@@ -13,6 +13,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
 import { sanitizeMarkdownText } from '@/lib/sanitize';
+import CountryFlag from '@/components/CountryFlag';
 
 import JsonImageUploader from '@/components/JsonImageUploader';
 const LazyLiquidGlassClock = dynamic(
@@ -283,19 +284,7 @@ function getDeviceType() {
     return 'desktop';
 }
 
-// Country Flag Component
-function CountryFlag({ countryCode }) {
-    if (!countryCode) return <span className="text-lg">🏳️</span>;
-    return (
-        <img
-            src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
-            alt={countryCode}
-            width={24}
-            height={18}
-            className="inline-block shadow-sm rounded-[2px] object-cover"
-        />
-    );
-}
+
 
 function validateJson(json) {
     if (!json || typeof json !== 'object') {
