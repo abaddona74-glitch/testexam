@@ -3756,6 +3756,13 @@ export default function Home() {
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    Device Tier
+                                </label>
+                                <DeviceTierBadge />
+                            </div>
+
+                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Sound Volume
                                     <span className="ml-2 text-xs text-gray-400 font-mono">{Math.round(soundVolume * 100)}%</span>

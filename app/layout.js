@@ -67,6 +67,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { InstallPrompt } from "@/components/install-prompt";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ScrollActivity } from "@/components/scroll-activity";
+import '@/lib/device-tier'; // Auto-detect device performance tier
 
 export default function RootLayout({ children }) {
   return (
@@ -97,10 +98,12 @@ export default function RootLayout({ children }) {
           <footer className="py-8 mt-8 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800">
             <div className="container mx-auto px-4">
                <p className="font-medium">© {new Date().getFullYear()} Test Exam Uz - Online Tests Platform Uzbekistan.</p>
-               <p className="mt-2 text-xs">
-                 Test-exam.uz saytida Data Mining, Project Management, Digitalization va boshqa fanlardan bepul onlayn testlar yeching. 
-                 <br className="hidden md:inline" /> test exam uz orqali bilimingizni mustahkamlang.
-               </p>
+               <div className="mt-2 flex items-center justify-center gap-3 flex-wrap">
+                 <p className="text-xs">
+                   Test-exam.uz saytida Data Mining, Project Management, Digitalization va boshqa fanlardan bepul onlayn testlar yeching. 
+                   <br className="hidden md:inline" /> test exam uz orqali bilimingizni mustahkamlang.
+                 </p>
+               </div>
             </div>
           </footer>
         </ThemeProvider>
