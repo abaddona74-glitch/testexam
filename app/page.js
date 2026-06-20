@@ -14,6 +14,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
 import { sanitizeMarkdownText } from '@/lib/sanitize';
 import CountryFlag from '@/components/CountryFlag';
+import DeviceTierBadge from '@/components/DeviceTierBadge';
 
 import JsonImageUploader from '@/components/JsonImageUploader';
 const LazyLiquidGlassClock = dynamic(
