@@ -21,9 +21,8 @@ export function middleware(request) {
   const region = geo?.region || request.headers.get('x-vercel-ip-region') || 'Unknown'
 
   const isDev = process.env.NODE_ENV !== 'production';
-  const scriptSrc = isDev
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://static.cloudflareinsights.com"
-    : "script-src 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://static.cloudflareinsights.com";
+  // TensorFlow.js needs 'unsafe-eval' for model execution even in production
+  const scriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com`;
 
   const csp = [
     "default-src 'self'",
@@ -36,7 +35,7 @@ export function middleware(request) {
     "img-src 'self' data: blob: https:",
     "media-src 'self' blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com",
+    "connect-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev https://cdn.jsdelivr.net npm",
     "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
     "upgrade-insecure-requests",
   ].join('; ');

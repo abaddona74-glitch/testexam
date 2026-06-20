@@ -7487,6 +7487,8 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
     const cheatAttemptsRef = useRef(0);
     const cheatAutoFinishRef = useRef(false);
     const [cameraRetryCount, setCameraRetryCount] = useState(0);
+    const [cameraGuardProgress, setCameraGuardProgress] = useState(0);
+    const [cameraGuardErrorType, setCameraGuardErrorType] = useState('');
     const violationCooldownRef = useRef({});
     const cameraStatusRef = useRef('inactive');
     const cameraSnapshotRef = useRef(null);
@@ -7825,7 +7827,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             }
 
             if (!token && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
-                setAiAnalysis("reCAPTCHA token olinmadi. Iltimos sahifani yangilang va qayta urinib ko'ring.");
+                setAiAnalysis("reCAPTCHA token olinmadi. Iltimos sahifani yangilang va qayta urinib ko\'ring.");
                 return;
             }
 
@@ -8927,7 +8929,9 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
         const start = async () => {
             setCheatGuardStatus('starting');
-            setCheatGuardMessage("Kamera yoqilmoqda, servis tayyorlanmoqda. Iltimos kuting...");
+            setCameraGuardErrorType('');
+            setCameraGuardProgress(0);
+            setCheatGuardMessage("Kamera yoqilmoqda...");
             cameraSnapshotRef.current = null;
             lastSnapshotAtRef.current = 0;
             try {
@@ -8964,16 +8968,40 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                     lastSnapshotAtRef.current = Date.now();
                 }
 
+                // Step 1: Import TensorFlow.js
+                setCameraGuardProgress(1);
+                setCheatGuardMessage("TensorFlow.js yuklanmoqda...");
                 const tf = await import('@tensorflow/tfjs');
+
+                // Step 2: WebGL backend
+                setCameraGuardProgress(2);
+                setCheatGuardMessage("WebGL backend tayyorlanmoqda...");
                 await import('@tensorflow/tfjs-backend-webgl');
+
+                // Check WebGL support before proceeding
+                const hasWebGL = (() => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        return !!(canvas.getContext('webgl') || canvas.getContext('webgl2'));
+                    } catch { return false; }
+                })();
+                if (!hasWebGL) {
+                    throw new Error('WEBGL_NOT_SUPPORTED');
+                }
+
                 await tf.setBackend('webgl').catch(() => { });
                 await tf.ready();
 
+                // Step 3: Object detection model
+                setCameraGuardProgress(3);
+                setCheatGuardMessage("Ob\'yekt deteksiya modeli yuklanmoqda...");
                 const cocoSsd = await import('@tensorflow-models/coco-ssd');
                 objectDetector = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
 
-                // Enable face tracking for both insane and impossible
+                // Step 4: Face detection model (only for insane/impossible)
+                setCameraGuardProgress(4);
                 if (test.difficultyMode === 'impossible' || test.difficultyMode === 'insane') {
+                    setCheatGuardMessage("Face tracking modeli yuklanmoqda...");
                     const faceLandmarks = await import('@tensorflow-models/face-landmarks-detection');
                     faceDetector = await faceLandmarks.createDetector(
                         faceLandmarks.SupportedModels.MediaPipeFaceMesh,
@@ -8985,22 +9013,52 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                     );
                 }
 
+                // Step 5: Ready!
+                setCameraGuardProgress(5);
                 setCheatGuardMessage("Diqqat: kamera ishlayapti, nazorat faol.");
                 runTick();
             } catch (error) {
                 console.error('Camera guard start error:', error);
-                const isPermissionError = error?.name === 'NotAllowedError' || error?.name === 'SecurityError' || error?.name === 'NotReadableError';
+                const errMsg = error?.message || String(error);
+                const errName = error?.name || '';
+
+                const isPermissionError = errName === 'NotAllowedError' || errName === 'SecurityError' || errName === 'NotReadableError';
+                const isWebGLError = errMsg === 'WEBGL_NOT_SUPPORTED' || errMsg?.includes('webgl') || errMsg?.includes('WebGL') || errName === 'WebGLNotSupported';
+                const isModelError = errMsg?.includes("model") || errMsg?.includes("Model") || errMsg?.includes("load") || errMsg?.includes("fetch") || errMsg?.includes("network") || errName === "NetworkError";
+                const isNetworkError = errMsg?.includes('network') || errMsg?.includes('Network') || errMsg?.includes('timeout') || errName === 'TimeoutError' || errName === 'AbortError';
+
+                let errorType = 'unknown';
+                let userMessage = '';
+                let toastMessage = '';
+
+                if (isPermissionError) {
+                    errorType = 'camera';
+                    userMessage = '📷 Kamera ruxsati berilmagan. Pastdagi tugma orqali ruxsat bering.';
+                    toastMessage = 'Kamera ruxsati kerak. Iltimos, ruxsat bering.';
+                } else if (isWebGLError) {
+                    errorType = 'webgl';
+                    userMessage = '🖥️ Qurilmangiz WebGL ni qo\'llamaydi. Insane/Impossible rejimi ishlamaydi. Iltimos, boshqa rejim tanlang yoki Chrome brauzeridan foydalaning.';
+                    toastMessage = 'WebGL qo\'llab-quvvatlanmaydi. Brauzeringizni yangilang yoki Chrome dan foydalaning.';
+                } else if (isModelError) {
+                    errorType = 'model';
+                    userMessage = '🧠 AI modeli yuklanmadi. Internet tezligini tekshiring yoki WiFi ga ulaning. Agar VPN ishlatsangiz, o\'chirib ko\'ring.';
+                    toastMessage = 'AI modeli yuklanmadi. Internet aloqasini tekshiring.';
+                } else if (isNetworkError) {
+                    errorType = 'network';
+                    userMessage = '🌐 Internet aloqasida muammo. Model fayllari yuklanmadi. Internetni tekshirib, qayta urinib ko\'ring.';
+                    toastMessage = 'Internet aloqasi zaif. Model yuklanmadi.';
+                } else {
+                    errorType = 'unknown';
+                    userMessage = '❌ Kamera yoqilmadi. Browser ruxsatini tekshiring yoki qayta urinib ko\'ring.';
+                    toastMessage = 'Kamera yoqilmadi. Browser ruxsatini tekshiring.';
+                }
+
+                setCameraGuardErrorType(errorType);
                 setCheatGuardStatus('error');
-                setCheatGuardMessage(
-                    isPermissionError
-                        ? 'Kamera ruxsati berilmagan. Pastdagi tugma orqali ruxsat bering.'
-                        : 'Kamera ruxsati yoki model yuklashda xatolik'
-                );
+                setCheatGuardMessage(userMessage);
                 cameraSnapshotRef.current = null;
                 if (addToast) {
-                    addToast('Camera Guard Error', isPermissionError
-                        ? 'Kamera ruxsati kerak. Iltimos, ruxsat bering.'
-                        : 'Kamera yoqilmadi. Browser ruxsatini tekshiring.', 'error');
+                    addToast('Camera Guard Error', toastMessage, 'error');
                 }
             }
         };
@@ -9641,21 +9699,64 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                 {cheatGuardMessage || 'Phone va head-movement kuzatuvi ishlayapti.'}
                             </p>
                             {cheatGuardStatus === 'error' && cheatGuardEnabled && (
-                                <button
-                                    onClick={() => {
-                                        setCameraRetryCount(c => c + 1);
-                                    }}
-                                    className="mt-3 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md"
-                                >
-                                    📷 Kameraga ruxsat berish
-                                </button>
+                                <div className="space-y-2 mt-2">
+                                    {/* Error detail hint */}
+                                    {cameraGuardErrorType === 'webgl' && (
+                                        <div className="text-xs text-yellow-600 bg-yellow-50 rounded px-2 py-1">
+                                            💡 Yechim: Google Chrome brauzeridan foydalaning yoki qurilmangizni yangilang
+                                        </div>
+                                    )}
+                                    {cameraGuardErrorType === 'model' && (
+                                        <div className="text-xs text-yellow-600 bg-yellow-50 rounded px-2 py-1">
+                                            💡 Yechim: Internetni tekshiring, WiFi ga ulaning, VPN ni o\'chiring
+                                        </div>
+                                    )}
+                                    {cameraGuardErrorType === 'network' && (
+                                        <div className="text-xs text-yellow-600 bg-yellow-50 rounded px-2 py-1">
+                                            💡 Yechim: Internet aloqasini tekshiring va qayta urinib ko\'ring
+                                        </div>
+                                    )}
+                                    {cameraGuardErrorType === 'unknown' && (
+                                        <div className="text-xs text-yellow-600 bg-yellow-50 rounded px-2 py-1">
+                                            💡 Yechim: Boshqa brauzer sinab ko\'ring yoki qurilmani qayta yoqing
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={() => {
+                                            setCameraRetryCount(c => c + 1);
+                                        }}
+                                        className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md"
+                                    >
+                                        {cameraGuardErrorType === 'model' || cameraGuardErrorType === 'network'
+                                            ? '🔄 Qayta urinish'
+                                            : '📷 Kameraga ruxsat berish'}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     )}
 
                     {isCameraGuardPreparing && (
                         <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                            Kamera ishga tushmoqda. Nazorat faol bo'lguncha test vaqtincha pauza holatida.
+                            <div className="flex items-center gap-2 mb-1">
+                                <Loader2 size={16} className="animate-spin text-blue-600" />
+                                <span>{cheatGuardMessage || 'Kamera ishga tushmoqda...'}</span>
+                            </div>
+                            {/* Progress bar */}
+                            <div className="w-full bg-blue-100 rounded-full h-1.5 mt-1">
+                                <div
+                                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                                    style={{ width: `${
+                                        Math.max(5, (cameraGuardProgress / 5) * 100)
+                                    }%` }}
+                                />
+                            </div>
+                            <div className="flex justify-between mt-1">
+                                <span className="text-[10px] text-blue-500">Kamera</span>
+                                <span className="text-[10px] text-blue-500">WebGL</span>
+                                <span className="text-[10px] text-blue-500">Model</span>
+                                <span className="text-[10px] text-blue-500">Tayyor</span>
+                            </div>
                         </div>
                     )}
 
