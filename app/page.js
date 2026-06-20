@@ -799,6 +799,7 @@ function ToastContainer({ toasts, removeToast }) {
                             "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border backdrop-blur-md min-w-[300px]",
                             toast.type === 'success' ? "bg-white/90 dark:bg-gray-800/90 border-green-200 text-green-700" :
                                 toast.type === 'error' ? "bg-white/90 dark:bg-gray-800/90 border-red-200 text-red-700" :
+                                    toast.type === 'warning' ? "bg-white/90 dark:bg-gray-800/90 border-amber-200 text-amber-700" :
                                     "bg-white/90 dark:bg-gray-800/90 border-gray-200 text-gray-700"
                         )}
                     >
@@ -8605,27 +8606,35 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         }
     };
 
-    const reportCheatViolation = async (violationType, message, meta = {}) => {
+    const reportCheatViolation = async (violationType, message, meta = {}, instantBlock = false) => {
         const now = Date.now();
         const cooldownKey = String(violationType || 'unknown');
         const lastAt = violationCooldownRef.current[cooldownKey] || 0;
-        if (now - lastAt < 7000) return;
+        if (!instantBlock && now - lastAt < 7000) return;
         violationCooldownRef.current[cooldownKey] = now;
 
-        const nextUsed = Math.min(CAMERA_GUARD_MAX_ATTEMPTS, cheatAttemptsRef.current + 1);
-        const attemptsLeft = Math.max(0, CAMERA_GUARD_MAX_ATTEMPTS - nextUsed);
-        cheatAttemptsRef.current = nextUsed;
-        setCheatAttemptsUsed(nextUsed);
-        setCheatGuardMessage(`${message}. ${attemptsLeft} attempts qoldi.`);
+        let nextUsed, attemptsLeft;
+        if (instantBlock) {
+            nextUsed = CAMERA_GUARD_MAX_ATTEMPTS;
+            attemptsLeft = 0;
+            cheatAttemptsRef.current = CAMERA_GUARD_MAX_ATTEMPTS;
+            setCheatAttemptsUsed(CAMERA_GUARD_MAX_ATTEMPTS);
+            setCheatGuardMessage(`${message}. Test avtomatik tugatildi.`);
+        } else {
+            nextUsed = Math.min(CAMERA_GUARD_MAX_ATTEMPTS, cheatAttemptsRef.current + 1);
+            attemptsLeft = Math.max(0, CAMERA_GUARD_MAX_ATTEMPTS - nextUsed);
+            cheatAttemptsRef.current = nextUsed;
+            setCheatAttemptsUsed(nextUsed);
+            setCheatGuardMessage(`${message}. ${attemptsLeft} attempts qoldi.`);
+        }
 
         if (addToast) {
-            const attemptWord = attemptsLeft === 1 ? 'attempt' : 'attempts';
             addToast(
-                attemptsLeft > 0 ? 'Warning' : 'Test Auto-Finished',
+                attemptsLeft > 0 ? '\u26a0\ufe0f Warning' : '\ud83d\uded1 Test Auto-Finished',
                 attemptsLeft > 0
-                    ? `${message}. ${attemptsLeft} ${attemptWord} qoldi.`
-                    : `${message}. 0 attempts qoldi. Test avtomatik tugatildi.`,
-                'error'
+                    ? `${message}. ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} qoldi.`
+                    : `${message}. Test avtomatik tugatildi.`,
+                attemptsLeft > 0 ? 'warning' : 'error'
             );
         }
 
@@ -8642,7 +8651,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                 message,
                 attemptsUsed: nextUsed,
                 attemptsLeft,
-                meta,
+                meta: { ...meta, instantBlock },
             }),
         }).catch(() => { });
 
@@ -8759,6 +8768,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         let objectDetector = null;
         let faceDetector = null;
         let lookingAwaySince = null;
+        let faceDistanceSince = null;
 
         const video = document.createElement('video');
         video.setAttribute('playsinline', 'true');
@@ -8781,21 +8791,38 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                     return;
                 }
 
+                // --- Phone Detection (instant block) ---
                 if (objectDetector) {
                     const detections = await objectDetector.detect(video, 8, 0.55);
                     const phone = detections.find(d => d.class === 'cell phone' && d.score >= 0.55);
                     if (phone) {
                         await reportCheatViolation(
                             'phone_detected',
-                            'Kamerada mobile phone aniqlandi',
-                            { confidence: Number(phone.score?.toFixed?.(3) || 0) }
+                            'Kamerada mobile phone aniqlandi! Test bloklandi.',
+                            { confidence: Number(phone.score?.toFixed?.(3) || 0) },
+                            true
                         );
+                        lookingAwaySince = null;
                     }
                 }
 
-                if (test.difficultyMode === 'impossible' && faceDetector) {
+                // --- Face Detection: both insane and impossible ---
+                if (faceDetector) {
                     const faces = await faceDetector.estimateFaces(video, { flipHorizontal: true });
-                    if (faces?.length) {
+
+                    // Multi-face detection (2+ faces = someone is helping)
+                    if (faces?.length >= 2) {
+                        await reportCheatViolation(
+                            'multiple_faces',
+                            'Kamerada ' + faces.length + ' ta yuz aniqlandi! Yordam berish taqiqlangan!',
+                            { faceCount: faces.length },
+                            true
+                        );
+                        lookingAwaySince = null;
+                    }
+
+                    // Gaze tracking + distance monitoring: only if exactly 1 face detected
+                    if (faces?.length === 1) {
                         const face = faces[0];
                         const keypoints = face.keypoints || [];
                         const nose = keypoints.find(k => k?.name === 'noseTip') || keypoints[1];
@@ -8803,15 +8830,19 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                         const rightEye = getEyePoint(keypoints, 'right');
 
                         if (nose && leftEye && rightEye) {
+                            // --- Gaze (looking away) detection ---
                             const leftDist = Math.max(1, Math.abs(nose.x - leftEye.x));
                             const rightDist = Math.max(1, Math.abs(rightEye.x - nose.x));
                             const ratio = leftDist / rightDist;
-                            const lookingAway = ratio > 1.7 || ratio < 0.6;
+                            const awayThreshold = test.difficultyMode === 'impossible' ? 1.5 : 1.8;
+                            const towardThreshold = test.difficultyMode === 'impossible' ? 0.5 : 0.55;
+                            const lookingAway = ratio > awayThreshold || ratio < towardThreshold;
 
                             if (lookingAway) {
                                 if (!lookingAwaySince) lookingAwaySince = Date.now();
                                 const awayFor = Date.now() - lookingAwaySince;
-                                if (awayFor >= 2200) {
+                                const awayMs = test.difficultyMode === 'impossible' ? 1800 : 2200;
+                                if (awayFor >= awayMs) {
                                     await reportCheatViolation(
                                         'backward_look',
                                         'Orqaga/yon tomonga uzoq qarash aniqlandi',
@@ -8822,9 +8853,54 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             } else {
                                 lookingAwaySince = null;
                             }
+
+                            // --- Face distance detection (too close / too far) ---
+                            const interEyeDist = Math.sqrt(
+                                Math.pow(rightEye.x - leftEye.x, 2) +
+                                Math.pow(rightEye.y - leftEye.y, 2)
+                            );
+                            const normDist = interEyeDist / Math.max(1, video.videoWidth);
+                            // Thresholds: too close = inter-eye fills >30% of frame; too far = <5%
+                            const distTooClose = normDist > 0.30;
+                            const distTooFar = normDist < 0.05;
+                            const distViolation = distTooClose || distTooFar;
+
+                            if (distViolation) {
+                                if (!faceDistanceSince) faceDistanceSince = Date.now();
+                                const distFor = Date.now() - faceDistanceSince;
+                                const distMs = 2500; // 2.5s sustained violation
+                                if (distFor >= distMs) {
+                                    if (distTooClose) {
+                                        await reportCheatViolation(
+                                            'face_too_close',
+                                            'Yuz kameraga juda yaqin! Iltimos, normal masofadan turing.',
+                                            {
+                                                normDist: Number(normDist.toFixed(3)),
+                                                durationMs: distFor,
+                                                threshold: 0.30,
+                                            }
+                                        );
+                                    }
+                                    if (distTooFar) {
+                                        await reportCheatViolation(
+                                            'face_too_far',
+                                            'Yuz kameradan juda uzoq! Iltimos, kameraga qarab turing.',
+                                            {
+                                                normDist: Number(normDist.toFixed(3)),
+                                                durationMs: distFor,
+                                                threshold: 0.05,
+                                            }
+                                        );
+                                    }
+                                    faceDistanceSince = Date.now();
+                                }
+                            } else {
+                                faceDistanceSince = null;
+                            }
                         }
                     } else {
                         lookingAwaySince = null;
+                        faceDistanceSince = null;
                     }
                 }
 
@@ -8895,14 +8971,15 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                 const cocoSsd = await import('@tensorflow-models/coco-ssd');
                 objectDetector = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
 
-                if (test.difficultyMode === 'impossible') {
+                // Enable face tracking for both insane and impossible
+                if (test.difficultyMode === 'impossible' || test.difficultyMode === 'insane') {
                     const faceLandmarks = await import('@tensorflow-models/face-landmarks-detection');
                     faceDetector = await faceLandmarks.createDetector(
                         faceLandmarks.SupportedModels.MediaPipeFaceMesh,
                         {
                             runtime: 'tfjs',
                             refineLandmarks: false,
-                            maxFaces: 1,
+                            maxFaces: 5,
                         }
                     );
                 }
