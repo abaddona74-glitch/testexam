@@ -15,6 +15,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { sanitizeMarkdownText } from '@/lib/sanitize';
 import CountryFlag from '@/components/CountryFlag';
 import DeviceTierBadge from '@/components/DeviceTierBadge';
+import { isAutoDetected, getStoredDeviceTier } from '@/lib/device-tier';
 
 import JsonImageUploader from '@/components/JsonImageUploader';
 const LazyLiquidGlassClock = dynamic(
@@ -888,6 +889,23 @@ export default function Home() {
             localStorage.setItem('examApp_performanceMode', performanceMode);
         } catch { }
     }, [performanceMode]);
+
+    // Hydration sync: after client mount, if device tier was auto-detected,
+    // sync the performance mode to match the detected tier.
+    // SSR always renders 'high', but auto-detection may detect 'medium' or 'low'.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const wasAutoDetected = isAutoDetected();
+        const storedInfo = getStoredDeviceTier();
+        
+        if (wasAutoDetected && storedInfo?.tier && storedInfo.tier !== performanceMode) {
+            // Auto-detected tier differs from current SSR-rendered mode → sync it
+            setPerformanceMode(storedInfo.tier);
+        }
+        // Run only once on mount (hydration)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         const scrollers = Array.from(document.querySelectorAll('.auto-hide-scroll'));
@@ -3667,8 +3685,8 @@ export default function Home() {
                 </header>
 
                 {showSettings && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
+                    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 pt-12 overflow-y-auto" onClick={() => setShowSettings(false)}>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 relative my-auto" onClick={e => e.stopPropagation()}>
                             <button onClick={() => setShowSettings(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                                 <XCircle size={24} />
                             </button>
