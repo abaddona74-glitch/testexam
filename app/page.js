@@ -7486,6 +7486,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
     const [cheatGuardMessage, setCheatGuardMessage] = useState('');
     const cheatAttemptsRef = useRef(0);
     const cheatAutoFinishRef = useRef(false);
+    const [cameraRetryCount, setCameraRetryCount] = useState(0);
     const violationCooldownRef = useRef({});
     const cameraStatusRef = useRef('inactive');
     const cameraSnapshotRef = useRef(null);
@@ -8988,11 +8989,18 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                 runTick();
             } catch (error) {
                 console.error('Camera guard start error:', error);
+                const isPermissionError = error?.name === 'NotAllowedError' || error?.name === 'SecurityError' || error?.name === 'NotReadableError';
                 setCheatGuardStatus('error');
-                setCheatGuardMessage('Kamera ruxsati yoki model yuklashda xatolik');
+                setCheatGuardMessage(
+                    isPermissionError
+                        ? 'Kamera ruxsati berilmagan. Pastdagi tugma orqali ruxsat bering.'
+                        : 'Kamera ruxsati yoki model yuklashda xatolik'
+                );
                 cameraSnapshotRef.current = null;
                 if (addToast) {
-                    addToast('Camera Guard Error', 'Kamera yoqilmadi. Browser ruxsatini tekshiring.', 'error');
+                    addToast('Camera Guard Error', isPermissionError
+                        ? 'Kamera ruxsati kerak. Iltimos, ruxsat bering.'
+                        : 'Kamera yoqilmadi. Browser ruxsatini tekshiring.', 'error');
                 }
             }
         };
@@ -9011,7 +9019,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             lastSnapshotAtRef.current = 0;
             setCheatGuardStatus('inactive');
         };
-    }, [cheatGuardEnabled, isFinished, test.difficultyMode, captureCameraSnapshot]);
+    }, [cheatGuardEnabled, isFinished, test.difficultyMode, captureCameraSnapshot, cameraRetryCount]);
 
     const leaveWithoutResult = async () => {
         if (isSubmitting) return;
@@ -9632,6 +9640,16 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             <p className="mt-1 text-xs opacity-90">
                                 {cheatGuardMessage || 'Phone va head-movement kuzatuvi ishlayapti.'}
                             </p>
+                            {cheatGuardStatus === 'error' && cheatGuardEnabled && (
+                                <button
+                                    onClick={() => {
+                                        setCameraRetryCount(c => c + 1);
+                                    }}
+                                    className="mt-3 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md"
+                                >
+                                    📷 Kameraga ruxsat berish
+                                </button>
+                            )}
                         </div>
                     )}
 
