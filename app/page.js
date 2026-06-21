@@ -1151,7 +1151,7 @@ export default function Home() {
                 // Group by testName and compute best score percentage
                 const grouped = {};
                 userEntries.forEach(e => {
-                    const key = e.testName || 'Unknown';
+                    const key = e.category ? `${e.category} - ${e.testName}` : (e.testName || 'Unknown');
                     const pct = e.total > 0 ? Math.round((e.score / e.total) * 100) : 0;
                     if (!grouped[key] || grouped[key] < pct) {
                         grouped[key] = pct;
@@ -5013,7 +5013,7 @@ export default function Home() {
                                                                     </span>
                                                                 )}
                                                             </td>
-                                                            <td className="py-3 text-sm text-gray-500 font-medium px-2">{entry.testName}</td>
+                                                            <td className="py-3 text-sm text-gray-500 font-medium px-2">{entry.category ? `${entry.category} - ` : ""}{entry.testName}</td>
                                                             <td className="py-3 px-2">
                                                                 <div className={clsx("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold border", diffConfig.bg, diffConfig.color, diffConfig.border)}>
                                                                     <DiffIcon size={10} />
@@ -5560,7 +5560,7 @@ export default function Home() {
                                                                 }}
                                                             >
                                                                 <td className="py-4 pl-4 text-left font-medium text-gray-700 group-hover:text-blue-600">
-                                                                    {entry.testName}
+                                                                    {entry.category ? `${entry.category} - ` : ""}{entry.testName}
                                                                     {(!entry.questions || !entry.answers) && <span className="ml-2 text-[10px] text-gray-400 border px-1 rounded">No Details</span>}
                                                                 </td>
                                                                 <td className="py-4">
@@ -5595,7 +5595,7 @@ export default function Home() {
                         <div className="max-w-4xl mx-auto">
                             <div className="mb-6 flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                                    <CheckCircle2 className="text-green-500" /> Test Review: {activeReview.testName}
+                                    <CheckCircle2 className="text-green-500" /> Test Review: {activeReview.category ? `${activeReview.category} - ${activeReview.testName}` : activeReview.testName}
                                 </h2>
                                 <button
                                     onClick={() => { playStartSound(); setView('history'); }}
@@ -8563,6 +8563,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                         name: userName,
                         testId: test.id, // Save ID for filtering
                         testName: test.name, // Ensure this matches schema
+                        category: test.category, // Save subject/folder name
                         score: score,
                         total: test.questions.filter(q => !(isTextInputQuestion(q) && q.grading === 'manual')).length,
                         date: new Date().toISOString(),

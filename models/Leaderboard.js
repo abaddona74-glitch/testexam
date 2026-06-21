@@ -9,6 +9,10 @@ const LeaderboardSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  category: {
+    type: String,
+    required: false,
+  },
   testName: {
     type: String,
     required: true,

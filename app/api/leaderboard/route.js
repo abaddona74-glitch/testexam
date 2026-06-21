@@ -118,7 +118,7 @@ export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { name, testName, testId, score, total, duration, questions, answers, difficulty, country: bodyCountry, city: bodyCity, region: bodyRegion } = body;
+    const { name, testName, testId, category, score, total, duration, questions, answers, difficulty, country: bodyCountry, city: bodyCity, region: bodyRegion } = body;
     
     // Do not save 'study' mode results to leaderboard
     if (difficulty === 'study') {
@@ -145,6 +145,7 @@ export async function POST(request) {
         name,
         testName,
         testId,
+        category,
         score,
         total,
         date: new Date(),
