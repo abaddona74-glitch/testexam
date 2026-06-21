@@ -18,6 +18,7 @@ import DeviceTierBadge from '@/components/DeviceTierBadge';
 import { isAutoDetected, getStoredDeviceTier } from '@/lib/device-tier';
 
 import JsonImageUploader from '@/components/JsonImageUploader';
+import LoadingScreen, { getStoredLoadingAnimation, setStoredLoadingAnimation, LOADING_ANIMATIONS } from '@/components/loading-screen';
 const LazyLiquidGlassClock = dynamic(
     () => import('@/components/liquid-clock').then((m) => m.LiquidGlassClock),
     { ssr: false, loading: () => null }
@@ -871,6 +872,16 @@ export default function Home() {
     }); // 0..1
 
     // Translation toggle state
+        // Loading animation selection
+    const [loadingAnimation, setLoadingAnimation] = useState(() => {
+        if (typeof window === 'undefined') return 'classic';
+        try {
+            const stored = localStorage.getItem('examApp_loadingAnimation');
+            if (stored && LOADING_ANIMATIONS.some(a => a.id === stored)) return stored;
+        } catch {}
+        return 'classic';
+    });
+
     const [showTranslation, setShowTranslation] = useState(() => {
         if (typeof window === 'undefined') return true;
         try {
@@ -3359,17 +3370,9 @@ export default function Home() {
 
     if (loading && view === 'list') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
-                <Image
-                    src="/loading.gif"
-                    alt="Loading..."
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                    priority
-                    unoptimized
-                />
-            </div>
+                                        <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
+                                <LoadingScreen animationId={loadingAnimation} />
+                            </div>
         );
     }
 
@@ -3799,6 +3802,59 @@ export default function Home() {
                                 <div className="mt-2 text-[11px] text-gray-400">
                                     Applies to celebration + spin win sounds.
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Loading Animation Selector */}
+                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Loading Animation
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {LOADING_ANIMATIONS.map(anim => {
+                                    const isActive = loadingAnimation === anim.id;
+                                    return (
+                                        <button
+                                            key={anim.id}
+                                            onClick={() => {
+                                                setLoadingAnimation(anim.id);
+                                                setStoredLoadingAnimation(anim.id);
+                                                addToast('Animation changed', anim.name, 'success');
+                                            }}
+                                            className={clsx(
+                                                "relative rounded-xl border-2 overflow-hidden transition-all duration-200 p-2",
+                                                isActive
+                                                    ? "border-blue-500 ring-2 ring-blue-500/30 shadow-lg"
+                                                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                                            )}
+                                        >
+                                            <div className="h-20 flex items-center justify-center">
+                                                <LoadingScreen animationId={anim.id} mini />
+                                            </div>
+                                            <div className={clsx(
+                                                "text-center mt-1 text-xs font-medium",
+                                                isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400"
+                                            )}>
+                                                {anim.name}
+                                            </div>
+                                            {isActive && (
+                                                <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>                            </div>
+                        </div>
+
+                        
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">

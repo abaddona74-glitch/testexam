@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kema Yuklanish Ekrani</title>
+    <meta name="description" content="Chizilgan uslubdagi kema yuklanish ekrani">
+    <meta name="keywords" content="loading, kema, chizilgan uslub, animatsiya">
+    
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react@18/umd/react.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://resource.trickle.so/vendor_lib/unpkg/lucide-static@0.516.0/font/lucide.css" rel="stylesheet">
+
+    <style type="text/tailwindcss">
+    @layer theme {
+        :root {
+            --sketch-color: #e5e7eb;
+            --water-color: #5dade2;
+            --bg-color: #030712;
+        }
+    }
+
+    @layer base {
+        body {
+            background-color: var(--bg-color);
+            color: var(--sketch-color);
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+        }
+    }
+
+    @layer utilities {
+        .animate-rock {
+            animation: rock 3s ease-in-out infinite;
+            transform-origin: center bottom;
+        }
+        
+        .animate-wave-1 {
+            animation: wave 4s linear infinite;
+        }
+        
+        .animate-wave-2 {
+            animation: wave 5s linear infinite reverse;
+        }
+
+        .animate-wave-3 {
+            animation: wave 6s linear infinite;
+        }
+
+        @keyframes rock {
+            0%, 100% { transform: rotate(-5deg) translateY(8px); }
+            25% { transform: rotate(0deg) translateY(0px); }
+            50% { transform: rotate(5deg) translateY(8px); }
+            75% { transform: rotate(0deg) translateY(16px); }
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @keyframes fly {
+            0% { transform: translate(0px, 0px); }
+            33% { transform: translate(-15px, -8px); }
+            66% { transform: translate(10px, -12px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        .animate-bird-1 {
+            animation: fly 6s ease-in-out infinite;
+        }
+
+        .animate-bird-2 {
+            animation: fly 7s ease-in-out infinite 2s;
+        }
+
+        .animate-bird-3 {
+            animation: fly 8s ease-in-out infinite 1s;
+        }
+
+        .animate-bird-4 {
+            animation: fly 5s ease-in-out infinite 3s;
+        }
+
+        .animate-bird-5 {
+            animation: fly 9s ease-in-out infinite 0.5s;
+        }
+
+        @keyframes flutter {
+            0%, 100% { transform: scaleX(1) skewY(0deg); }
+            50% { transform: scaleX(0.85) skewY(15deg); }
+        }
+
+        .animate-flutter {
+            animation: flutter 0.6s ease-in-out infinite;
+            transform-origin: 70px 25px;
+        }
+
+        @keyframes flap {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(-0.3); }
+        }
+
+        .animate-flap-1 {
+            animation: flap 0.4s ease-in-out infinite;
+            transform-origin: center 10px;
+        }
+
+        .animate-flap-2 {
+            animation: flap 0.5s ease-in-out infinite 0.2s;
+            transform-origin: center 8px;
+        }
+
+        .animate-flap-3 {
+            animation: flap 0.45s ease-in-out infinite 0.1s;
+            transform-origin: center 6px;
+        }
+
+        .animate-flap-4 {
+            animation: flap 0.6s ease-in-out infinite 0.4s;
+            transform-origin: center 9px;
+        }
+
+        .animate-flap-5 {
+            animation: flap 0.35s ease-in-out infinite;
+            transform-origin: center 5px;
+        }
+        
+        .sketch-stroke {
+            stroke: var(--sketch-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .water-stroke {
+            stroke: var(--water-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .sketch-fill {
+            fill: var(--bg-color);
+        }
+
+        .water-fill {
+            fill: var(--bg-color);
+        }
+    }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel" src="components/LoadingScreen.js"></script>
+    <script type="text/babel" src="app.js"></script>
+</body>
+</html>

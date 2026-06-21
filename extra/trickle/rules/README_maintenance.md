@@ -1,0 +1,2 @@
+Qachonki loyihaga yangi katta o'zgarishlar kiritilsa yoki loyihaning maqsadi kengaysa:
+- Har doim `trickle/notes/README.md` faylini tekshirib, unga mos ravishda o'zgartirishlar kiriting. Loyiha haqidagi ma'lumotlar doim dolzarb bo'lib turishi shart.
