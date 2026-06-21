@@ -872,15 +872,23 @@ export default function Home() {
     }); // 0..1
 
     // Translation toggle state
-        // Loading animation selection
-    const [loadingAnimation, setLoadingAnimation] = useState(() => {
-        if (typeof window === 'undefined') return 'classic';
+        // Loading animation selection - always start with 'classic' to match SSR,
+    // then read from localStorage in a useEffect after mount to avoid hydration mismatch.
+    const [loadingAnimation, setLoadingAnimation] = useState(null);
+
+    // Hydration-safe: load the stored animation after mount
+    useEffect(() => {
         try {
             const stored = localStorage.getItem('examApp_loadingAnimation');
-            if (stored && LOADING_ANIMATIONS.some(a => a.id === stored)) return stored;
-        } catch {}
-        return 'classic';
-    });
+            if (stored && LOADING_ANIMATIONS.some(a => a.id === stored)) {
+                setLoadingAnimation(stored);
+            } else {
+                setLoadingAnimation('gif');
+            }
+        } catch {
+            setLoadingAnimation('gif');
+        }
+    }, []);
 
     const [showTranslation, setShowTranslation] = useState(() => {
         if (typeof window === 'undefined') return true;
@@ -3803,7 +3811,6 @@ export default function Home() {
                                     Applies to celebration + spin win sounds.
                                 </div>
                             </div>
-                        </div>
 
                         {/* Loading Animation Selector */}
                         <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
@@ -3851,11 +3858,7 @@ export default function Home() {
                                     );
                                 })}
                             </div>
-                        </div>                            </div>
                         </div>
-
-                        
-                            </div>
 
                             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
                                 <div className="flex items-center justify-between">

@@ -7,8 +7,14 @@ import clsx from 'clsx';
 // Add new animations here. The id is stored in localStorage.
 export const LOADING_ANIMATIONS = [
   {
+    id: 'gif',
+    name: 'Classic GIF',
+    description: 'Asl GIF animatsiya',
+    preview: 'gif',
+  },
+  {
     id: 'classic',
-    name: 'Classic',
+    name: 'Spinner',
     description: 'Simple spinning loader',
     preview: 'simple', // component variant key
   },
@@ -23,18 +29,31 @@ export const LOADING_ANIMATIONS = [
 const STORAGE_KEY = 'examApp_loadingAnimation';
 
 export function getStoredLoadingAnimation() {
-  if (typeof window === 'undefined') return 'classic';
+  if (typeof window === 'undefined') return 'gif';
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && LOADING_ANIMATIONS.some(a => a.id === stored)) return stored;
   } catch {}
-  return 'classic';
+  return 'gif';
 }
 
 export function setStoredLoadingAnimation(id) {
   try {
     localStorage.setItem(STORAGE_KEY, id);
   } catch {}
+}
+
+// ─── GIF Classic Loading (original loading.gif) ────────────
+function GifLoading() {
+  return (
+    <div className="flex items-center justify-center w-full h-full">
+      <img
+        src="/loading.gif"
+        alt="Loading..."
+        className="w-24 h-24 object-contain"
+      />
+    </div>
+  );
 }
 
 // ─── Classic Loading (Spinner) ──────────────────────────────
@@ -61,12 +80,38 @@ function ClassicSpinner() {
 // ─── Ship Loading Animation ─────────────────────────────────
 function ShipLoading() {
   const [dots, setDots] = useState('');
+  const [isMuted, setIsMuted] = useState(true);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setDots(prev => prev.length >= 3 ? '' : prev + '.');
     }, 500);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Cleanup audio when loading screen unmounts
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const toggleSound = () => {
+    setIsMuted(prev => !prev);
+    if (audioRef.current) {
+      if (isMuted) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+    }
   }, []);
 
   return (
@@ -115,11 +160,30 @@ function ShipLoading() {
         .sketch-fill { fill: transparent; }
       `}</style>
 
+      {/* Wave sound audio */}
+      <audio
+        ref={audioRef}
+        src="https://actions.google.com/sounds/v1/water/waves_crashing_on_rock_beach.ogg"
+        loop
+        muted={isMuted}
+        autoPlay
+      />
+
+      {/* Sound toggle button */}
+      <button
+        onClick={toggleSound}
+        className="absolute top-4 right-4 z-50 px-3 py-2 rounded-full border-2 border-gray-400 dark:border-gray-500 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors opacity-70 hover:opacity-100 flex items-center gap-2"
+        title={isMuted ? 'Ovozni yoqish' : "Ovozni o'chirish"}
+      >
+        <span className="text-lg">{isMuted ? '🔇' : '🔊'}</span>
+        <span className="text-xs font-bold tracking-wider">{isMuted ? 'OVOZ YOQISH' : "OVOZNI O'CHIRISH"}</span>
+      </button>
+
       {/* Ship + Waves Container */}
-      <div className="relative w-56 h-56 overflow-hidden flex items-end justify-center pb-8">
+      <div className="relative w-72 h-72 overflow-hidden flex items-end justify-center pb-8">
         {/* The Ship */}
         <div className="absolute animate-rock z-20 bottom-6 text-gray-800 dark:text-gray-200">
-          <svg width="120" height="120" viewBox="0 0 140 140" className="opacity-90" fill="none">
+          <svg width="140" height="140" viewBox="0 0 140 140" className="opacity-90" fill="none">
             {/* Mast */}
             <path d="M 70,20 L 70,100" className="sketch-stroke" />
             <path d="M 72,22 L 72,100" className="sketch-stroke" opacity="0.5" />
@@ -186,6 +250,14 @@ function ShipLoading() {
 }
 
 // ─── Mini Preview for Settings ──────────────────────────────
+function MiniGifPreview() {
+  return (
+    <div className="flex items-center justify-center w-full h-full bg-emerald-50 dark:bg-gray-900/50 rounded-lg">
+      <img src="/loading.gif" alt="" className="w-12 h-12 object-contain" />
+    </div>
+  );
+}
+
 function MiniClassicPreview() {
   return (
     <div className="flex items-center justify-center w-full h-full bg-emerald-50 dark:bg-gray-900/50 rounded-lg">
@@ -233,11 +305,22 @@ function MiniShipPreview() {
 
 // ─── Main Loading Screen Component ──────────────────────────
 export default function LoadingScreen({ animationId, mini = false }) {
-  const id = animationId || getStoredLoadingAnimation();
+  // During SSR/hydration, animationId is null → render empty placeholder
+  // to avoid showing Classic before the user's preferred animation (e.g. Ship).
+  if (animationId === null || animationId === undefined) {
+    if (mini) {
+      return <div className="w-20 h-20 bg-emerald-50 dark:bg-gray-900/50 rounded-lg" />;
+    }
+    return <div className="flex items-center justify-center w-full h-full" />;
+  }
+
+  const id = animationId;
 
   if (mini) {
     // Mini preview versions for settings
     switch (id) {
+      case 'gif':
+        return <MiniGifPreview />;
       case 'ship':
         return <MiniShipPreview />;
       case 'classic':
@@ -248,6 +331,8 @@ export default function LoadingScreen({ animationId, mini = false }) {
 
   // Full-size versions
   switch (id) {
+    case 'gif':
+      return <GifLoading />;
     case 'ship':
       return <ShipLoading />;
     case 'classic':

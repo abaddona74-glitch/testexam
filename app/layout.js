@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import PerformancePolyfill from "@/components/performance-polyfill";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -73,11 +74,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Script
-          id="performance-api-polyfill"
-          src="/performance-api-polyfill.js"
-          strategy="beforeInteractive"
-        />
+        <PerformancePolyfill />
         {/* Load reCAPTCHA script only if key is present to avoid errors */}
         {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
           <Script
