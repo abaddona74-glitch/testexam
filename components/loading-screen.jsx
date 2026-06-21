@@ -80,39 +80,89 @@ function ClassicSpinner() {
 // ─── Ship Loading Animation ─────────────────────────────────
 function ShipLoading() {
   const [dots, setDots] = useState('');
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
   const audioRef = useRef(null);
 
+  // Start audio on mount, handle autoplay policy
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    let blobUrl = null;
+
+    // Fetch as blob → ObjectURL (reliable + avoids IDM hijacking)
+    fetch('/ocean-waves.ogg')
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.blob();
+      })
+      .then(blob => {
+        blobUrl = URL.createObjectURL(blob);
+        audio.src = blobUrl;
+        audio.volume = 0.35;
+        audio.muted = false;
+        audio.loop = true;
+        return audio.play();
+      })
+      .catch(() => {
+        if (!blobUrl) {
+          // Fetch failed — fallback to direct URL
+          try {
+            audio.src = '/ocean-waves.ogg';
+            audio.volume = 0.35;
+            audio.muted = false;
+            audio.loop = true;
+            audio.play().catch(() => setNeedsTap(true));
+          } catch {
+            setNeedsTap(true);
+          }
+        } else {
+          // Blob loaded OK but play() was rejected (autoplay policy)
+          setNeedsTap(true);
+        }
+      });
+
     const interval = setInterval(() => {
       setDots(prev => prev.length >= 3 ? '' : prev + '.');
     }, 500);
+
     return () => {
       clearInterval(interval);
-      // Cleanup audio when loading screen unmounts
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
       }
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
     };
   }, []);
 
   const toggleSound = () => {
-    setIsMuted(prev => !prev);
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.play().catch(() => {});
-      } else {
-        audioRef.current.pause();
-      }
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isMuted) {
+      audio.muted = false;
+      audio.play().catch(() => setNeedsTap(true));
+      setIsMuted(false);
+      setNeedsTap(false);
+    } else {
+      audio.muted = true;
+      setIsMuted(true);
     }
   };
 
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.3;
-    }
-  }, []);
+  const handleTapPlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.muted = false;
+    audio.volume = 0.35;
+    audio.loop = true;
+    audio.play().catch(() => {});
+    setNeedsTap(false);
+    setIsMuted(false);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full relative">
@@ -160,14 +210,21 @@ function ShipLoading() {
         .sketch-fill { fill: transparent; }
       `}</style>
 
-      {/* Wave sound audio */}
+      {/* Wave sound audio — src set in useEffect to avoid Strict Mode double-set conflicts */}
       <audio
         ref={audioRef}
-        src="https://actions.google.com/sounds/v1/water/waves_crashing_on_rock_beach.ogg"
-        loop
-        muted={isMuted}
-        autoPlay
+        preload="auto"
       />
+
+      {/* Tap-to-play fallback (if browser blocks autoplay) */}
+      {needsTap && (
+        <button
+          onClick={handleTapPlay}
+          className="absolute top-16 right-4 z-50 px-4 py-2 rounded-xl bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400 text-sm font-bold hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors shadow-lg animate-pulse"
+        >
+          🔊 Ovozni yoqish
+        </button>
+      )}
 
       {/* Sound toggle button */}
       <button
