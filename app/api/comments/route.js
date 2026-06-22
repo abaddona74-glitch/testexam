@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Comment from '../../../models/Comment';
-import { filterProfanity } from '../../../lib/profanity';
+import { filterProfanity, containsMutedWord, checkChatCooldown, updateChatCooldown, checkDuplicateMessage } from '../../../lib/profanity';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { deepScanForInjection, detectDDoS } from '../../../lib/security';
 import { sanitizePlainText } from '../../../lib/sanitize';
@@ -102,11 +102,59 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
+    // Cooldown check (3s between comments)
+    const cooldownKey = userName + '|' + reqInfo.ip;
+    const cooldown = checkChatCooldown(cooldownKey);
+    if (cooldown.onCooldown) {
+      logActivity({
+        ...reqInfo, type: 'comment_cooldown', userName,
+        isSuspicious: true, suspiciousReason: 'Comment sent too fast (cooldown)',
+        details: { remainingMs: cooldown.remainingMs },
+      });
+      return NextResponse.json({
+        error: 'Please wait before posting another comment',
+        cooldown: true,
+        remainingMs: cooldown.remainingMs,
+      }, { status: 429 });
+    }
+
+    // Muted words check
+    const trimmedText = text.trim();
+    if (containsMutedWord(trimmedText)) {
+      logActivity({
+        ...reqInfo, type: 'comment_muted_word', userName,
+        isSuspicious: true, suspiciousReason: 'Comment contained muted word',
+        details: { testId, textLength: trimmedText.length },
+      });
+      return NextResponse.json({
+        error: 'Comment contains blocked content',
+        muted: true,
+      }, { status: 403 });
+    }
+
+    // Duplicate message detection
+    const dupCheck = checkDuplicateMessage(cooldownKey, trimmedText);
+    if (dupCheck.isBanned) {
+      logActivity({
+        ...reqInfo, type: 'comment_duplicate_ban', userName,
+        isSuspicious: true, suspiciousReason: 'Duplicate comment spam',
+        details: { duplicateCount: dupCheck.duplicateCount, remainingBanMs: dupCheck.remainingBanMs },
+      });
+      return NextResponse.json({
+        error: 'You are posting the same comment repeatedly. Please wait.',
+        duplicateBan: true,
+        remainingBanMs: dupCheck.remainingBanMs,
+      }, { status: 429 });
+    }
+
+    // Update cooldown after passing all checks
+    updateChatCooldown(cooldownKey);
+
     // Apply profanity filter
     const comment = await Comment.create({
       testId,
       userName: filterProfanity(userName),
-      text: filterProfanity(text.trim()),
+      text: filterProfanity(trimmedText),
     });
 
     // Log activity

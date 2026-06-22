@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import ChatMessage from '../../../models/ChatMessage';
-import { filterProfanity } from '../../../lib/profanity';
+import { filterProfanity, containsMutedWord, checkChatCooldown, updateChatCooldown, checkDuplicateMessage } from '../../../lib/profanity';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { deepScanForInjection, detectDDoS } from '../../../lib/security';
 import { sanitizePlainText } from '../../../lib/sanitize';
@@ -121,8 +121,56 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
+    // Cooldown check (3s between messages)
+    const cooldownKey = sender + '|' + reqInfo.ip;
+    const cooldown = checkChatCooldown(cooldownKey);
+    if (cooldown.onCooldown) {
+      logActivity({
+        ...reqInfo, type: 'chat_cooldown', userName: sender,
+        isSuspicious: true, suspiciousReason: 'Message sent too fast (cooldown)',
+        details: { remainingMs: cooldown.remainingMs },
+      });
+      return NextResponse.json({
+        error: 'Please wait before sending another message',
+        cooldown: true,
+        remainingMs: cooldown.remainingMs,
+      }, { status: 429 });
+    }
+
+    // Muted words check
+    const trimmedMessage = message.trim();
+    if (containsMutedWord(trimmedMessage)) {
+      logActivity({
+        ...reqInfo, type: 'chat_muted_word', userName: sender,
+        isSuspicious: true, suspiciousReason: 'Message contained muted word',
+        details: { messageLength: trimmedMessage.length },
+      });
+      return NextResponse.json({
+        error: 'Message contains blocked content',
+        muted: true,
+      }, { status: 403 });
+    }
+
+    // Duplicate message detection
+    const dupCheck = checkDuplicateMessage(cooldownKey, trimmedMessage);
+    if (dupCheck.isBanned) {
+      logActivity({
+        ...reqInfo, type: 'chat_duplicate_ban', userName: sender,
+        isSuspicious: true, suspiciousReason: 'Duplicate message spam',
+        details: { duplicateCount: dupCheck.duplicateCount, remainingBanMs: dupCheck.remainingBanMs },
+      });
+      return NextResponse.json({
+        error: 'You are sending the same message repeatedly. Please wait.',
+        duplicateBan: true,
+        remainingBanMs: dupCheck.remainingBanMs,
+      }, { status: 429 });
+    }
+
+    // Update cooldown after passing all checks
+    updateChatCooldown(cooldownKey);
+
     // Apply profanity filter
-    const filteredMessage = filterProfanity(message.trim());
+    const filteredMessage = filterProfanity(trimmedMessage);
 
     const chatMessage = await ChatMessage.create({
       sender: filterProfanity(sender),

@@ -978,11 +978,14 @@ export default function Home() {
     const [chatMode, setChatMode] = useState('public'); // 'public' | 'dm'
     const [chatDmPartner, setChatDmPartner] = useState(null);
     const [chatBlockInfo, setChatBlockInfo] = useState(null);
+    const [chatCooldown, setChatCooldown] = useState(0); // 0 = no cooldown, >0 = seconds remaining
+    const chatCooldownRef = useRef(null);
     const [isChatLoading, setIsChatLoading] = useState(false);
     const chatEndRef = useRef(null);
     const chatPollRef = useRef(null);
     const headerRef = useRef(null);
     const navScrollRef = useRef(null);
+    const searchSectionRef = useRef(null);
     const [canNavScrollLeft, setCanNavScrollLeft] = useState(false);
     const [canNavScrollRight, setCanNavScrollRight] = useState(false);
     const [sidebarTop, setSidebarTop] = useState(80);
@@ -1087,7 +1090,21 @@ export default function Home() {
     }, [chatMode, chatDmPartner, userName]);
 
     const sendChatMessage = async () => {
-        if (!chatInput.trim() || !userName || chatBlockInfo?.isBlocked) return;
+        if (!chatInput.trim() || !userName || chatBlockInfo?.isBlocked || chatCooldown > 0) return;
+
+        // Client-side cooldown: start immediately on send (server also validates)
+        setChatCooldown(3);
+        if (chatCooldownRef.current) clearInterval(chatCooldownRef.current);
+        chatCooldownRef.current = setInterval(() => {
+            setChatCooldown(prev => {
+                if (prev <= 1) {
+                    if (chatCooldownRef.current) { clearInterval(chatCooldownRef.current); chatCooldownRef.current = null; }
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
         try {
             const body = {
                 sender: userName,
@@ -1112,11 +1129,42 @@ export default function Home() {
                     data = null;
                 }
 
-                if (res.status === 403) {
+                if (data?.cooldown) {
+                    const remaining = Math.ceil((data.remainingMs || 3000) / 1000);
+                    setChatCooldown(remaining);
+                    if (chatCooldownRef.current) clearInterval(chatCooldownRef.current);
+                    chatCooldownRef.current = setInterval(() => {
+                        setChatCooldown(prev => {
+                            if (prev <= 1) {
+                                if (chatCooldownRef.current) { clearInterval(chatCooldownRef.current); chatCooldownRef.current = null; }
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                } else if (data?.duplicateBan) {
+                    const remaining = Math.ceil((data.remainingBanMs || 60000) / 1000);
+                    setChatCooldown(remaining);
+                    if (chatCooldownRef.current) clearInterval(chatCooldownRef.current);
+                    chatCooldownRef.current = setInterval(() => {
+                        setChatCooldown(prev => {
+                            if (prev <= 1) {
+                                if (chatCooldownRef.current) { clearInterval(chatCooldownRef.current); chatCooldownRef.current = null; }
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                    addToast('Stop spamming!', 'Same message repeated too many times', 'error');
+                } else if (data?.muted) {
+                    addToast('Blocked content', 'Your message contains blocked content', 'error');
+                } else if (res.status === 403) {
                     setChatBlockInfo({
                         isBlocked: true,
                         reason: data?.reason || data?.error || 'Blocked by admin',
                     });
+                } else if (data?.error) {
+                    addToast('Error', data.error, 'error');
                 }
             }
         } catch (e) {
@@ -1230,7 +1278,7 @@ export default function Home() {
                 const name = test.name || '';
                 // Search in Name AND Folder/Category
                 const category = test.category || test.folder || 'General';
-                return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+                return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery) || fuzzyMatch(category + ' - ' + name, searchQuery);
             });
         }
 
@@ -1269,7 +1317,7 @@ export default function Home() {
             filteredList = list.filter(test => {
                 const name = test.name || '';
                 const category = test.category || test.folder || 'General';
-                return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery);
+                return fuzzyMatch(name, searchQuery) || fuzzyMatch(category, searchQuery) || fuzzyMatch(category + ' - ' + name, searchQuery);
             });
         }
 
@@ -1556,6 +1604,15 @@ export default function Home() {
             // Ignore autoplay blocks; start is usually a user click anyway
         }
     };
+
+    useEffect(() => {
+        return () => {
+            if (chatCooldownRef.current) {
+                clearInterval(chatCooldownRef.current);
+                chatCooldownRef.current = null;
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (!showDifficultyModal) return;
@@ -3378,7 +3435,7 @@ export default function Home() {
 
     if (loading && view === 'list') {
         return (
-                                        <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
+                                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-emerald-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
                                 <LoadingScreen animationId={loadingAnimation} />
                             </div>
         );
@@ -4686,7 +4743,7 @@ export default function Home() {
                                 )}
 
                                 {/* Search & Suggestions */}
-                                <div className="relative mb-6">
+                                <div className="relative mb-6" ref={searchSectionRef}>
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                         <input
@@ -5072,7 +5129,15 @@ export default function Home() {
                                                                     </span>
                                                                 )}
                                                             </td>
-                                                            <td className="py-3 text-sm text-gray-500 font-medium px-2">{entry.category ? `${entry.category} - ` : ""}{entry.testName}</td>
+                                                            <td className="py-3 text-sm font-medium px-2">
+                                                            <button
+                                                                onClick={() => { setView('list'); setSearchQuery(entry.category ? entry.category + ' - ' + entry.testName : entry.testName || ''); setTimeout(() => searchSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
+                                                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors text-left"
+                                                                title="Search for this test"
+                                                            >
+                                                                {entry.category ? `${entry.category} - ` : ""}{entry.testName}
+                                                            </button>
+                                                        </td>
                                                             <td className="py-3 px-2">
                                                                 <div className={clsx("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold border", diffConfig.bg, diffConfig.color, diffConfig.border)}>
                                                                     <DiffIcon size={10} />
@@ -5525,22 +5590,26 @@ export default function Home() {
                                                 </div>
                                             )}
                                             <div className="flex gap-2">
-                                                <input
-                                                    type="text"
+                                                <textarea
                                                     value={chatInput}
                                                     onChange={(e) => setChatInput(e.target.value)}
                                                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
-                                                    placeholder={chatMode === 'dm' ? `Message ${chatDmPartner}...` : "Message everyone..."}
-                                                    disabled={chatBlockInfo?.isBlocked}
-                                                    className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100"
+                                                    placeholder={chatCooldown > 0 ? `Wait ${chatCooldown}s...` : (chatMode === 'dm' ? `Message ${chatDmPartner}...` : "Message everyone...")}
+                                                    disabled={chatBlockInfo?.isBlocked || chatCooldown > 0}
+                                                    className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 resize-none"
                                                     maxLength={5000}
+                                                    rows={1}
+                                                    style={{ minHeight: '38px', maxHeight: '120px' }}
+                                                    onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }}
                                                 />
                                                 <button
                                                     onClick={sendChatMessage}
-                                                    disabled={!chatInput.trim() || chatBlockInfo?.isBlocked}
-                                                    className="px-3 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    disabled={!chatInput.trim() || chatBlockInfo?.isBlocked || chatCooldown > 0}
+                                                    className={clsx("px-3 py-2 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                                                        chatCooldown > 0 ? "bg-orange-400 text-white" : "bg-blue-500 text-white hover:bg-blue-600"
+                                                    )}
                                                 >
-                                                    <Send size={16} />
+                                                    {chatCooldown > 0 ? chatCooldown : <Send size={16} />}
                                                 </button>
                                             </div>
                                             <div className="mt-1 text-right text-[10px] text-gray-400">
