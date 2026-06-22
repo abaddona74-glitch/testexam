@@ -961,6 +961,8 @@ export default function Home() {
     const [globalActiveUsers, setGlobalActiveUsers] = useState([]);
     const [isUsersLoaded, setIsUsersLoaded] = useState(false); // New loading state
     const [userCountry, setUserCountry] = useState(null);
+    const [gpsCoords, setGpsCoords] = useState(null); // { lat, lng, accuracy } from browser GPS
+    const gpsAskedRef = useRef(false); // Prevent asking GPS multiple times
     const [spectatingUser, setSpectatingUser] = useState(null); // State for Spectator Mode
     const [spectatorContentByTestId, setSpectatorContentByTestId] = useState({});
     const [spectatorContentLoading, setSpectatorContentLoading] = useState(false);
@@ -1970,6 +1972,15 @@ export default function Home() {
         fetchLeaderboard();
         fetchGlobalActiveUsers();
 
+        // Restore cached GPS coordinates (if user previously granted)
+        try {
+            const cachedGps = localStorage.getItem('examApp_gpsCoords');
+            if (cachedGps) {
+                const parsed = JSON.parse(cachedGps);
+                setGpsCoords(parsed);
+            }
+        } catch { }
+
         // Warn about legendary/mythic bonuses
         if (storedLeagues) {
             try {
@@ -2001,6 +2012,34 @@ export default function Home() {
         };
 
         loadCountry();
+
+        // GPS: bir marta ruxsat so'raymiz (agar rozi bo'lmasa, Cloudflare/IP lokatsiyasi ishlatiladi)
+        if (typeof window !== 'undefined' && 'geolocation' in navigator && !gpsAskedRef.current) {
+            gpsAskedRef.current = true;
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setGpsCoords({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy: pos.coords.accuracy,
+                    });
+                    localStorage.setItem('examApp_gpsCoords', JSON.stringify({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy: pos.coords.accuracy,
+                    }));
+                },
+                () => {
+                    // GPS rad etildi yoki xatolik → Cloudflare/IP lokatsiyasi ishlatiladi
+                    console.log('GPS rad etildi, IP lokatsiyasi ishlatiladi');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000, // 5 daqiqa cache
+                }
+            );
+        }
 
         // 4. Set up intervals
         const interval = setInterval(fetchGlobalActiveUsers, 5000);
@@ -2334,7 +2373,10 @@ export default function Home() {
                         device: getDeviceType(),
                         country: userCountry,
                         stars: userStars, // Send star count
-                        theme: resolvedTheme
+                        theme: resolvedTheme,
+                        gpsLat: gpsCoords?.lat || null,
+                        gpsLng: gpsCoords?.lng || null,
+                        gpsAccuracy: gpsCoords?.accuracy || null
                     })
                 })
                     .then(() => {

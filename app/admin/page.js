@@ -2,6 +2,15 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import JsonImageUploader from '@/components/JsonImageUploader';
+import dynamic from 'next/dynamic';
+
+let _leafletPreloaded = false;
+// Preload Leaflet in advance (not waiting for map tab to open)
+if (typeof window !== 'undefined' && !_leafletPreloaded) {
+  _leafletPreloaded = true;
+  import('leaflet').catch(() => {});
+}
+const DynamicUserMap = dynamic(() => import('@/components/user-map'), { ssr: false, loading: () => <div className="flex items-center justify-center h-[400px] bg-gray-100 dark:bg-gray-800 rounded-xl"><p className="text-gray-400">🗺️ Map yuklanmoqda...</p></div> });
 
 const ADMIN_CSRF_KEY = 'admin_csrf_token';
 const TABS = [
@@ -1043,6 +1052,12 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* Live Map */}
+            <div className="space-y-1">
+                <h3 className="font-bold text-gray-800 dark:text-white">🗺️ Jonli xarita</h3>
+                <DynamicUserMap users={realtimeSessions} height="400px" />
+            </div>
+
             {fullscreenSessionKey && (
               <div
                 className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
@@ -1509,6 +1524,12 @@ export default function AdminPage() {
             )}
 
             {/* Fullscreen snapshot modal (reused) */}
+            {/* Live Map */}
+            <div className="space-y-1">
+                <h3 className="font-bold text-gray-800 dark:text-white">🗺️ Jonli xarita</h3>
+                <DynamicUserMap users={realtimeSessions} height="400px" />
+            </div>
+
             {fullscreenSessionKey && (
               <div
                 className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"

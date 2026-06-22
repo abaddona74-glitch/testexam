@@ -32,7 +32,7 @@ export function middleware(request) {
     "object-src 'none'",
     scriptSrc,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https:",
+    "img-src 'self' data: blob: https: https://server.arcgisonline.com",
     "media-src 'self' blob:",
     "font-src 'self' data:",
     "connect-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev https://cdn.jsdelivr.net npm",
@@ -119,7 +119,7 @@ export function middleware(request) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  response.headers.set('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=(self)');
   
   return response;
 }

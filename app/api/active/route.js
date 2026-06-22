@@ -7,23 +7,28 @@ if (!global.activeSessions) {
 }
 let activeSessions = global.activeSessions;
 
-// 🌐 IP dan country aniqlash (faqat zarurat bo'lganda)
-async function getCountryFromIP(ip) {
+// 🌐 IP dan to'liq lokatsiya ma'lumotlarini olish (country, lat, lng, city)
+async function getLocationFromIP(ip) {
   try {
     const isLocal = !ip || ip === '::1' || ip === '127.0.0.1' || ip.includes('::ffff:');
-    if (isLocal) return 'UZ';
+    if (isLocal) return { country: 'UZ', lat: null, lng: null, city: null };
 
     const response = await fetch(`https://ipwho.is/${ip}`, {
       signal: AbortSignal.timeout(3000)
     });
     const data = await response.json();
 
-    if (data.success && data.country_code) {
-      return data.country_code.toUpperCase();
+    if (data.success) {
+      return {
+        country: (data.country_code || 'UZ').toUpperCase(),
+        lat: data.latitude || null,
+        lng: data.longitude || null,
+        city: data.city || null,
+      };
     }
-    return 'UZ';
+    return { country: 'UZ', lat: null, lng: null, city: null };
   } catch (e) {
-    return 'UZ';
+    return { country: 'UZ', lat: null, lng: null, city: null };
   }
 }
 
@@ -81,16 +86,27 @@ export async function GET(request) {
     // ✅ FIX: Country ni ONLAYN tekshiramiz
     const updatedUsers = await Promise.all(
       finalUsers.map(async (user) => {
-        let liveCountryCode = user.country || 'UZ';
+        let result = {
+          country: user.country || 'UZ',
+          lat: user.lat || null,
+          lng: user.lng || null,
+          city: user.city || null,
+          locationSource: user.locationSource || 'ip',
+        };
 
         // Agar country yo'q yoki noto'g'ri bo'lsa, API dan so'raymiz
-        if (!liveCountryCode || liveCountryCode === 'XX' || liveCountryCode.length !== 2) {
-          liveCountryCode = await getCountryFromIP(user.ip);
+        if (!result.country || result.country === 'XX' || result.country.length !== 2) {
+          const location = await getLocationFromIP(user.ip);
+          result.country = location.country;
+          if (!result.lat) result.lat = location.lat;
+          if (!result.lng) result.lng = location.lng;
+          if (!result.city) result.city = location.city;
+          if (!user.locationSource) result.locationSource = 'ipwhois';
         }
 
         return {
           ...user,
-          country: liveCountryCode,
+          ...result,
         };
       })
     );
@@ -138,6 +154,31 @@ export async function POST(request) {
       || headers.get('x-vercel-ip-country')
       || null;
 
+    // Real coordinates: Cloudflare cf-iplatitude / cf-iplongitude / cf-ipcity dan
+    // (requires "Add visitor location headers" Managed Transform in Cloudflare dashboard)
+    const realLat = parseFloat(headers.get('cf-iplatitude')) || null;
+    const realLng = parseFloat(headers.get('cf-iplongitude')) || null;
+    const realCity = headers.get('cf-ipcity') || null;
+
+    // Client GPS coordinates (from browser Geolocation API)
+    // If GPS provided, it's more accurate than Cloudflare IP location
+    const gpsLat = body?.gpsLat ? parseFloat(body.gpsLat) : null;
+    const gpsLng = body?.gpsLng ? parseFloat(body.gpsLng) : null;
+    const gpsAccuracy = body?.gpsAccuracy ? parseFloat(body.gpsAccuracy) : null;
+
+    // Priority: GPS > Cloudflare > ipwho.is fallback
+    let finalLat = gpsLat || realLat || null;
+    let finalLng = gpsLng || realLng || null;
+    let finalCity = realCity || null;
+    let locationSource = gpsLat ? 'gps' : (realLat ? 'cloudflare' : null);
+
+    // For Cloudflare, city is available from header
+    if (gpsLat) {
+      locationSource = 'gps';
+    } else if (realLat) {
+      locationSource = 'cloudflare';
+    }
+
     const key = sessionId || userId;
     const resolvedStatus = status || (testId ? 'in-test' : (name ? 'browsing' : 'registering'));
 
@@ -157,6 +198,11 @@ export async function POST(request) {
       device: device || 'desktop',
       ip: realIp,                    // ✅ REAL client IP
       country: realCountry || 'UZ',  // ✅ TO'G'RI country saqlanadi
+      lat: finalLat,                 // 📍 Latitude (GPS > Cloudflare > ipwho.is)
+      lng: finalLng,                 // 📍 Longitude
+      city: finalCity,               // 🏙️ City
+      locationSource: locationSource, // 'gps' | 'cloudflare' | 'ipwhois' | null
+      gpsAccuracy: gpsAccuracy,      // GPS accuracy in meters (if from GPS)
       currentAnswer: currentAnswer || null,
       visualState: visualState || null,
       cameraStatus: cameraStatus || null,
