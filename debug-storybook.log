@@ -1,0 +1,23 @@
+[14:57:03.512] [INFO] storybook v10.4.6
+[14:57:05.767] [DEBUG] Getting package.json info for /mnt/f/Project/examtest/package.json...
+[14:57:35.003] [WARN] --host is set to 0.0.0.0 but no allowedHosts are defined. Allowing all hosts.
+To restrict allowed hosts, set core.allowedHosts in your main Storybook config.
+See: https://storybook.js.org/docs/api/main-config/main-config-core
+[14:57:46.542] [DEBUG] Serving static files from public at /
+[14:57:46.546] [INFO] Starting...
+[14:57:47.450] [WARN] No story files found for the specified pattern: app/**/*.stories.@(js|jsx|mjs|ts|tsx)
+[14:57:48.795] [DEBUG] Starting preview..
+[14:57:49.292] [INFO] Using implicit CSS loaders
+[14:57:58.103] [INFO] Using SWC as compiler
+[14:57:58.609] [INFO] Using default Webpack5 setup
+[14:58:17.986] [DEBUG] Using tsconfig paths for react-docgen
+[14:59:08.790] [DEBUG] Change detection enabled.
+[14:59:08.881] [WARN] Force closed preview build
+[14:59:08.882] [ERROR] [38;2;241;97;97mError: listen EADDRINUSE: address already in use 0.0.0.0:6006[39m
+    at Server.setupListenHandle [as _listen2] (node:net:1934:16)
+    at listenInCluster (node:net:1991:12)
+    at node:net:2200:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[14:59:08.887] [WARN] Broken build, fix the error above.
+You may need to refresh the browser.
+[14:59:10.475] [DEBUG] Change detection graph built: 6 stories, 12 deps tracked, 1559ms

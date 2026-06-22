@@ -14,6 +14,7 @@ const TABS = [
   { id: 'promocodes', label: '🎁 Promo Codes', icon: '🎁' },
   { id: 'blocklist', label: '🚫 Block List', icon: '🚫' },
   { id: 'profanity', label: '🤬 So\'z filtr', icon: '🤬' },
+  { id: 'insane-cam', label: '🤳 Insane/Impossible', icon: '🤳' },
 ];
 
 // ─── Utility Components ────────────────────────────────────────
@@ -296,6 +297,13 @@ function ConfirmModal({ open, onClose, onConfirm, title, message }) {
   );
 }
 
+function formatDuration(ms) {
+  if (!ms) return '-';
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  return `${minutes}m ${seconds}s`;
+}
+
 function Pagination({ pagination, onPageChange }) {
   if (!pagination || pagination.totalPages <= 1) return null;
   return (
@@ -374,6 +382,13 @@ export default function AdminPage() {
   const [realtimeActive, setRealtimeActive] = useState(0);
   const [realtimeSessions, setRealtimeSessions] = useState([]);
   const [fullscreenSessionKey, setFullscreenSessionKey] = useState(null);
+
+  // Insane/Impossible history state
+  const [insaneHistory, setInsaneHistory] = useState([]);
+  const [insaneHistoryLoading, setInsaneHistoryLoading] = useState(false);
+
+  // Insane/Impossible filter state
+  const [insaneFilter, setInsaneFilter] = useState({ cameraOnly: false, testSearch: '', difficulty: 'all' });
 
   const openTab = useCallback((tabId) => {
     setActiveTab(tabId);
@@ -511,6 +526,20 @@ export default function AdminPage() {
     }
   }, [api]);
 
+  // ─── Fetch insane/impossible completed tests from leaderboard ─
+  const fetchInsaneHistory = useCallback(async () => {
+    setInsaneHistoryLoading(true);
+    try {
+      const data = await api('/api/leaderboard?limit=500&period=all');
+      const items = data.data || [];
+      const filtered = items.filter(i => i.difficulty === 'insane' || i.difficulty === 'impossible');
+      setInsaneHistory(filtered);
+    } catch (err) {
+      console.error(err);
+    }
+    setInsaneHistoryLoading(false);
+  }, [api]);
+
   // ─── Real-Time Event Polling (every 3 seconds, from memory — instant) ─
   const pollRealtime = useCallback(async () => {
     try {
@@ -538,6 +567,7 @@ export default function AdminPage() {
     if (activeTab === 'promocodes') fetchPromoCodes();
     if (activeTab === 'blocklist') fetchBlocklist();
     if (activeTab === 'profanity') fetchProfanity();
+    if (activeTab === 'insane-cam') fetchInsaneHistory();
   }, [isAuthed, activeTab, period]);
 
   // Real-time polling — runs on ALL tabs, every 3 seconds (reads from memory, not DB)
@@ -551,11 +581,14 @@ export default function AdminPage() {
 
   // Auto-refresh full dashboard data every 30s (for charts/aggregated stats)
   useEffect(() => {
-    if (isAuthed && (activeTab === 'live' || activeTab === 'overview')) {
-      autoRefreshRef.current = setInterval(fetchDashboard, 30000);
+    if (isAuthed && (activeTab === 'live' || activeTab === 'overview' || activeTab === 'insane-cam')) {
+      autoRefreshRef.current = setInterval(() => {
+        fetchDashboard();
+        if (activeTab === 'insane-cam') fetchInsaneHistory();
+      }, 30000);
       return () => clearInterval(autoRefreshRef.current);
     }
-  }, [isAuthed, activeTab, fetchDashboard]);
+  }, [isAuthed, activeTab, fetchDashboard, fetchInsaneHistory]);
 
   // ─── Actions ──────────────────────────────────────────────
 
@@ -1040,6 +1073,473 @@ export default function AdminPage() {
                         src={target.cameraSnapshot}
                         alt={`Snapshot: ${target.name || target.userId || 'Anonymous'}`}
                         className="max-w-[96vw] max-h-[92vh] w-auto h-auto object-contain rounded-lg border border-white/20 bg-black"
+                      />
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── INSANE / IMPOSSIBLE CAMERA MONITOR TAB ─── */}
+        {activeTab === 'insane-cam' && (
+          <div className="space-y-6">
+            {/* Camera snapshot crossfade animation */}
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; transform: scale(0.97); }
+                to { opacity: 1; transform: scale(1); }
+              }
+            `}</style>
+            {/* Header stats */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white">
+                  🤳 Insane / Impossible Live Monitor
+                </h2>
+                <span className="text-xs text-green-500 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  Real-time (3s)
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg font-bold">
+                  🔴 Live: {realtimeSessions.filter(s => s.difficulty === 'insane' || s.difficulty === 'impossible').length}
+                </span>
+                <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg font-bold">
+                  📸 With camera: {realtimeSessions.filter(s => (s.difficulty === 'insane' || s.difficulty === 'impossible') && s.cameraSnapshot).length}
+                </span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg font-bold">
+                  📋 History: {insaneHistory.length}
+                </span>
+              </div>
+            </div>
+
+            {/* ─── FILTERS ─── */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow flex flex-wrap items-center gap-3">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Filter:</span>
+              
+              {/* Difficulty toggle */}
+              <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                {['all', 'insane', 'impossible'].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setInsaneFilter(f => ({ ...f, difficulty: d }))}
+                    className={`px-3 py-1.5 text-xs font-medium transition ${
+                      insaneFilter.difficulty === d
+                        ? d === 'all'
+                          ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-800'
+                          : d === 'insane'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-purple-600 text-white'
+                        : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {d === 'all' ? 'All' : d === 'insane' ? '💀 Insane' : '👻 Impossible'}
+                  </button>
+                ))}
+              </div>
+
+              <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
+
+              {/* Camera only toggle */}
+              <button
+                onClick={() => setInsaneFilter(f => ({ ...f, cameraOnly: !f.cameraOnly }))}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition ${
+                  insaneFilter.cameraOnly
+                    ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400'
+                    : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {insaneFilter.cameraOnly ? '📸 Camera: ON' : '📷 Camera: OFF'}
+              </button>
+
+              {/* Test search */}
+              <div className="flex-1 min-w-[150px] max-w-xs relative">
+                <input
+                  type="text"
+                  placeholder="🔍 Qidirish (test/ism...)"
+                  value={insaneFilter.testSearch}
+                  onChange={e => setInsaneFilter(f => ({ ...f, testSearch: e.target.value }))}
+                  className="w-full px-3 py-1.5 text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {insaneFilter.testSearch && (
+                  <button
+                    onClick={() => setInsaneFilter(f => ({ ...f, testSearch: '' }))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              {/* Results count */}
+              <span className="text-xs text-gray-400 ml-auto">
+                {(() => {
+                  const filtered = realtimeSessions.filter(s => {
+                    if (s.difficulty !== 'insane' && s.difficulty !== 'impossible') return false;
+                    if (insaneFilter.difficulty !== 'all' && s.difficulty !== insaneFilter.difficulty) return false;
+                    if (insaneFilter.cameraOnly && !s.cameraSnapshot) return false;
+                    if (insaneFilter.testSearch) {
+                      const q = insaneFilter.testSearch.toLowerCase();
+                      const matchesTest = s.testId && s.testId.toLowerCase().includes(q);
+                      const matchesName = s.name && s.name.toLowerCase().includes(q);
+                      if (!matchesTest && !matchesName) return false;
+                    }
+                    return true;
+                  }).length;
+                  return `Ko'rsatilmoqda: ${filtered}`;
+                })()}
+              </span>
+            </div>
+
+            {/* ─── LIVE SESSIONS GRID ─── */}
+            <div>
+              <h3 className="font-bold text-gray-800 dark:text-white mb-3">🟢 Hozir yechayotganlar</h3>
+              {realtimeSessions.filter(s => {
+                if (s.difficulty !== 'insane' && s.difficulty !== 'impossible') return false;
+                if (insaneFilter.difficulty !== 'all' && s.difficulty !== insaneFilter.difficulty) return false;
+                if (insaneFilter.cameraOnly && !s.cameraSnapshot) return false;
+                if (insaneFilter.testSearch) {
+                  const q = insaneFilter.testSearch.toLowerCase();
+                  const matchesTest = s.testId && s.testId.toLowerCase().includes(q);
+                  const matchesName = s.name && s.name.toLowerCase().includes(q);
+                  if (!matchesTest && !matchesName) return false;
+                }
+                return true;
+              }).length === 0 ? (
+                <div className="text-center py-12 text-gray-500 bg-white dark:bg-gray-800 rounded-xl shadow">
+                  <div className="text-5xl mb-3">😴</div>
+                  <p className="text-lg font-medium">Hozir hech kim Insane yoki Impossible yechmayapti</p>
+                  <p className="text-sm mt-1 opacity-70">Real-time monitoring... har 3 sekundda yangilanadi</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {realtimeSessions
+                    .filter(s => {
+                      if (s.difficulty !== 'insane' && s.difficulty !== 'impossible') return false;
+                      if (insaneFilter.difficulty !== 'all' && s.difficulty !== insaneFilter.difficulty) return false;
+                      if (insaneFilter.cameraOnly && !s.cameraSnapshot) return false;
+                      if (insaneFilter.testSearch) {
+                      const q = insaneFilter.testSearch.toLowerCase();
+                      const matchesTest = s.testId && s.testId.toLowerCase().includes(q);
+                      const matchesName = s.name && s.name.toLowerCase().includes(q);
+                      if (!matchesTest && !matchesName) return false;
+                      }
+                      return true;
+                    })
+                    .map((session, i) => {
+                      const isInsane = session.difficulty === 'insane';
+                      const hasCamera = !!session.cameraSnapshot;
+                      const key = `${session.sessionId || session.userId || 'anon'}-${i}`;
+                      return (
+                        <div
+                          key={key}
+                          className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border-2 transition-all hover:shadow-xl hover:-translate-y-0.5 ${
+                            isInsane
+                              ? 'border-red-300 dark:border-red-700'
+                              : 'border-purple-300 dark:border-purple-700'
+                          }`}
+                        >
+                          {/* Camera Snapshot */}
+                          <div className="relative bg-black w-full aspect-[4/3] overflow-hidden group">
+                            {hasCamera ? (
+                              <>
+                                <img
+                                  key={session.cameraSnapshot || session.cameraUpdatedAt || 'init'}
+                                  src={session.cameraSnapshot}
+                                  alt={`${session.name} camera`}
+                                  className="w-full h-full object-contain animate-[fadeIn_0.5s_ease-out]"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                                  <button
+                                    onClick={() => setFullscreenSessionKey(getSessionKey(session))}
+                                    className="w-full py-1 bg-white/90 text-gray-800 rounded-lg text-xs font-bold hover:bg-white transition text-center"
+                                  >
+                                    ⛶ Kattalashtirish
+                                  </button>
+                                </div>
+                                {/* Camera indicator */}
+                                <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-green-500/80 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                  CAMERA
+                                </div>
+                              </>
+                            ) : (
+                              <div key="no-cam" className="w-full h-full flex flex-col items-center justify-center text-gray-500 animate-[fadeIn_0.4s_ease-out]">
+                                <div className="text-4xl mb-2">📷</div>
+                                <p className="text-sm">Camera snapshot kutilmoqda...</p>
+                                <p className="text-[10px] opacity-60 mt-1">
+                                  Camera status: {session.cameraStatus || 'waiting'}
+                                </p>
+                                {/* Blinking red dot for no camera */}
+                                <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-orange-500/80 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                  NO CAMERA
+                                </div>
+                              </div>
+                            )}
+                            {/* Difficulty badge */}
+                            <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white ${
+                              isInsane ? 'bg-red-600' : 'bg-purple-600'
+                            }`}>
+                              {isInsane ? '💀 INSANE' : '👻 IMPOSSIBLE'}
+                            </div>
+                            {/* Progress bar on bottom of image */}
+                            {session.total > 0 && (
+                              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800/50">
+                                <div
+                                  className={`h-full transition-all duration-1000 ${
+                                    isInsane ? 'bg-red-500' : 'bg-purple-500'
+                                  }`}
+                                  style={{ width: `${Math.round((session.progress / session.total) * 100)}%` }}
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Session Info */}
+                          <div className="p-3 space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-gray-800 dark:text-white truncate">
+                                {session.name || session.userId || 'Anonymous'}
+                              </p>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-mono">
+                                {(session.sessionId || session.userId || '-').slice(-6)}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>{session.device === 'mobile' ? '📱' : '🖥️'} {session.device || 'desktop'}</span>
+                              <span>🌍 {session.country || '?'}</span>
+                              <span>⭐ {session.stars || 0}</span>
+                            </div>
+
+                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                              {session.testId ? (
+                                <span className="truncate block" title={session.testId}>
+                                  📝 {session.testId.split('/').pop() || session.testId}
+                                </span>
+                              ) : (
+                                <span>📝 Test ID: N/A</span>
+                              )}
+                              {session.total > 0 && (
+                                <span className="ml-2 font-mono">
+                                  {session.progress}/{session.total}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Confidence / Bot indicator */}
+                            <div className="flex items-center gap-2 text-[10px]">
+                              {hasCamera ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-semibold">
+                                  ✅ Camera active — real user
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full font-semibold">
+                                  ⚠️ No camera — possible bot
+                                </span>
+                              )}
+                              {session.cameraStatus === 'denied' && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full font-semibold">
+                                  🚫 Camera denied
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+
+            {/* ─── COMPLETED INSANE/IMMPOSSIBLE HISTORY ─── */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                <h3 className="font-bold text-gray-800 dark:text-white">
+                  🏆 Tugatilgan Insane / Impossible testlar ({insaneHistory.filter(e => {
+                    if (insaneFilter.difficulty !== 'all' && e.difficulty !== insaneFilter.difficulty) return false;
+                    if (insaneFilter.testSearch) {
+                    const q = insaneFilter.testSearch.toLowerCase();
+                    const matches = e.testName && e.testName.toLowerCase().includes(q);
+                    if (!matches) return false;
+                    }
+                    return true;
+                  }).length})
+                </h3>
+                <button
+                  onClick={fetchInsaneHistory}
+                  disabled={insaneHistoryLoading}
+                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                >
+                  {insaneHistoryLoading ? '...' : '🔄 Yangilash'}
+                </button>
+              </div>
+              {insaneHistoryLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
+                </div>
+              ) : insaneHistory.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">
+                  <div className="text-4xl mb-2">📭</div>
+                  <p>Hali hech kim Insane yoki Impossible test tugatmagan</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 sticky top-0">
+                        <th className="px-3 py-2 text-left">Foydalanuvchi</th>
+                        <th className="px-3 py-2 text-left">Test</th>
+                        <th className="px-3 py-2 text-left">Daraja</th>
+                        <th className="px-3 py-2 text-center">Natija</th>
+                        <th className="px-3 py-2 text-center">Foiz</th>
+                        <th className="px-3 py-2 text-center">Vaqt</th>
+                        <th className="px-3 py-2 text-left">Sana</th>
+                        <th className="px-3 py-2 text-left">🌍</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {insaneHistory.filter(entry => {
+                        if (insaneFilter.difficulty !== 'all' && entry.difficulty !== insaneFilter.difficulty) return false;
+                        if (insaneFilter.testSearch) {
+                          const q = insaneFilter.testSearch.toLowerCase();
+                          const matches = (entry.testName && entry.testName.toLowerCase().includes(q)) || (entry.name && entry.name.toLowerCase().includes(q));
+                          if (!matches) return false;
+                        }
+                        return true;
+                      }).map((entry, i) => {
+                        const pct = entry.total > 0 ? Math.round((entry.score / entry.total) * 100) : 0;
+                        const isPerfect = pct >= 100;
+                        const isImpossible = entry.difficulty === 'impossible';
+                        return (
+                          <tr
+                            key={entry._id || i}
+                            className={`${
+                              isPerfect
+                                ? isImpossible
+                                  ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-500'
+                                  : 'bg-red-50 dark:bg-red-900/20 border-l-4 border-l-red-500'
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'
+                            }`}
+                          >
+                            <td className="px-3 py-2 font-medium text-gray-800 dark:text-gray-200">
+                              {entry.name}
+                            </td>
+                            <td className="px-3 py-2 text-gray-600 dark:text-gray-400 max-w-[150px] truncate" title={entry.testName}>
+                              {entry.testName || '-'}
+                            </td>
+                            <td className="px-3 py-2">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold text-white ${
+                                isImpossible ? 'bg-purple-600' : 'bg-red-600'
+                              }`}>
+                                {isImpossible ? 'IMPOSSIBLE' : 'INSANE'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-center font-mono font-bold">
+                              <span className={isPerfect ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}>
+                                {entry.score}/{entry.total}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                pct >= 100
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                  : pct >= 70
+                                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                              }`}>
+                                {pct}%
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-center text-gray-500">
+                              {entry.duration ? formatDuration(entry.duration) : '-'}
+                            </td>
+                            <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
+                              {entry.date ? new Date(entry.date).toLocaleString('uz') : '-'}
+                            </td>
+                            <td className="px-3 py-2">{entry.country || '-'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Quick stats */}
+            {dashboard && dashboard.charts?.difficultyDist && (
+              <div className="grid md:grid-cols-2 gap-4">
+                <BarChart
+                  data={dashboard.charts.difficultyDist}
+                  title="⚡ Qiyinlik darajasi bo'yicha taqsimot"
+                />
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+                  <h3 className="font-semibold text-sm mb-3 text-gray-700 dark:text-gray-300">📊 Statistikalar</h3>
+                  <div className="space-y-3">
+                    {(() => {
+                      const insaneData = dashboard.charts.difficultyDist?.find(d => d._id === 'insane');
+                      const impossibleData = dashboard.charts.difficultyDist?.find(d => d._id === 'impossible');
+                      return (
+                        <>
+                          <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                            <span className="text-sm font-medium text-red-700 dark:text-red-400">💀 Insane</span>
+                            <span className="text-sm font-bold text-red-600">{insaneData?.count || 0} ta</span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
+                            <span className="text-sm font-medium text-purple-700 dark:text-purple-400">👻 Impossible</span>
+                            <span className="text-sm font-bold text-purple-600">{impossibleData?.count || 0} ta</span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Jami</span>
+                            <span className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                              {(insaneData?.count || 0) + (impossibleData?.count || 0)} ta
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Fullscreen snapshot modal (reused) */}
+            {fullscreenSessionKey && (
+              <div
+                className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+                onClick={() => setFullscreenSessionKey(null)}
+              >
+                <div
+                  className="relative max-w-[96vw] max-h-[92vh]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setFullscreenSessionKey(null)}
+                    className="absolute -top-10 right-0 text-white bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm font-bold"
+                    title="Close"
+                  >
+                    X
+                  </button>
+                  {(() => {
+                    const target = realtimeSessions.find((s) => getSessionKey(s) === fullscreenSessionKey);
+                    if (!target?.cameraSnapshot) {
+                      return (
+                        <div className="w-[70vw] h-[60vh] rounded-lg border border-white/20 bg-black text-white flex items-center justify-center">
+                          Kadr kutilmoqda...
+                        </div>
+                      );
+                    }
+                    return (
+                      <img
+                        key={target.cameraSnapshot}
+                        src={target.cameraSnapshot}
+                        alt={`Snapshot: ${target.name || target.userId || 'Anonymous'}`}
+                        className="max-w-[96vw] max-h-[92vh] w-auto h-auto object-contain rounded-lg border border-white/20 bg-black animate-[fadeIn_0.4s_ease-out]"
                       />
                     );
                   })()}

@@ -15,7 +15,7 @@ export default function CountryFlag({ countryCode }) {
 
     return (
         <img
-            src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+            src={`/flags/${countryCode.toLowerCase()}.png`}
             alt={countryCode}
             width={24}
             height={18}
