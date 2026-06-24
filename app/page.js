@@ -7645,6 +7645,8 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
     const [animatedScorePercent, setAnimatedScorePercent] = useState(0);
     const [showLegendaryEffect, setShowLegendaryEffect] = useState(false);
     const celebrationAudioRef = useRef(null);
+    const bellAudioRef = useRef(null);
+    const bellWarningsPlayedRef = useRef(new Set());
     const [needsSoundTap, setNeedsSoundTap] = useState(false);
     const [showCheatSheet, setShowCheatSheet] = useState(false);
     const [expandedImage, setExpandedImage] = useState(null);
@@ -7724,8 +7726,28 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         return () => {
             stopCelebrationSound();
         };
+
+    // Prepare bell warning audio once (short ding-dong for last seconds warning)
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        if (bellAudioRef.current) return;
+        createSafeAudio('/51826__ejfortin__grandfather-clock-ding-dong-1782307100324.mp3').then(audio => {
+            if (audio) {
+                try {
+                    audio.preload = 'auto';
+                    audio.volume = Math.max(0, Math.min(1, soundVolume));
+                    bellAudioRef.current = audio;
+                } catch { }
+            }
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Keep bell volume in sync
+    useEffect(() => {
+        const audio = bellAudioRef.current;
+        if (!audio) return;
+        audio.volume = Math.max(0, Math.min(1, soundVolume));
 
     useEffect(() => {
         const audio = celebrationAudioRef.current;
@@ -7909,12 +7931,30 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         }
     }, [currentIndex, baseTimeLimit, isFinished]); // Removed bankedTime from deps because we act on index change
 
+    // Reset bell warnings when question changes
+    useEffect(() => {
+        bellWarningsPlayedRef.current = new Set();
+    }, [currentIndex]);
+
     // Timer Countdown Effect
     useEffect(() => {
         if (baseTimeLimit === null || isFinished || isCameraGuardPreparing) return;
 
         const timer = setInterval(() => {
             setTimeLeft(prev => {
+                // Bell warning: play ding-dong at 6s, 4s, 2s remaining
+                const bellMilestones = [6, 4, 2];
+                if (bellMilestones.includes(prev) && !bellWarningsPlayedRef.current.has(prev)) {
+                    bellWarningsPlayedRef.current.add(prev);
+                    const bell = bellAudioRef.current;
+                    if (bell) {
+                        try {
+                            bell.currentTime = 0;
+                            bell.play().catch(() => {});
+                        } catch { }
+                    }
+                }
+
                 if (prev <= 1) {
                     clearInterval(timer);
                     proceedToNext(0); // Auto-skip with 0 time left
