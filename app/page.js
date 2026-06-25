@@ -7874,6 +7874,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
     };
 
     const initialHintsCount = test.hintsLeft !== undefined ? test.hintsLeft : getMaxHints(test.difficultyMode);
+    const [hintsLeft, setHintsLeft] = useState(initialHintsCount);
     const [revealedHints, setRevealedHints] = useState(test.revealedHints || {}); // { qIdx: [id1, id2] }
 
     // Logic for Spinner Bonus Hints
