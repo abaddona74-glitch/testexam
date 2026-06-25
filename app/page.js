@@ -7864,20 +7864,16 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         // Let's assume strictly proportional to *Easy* base if base is 0? No, that's cheating.
         // Let's stick to Easy/Middle multipliers first.
         // If mode is 'hard' (0), maybe give 1 for Legendary, 2 for Mythic?
-
+        // If mode is hard (0), hints stay 0 — no bonus for Legendary/Mythic
         if (max === 0) {
-            // Bonus for 0-hint modes
-            if (multiplier >= 5) max = 2;       // Mythic gets 2 in Hard/Insane/Imp?
-            else if (multiplier >= 3) max = 1;  // Legendary gets 1
-        } else {
-            max = Math.round(max * multiplier);
+            return 0;
         }
+        max = Math.round(max * multiplier);
 
         return max;
     };
 
     const initialHintsCount = test.hintsLeft !== undefined ? test.hintsLeft : getMaxHints(test.difficultyMode);
-    const [hintsLeft, setHintsLeft] = useState(initialHintsCount);
     const [revealedHints, setRevealedHints] = useState(test.revealedHints || {}); // { qIdx: [id1, id2] }
 
     // Logic for Spinner Bonus Hints
@@ -9829,7 +9825,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                         {timeLeft !== null && (
                             <div className={clsx(
                                 "flex items-center gap-1.5 font-bold font-mono text-lg rounded px-2 py-0.5",
-                                timeLeft <= 5 ? "text-red-600 bg-red-100 animate-pulse" : "text-gray-700 bg-gray-100"
+                                timeLeft <= 5 ? "text-red-600 bg-red-100 animate-pulse" : timeLeft <= 15 ? "text-amber-600 bg-amber-100" : "text-gray-700 bg-gray-100"
                             )}>
                                 <Clock size={16} />
                                 {timeLeft}s

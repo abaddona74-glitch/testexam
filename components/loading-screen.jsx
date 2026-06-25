@@ -86,6 +86,7 @@ function ShipLoading() {
 
   // Start audio on mount, handle autoplay policy
   useEffect(() => {
+    let unmounted = false;
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -94,10 +95,11 @@ function ShipLoading() {
     // Fetch as blob → ObjectURL (reliable + avoids IDM hijacking)
     fetch('/ocean-waves.ogg')
       .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.ok || unmounted) throw new Error('HTTP ' + res.status);
         return res.blob();
       })
       .then(blob => {
+        if (unmounted) { URL.revokeObjectURL(URL.createObjectURL(blob)); return; }
         blobUrl = URL.createObjectURL(blob);
         audio.src = blobUrl;
         audio.volume = 0.35;
@@ -106,6 +108,7 @@ function ShipLoading() {
         return audio.play();
       })
       .catch(() => {
+        if (unmounted) return;
         if (!blobUrl) {
           // Fetch failed — fallback to direct URL
           try {
@@ -113,13 +116,13 @@ function ShipLoading() {
             audio.volume = 0.35;
             audio.muted = false;
             audio.loop = true;
-            audio.play().catch(() => setNeedsTap(true));
+            audio.play().catch(() => { if (!unmounted) setNeedsTap(true); });
           } catch {
-            setNeedsTap(true);
+            if (!unmounted) setNeedsTap(true);
           }
         } else {
           // Blob loaded OK but play() was rejected (autoplay policy)
-          setNeedsTap(true);
+          if (!unmounted) setNeedsTap(true);
         }
       });
 
@@ -129,6 +132,7 @@ function ShipLoading() {
 
     return () => {
       clearInterval(interval);
+      unmounted = true;
       if (blobUrl) {
         URL.revokeObjectURL(blobUrl);
       }
