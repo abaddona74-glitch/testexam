@@ -7726,6 +7726,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         return () => {
             stopCelebrationSound();
         };
+    }, []);
 
     // Prepare bell warning audio once (short ding-dong for last seconds warning)
     useEffect(() => {
@@ -7749,6 +7750,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         if (!audio) return;
         audio.volume = Math.max(0, Math.min(1, soundVolume));
 
+    }, [soundVolume]);
     useEffect(() => {
         const audio = celebrationAudioRef.current;
         if (!audio) return;
