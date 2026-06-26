@@ -15,18 +15,20 @@ export async function GET(request) {
       );
     }
 
-    let user = await User.findOne({ userName: name.trim() }).lean();
+    const trimmedName = name.trim();
 
-    if (!user) {
-      // Auto-create user with 100 initial stars
-      user = await User.create({
-        userName: name.trim(),
-        stars: 100,
-      });
-      user = user.toObject();
-    } else if (user.stars === 0) {
-      // Existing user with 0 stars gets initial 100 bonus (migration fix)
-      await User.updateOne({ userName: name.trim() }, { $set: { stars: 100 } });
+    // Atomic upsert to avoid race conditions with concurrent requests
+    const user = await User.findOneAndUpdate(
+      { userName: trimmedName },
+      {
+        $setOnInsert: { stars: 100, userName: trimmedName },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true, lean: true }
+    );
+
+    // Migration fix: existing users with 0 stars get 100 bonus
+    if (user.stars === 0) {
+      await User.updateOne({ userName: trimmedName }, { $set: { stars: 100 } });
       user.stars = 100;
     }
 
@@ -63,15 +65,7 @@ export async function POST(request) {
       );
     }
 
-    let user = await User.findOne({ userName: name.trim() });
-
-    if (!user) {
-      user = await User.create({
-        userName: name.trim(),
-        stars: 100,
-      });
-    }
-
+    const trimmedName = name.trim();
     const numAmount = parseInt(amount, 10);
     if (isNaN(numAmount)) {
       return NextResponse.json(
@@ -81,30 +75,69 @@ export async function POST(request) {
     }
 
     if (operation === 'add') {
-      user.stars += numAmount;
-      if (user.stars < 0) user.stars = 0;
-      await user.save();
+      // Atomic upsert with aggregation pipeline:
+      // New user gets 100 + amount, existing user gets current + amount, floor at 0
+      const result = await User.findOneAndUpdate(
+        { userName: trimmedName },
+        [
+          {
+            $set: {
+              stars: {
+                $max: [
+                  { $add: [{ $ifNull: ['$stars', 100] }, numAmount] },
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }
+      );
+
+      return NextResponse.json({
+        success: true,
+        stars: result.stars,
+      });
     } else if (operation === 'spend') {
+      // Step 1: Ensure user exists (atomic upsert with defaults)
+      const user = await User.findOneAndUpdate(
+        { userName: trimmedName },
+        { $setOnInsert: { stars: 100, userName: trimmedName } },
+        { upsert: true, new: true, setDefaultsOnInsert: true, lean: true }
+      );
+
+      // Step 2: Check balance
       if (user.stars < numAmount) {
         return NextResponse.json(
           { success: false, message: 'Not enough stars' },
           { status: 400 }
         );
       }
-      user.stars -= numAmount;
-      if (user.stars < 0) user.stars = 0;
-      await user.save();
+
+      // Step 3: Atomic decrement with balance guard (won't go below 0)
+      const updated = await User.findOneAndUpdate(
+        { userName: trimmedName, stars: { $gte: numAmount } },
+        { $inc: { stars: -numAmount } },
+        { new: true, lean: true }
+      );
+
+      if (!updated) {
+        return NextResponse.json(
+          { success: false, message: 'Not enough stars (concurrent spend)' },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        stars: updated.stars,
+      });
     } else {
       return NextResponse.json(
         { success: false, message: 'Invalid operation. Use "add" or "spend"' },
         { status: 400 }
       );
     }
-
-    return NextResponse.json({
-      success: true,
-      stars: user.stars,
-    });
   } catch (error) {
     console.error('Update Stars Error:', error);
     return NextResponse.json(
