@@ -9806,7 +9806,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                                         className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                                         title="Report Issue"
                                                     >
-                                                        <Flag size={16} />
+                                                        <Flag size={16} fill="currentColor" />
                                                     </button>
                                                 </div>
                                                 <div className="text-sm space-y-2 mt-3 p-3 bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-800/50">
@@ -9921,7 +9921,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
                             <div className="flex items-center gap-3 text-gray-900 dark:text-gray-100 mb-4">
                                 <div className="p-2 bg-red-100 text-red-600 rounded-lg">
-                                    <Flag size={20} />
+                                    <Flag size={20} fill="currentColor" />
                                 </div>
                                 <h3 className="text-lg font-bold">Report Issue</h3>
                             </div>
@@ -10128,7 +10128,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                 className="text-red-400 hover:text-red-600 transition-colors mr-1 hover:bg-red-50 dark:hover:bg-red-950/30 p-1 rounded-lg"
                                 title="Report Issue"
                             >
-                                <Flag size={14} />
+                                <Flag size={14} fill="currentColor" />
                             </button>
                         </div>
                     </div>
@@ -10554,7 +10554,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
                         <div className="flex items-center gap-3 text-gray-900 dark:text-gray-100 mb-4">
                             <div className="p-2 bg-red-100 text-red-600 rounded-lg">
-                                <Flag size={20} />
+                                <Flag size={20} fill="currentColor" />
                             </div>
                             <h3 className="text-lg font-bold">Report Issue</h3>
                         </div>

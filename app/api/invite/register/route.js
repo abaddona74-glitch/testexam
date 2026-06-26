@@ -42,30 +42,19 @@ export async function POST(request) {
     // 3. Prevent self-referral (same person registering with their own invite)
     // We can't fully prevent this, but at least check name match
 
-    // 4. Update inviter's stars (+50)
-    let inviter = await User.findOne({ userName: referral.inviterName });
-    if (!inviter) {
-      inviter = await User.create({
-        userName: referral.inviterName,
-        stars: 100 + referral.bonusStars, // 100 initial + 50 bonus
-      });
-    } else {
-      inviter.stars += referral.bonusStars;
-      await inviter.save();
-    }
+    // 4. Atomic update: add bonus stars to inviter (or create with 100 + bonus)
+    const inviter = await User.findOneAndUpdate(
+      { userName: referral.inviterName },
+      { $inc: { stars: referral.bonusStars } },
+      { upsert: true, new: true, setDefaultsOnInsert: true, lean: true }
+    );
 
-    // 5. Create/update invitee's stars (+50)
-    let invitee = await User.findOne({ userName: trimmedName });
-    if (!invitee) {
-      invitee = await User.create({
-        userName: trimmedName,
-        stars: 100 + referral.bonusStars, // 100 initial + 50 bonus
-      });
-    } else {
-      // Existing user - still give bonus for using invite
-      invitee.stars += referral.bonusStars;
-      await invitee.save();
-    }
+    // 5. Atomic update: add bonus stars to invitee (or create with 100 + bonus)
+    const invitee = await User.findOneAndUpdate(
+      { userName: trimmedName },
+      { $inc: { stars: referral.bonusStars } },
+      { upsert: true, new: true, setDefaultsOnInsert: true, lean: true }
+    );
 
     // 6. Mark referral as completed
     referral.inviteeName = trimmedName;
