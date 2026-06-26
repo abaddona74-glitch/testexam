@@ -63,17 +63,18 @@ export async function POST(request) {
         });
       }
 
-      // Mark today's spin as used
+      // Mark today's spin as used (in-memory only, save at end)
       user.lastSpinDate = todayStr;
-      await user.save();
 
       const prize = getRandomPrize(forceLucky);
 
-      // Apply star prizes
+      // Apply star prizes (in-memory only)
       if (prize.type === 'star') {
         user.stars += prize.amount;
-        await user.save();
       }
+
+      // Single atomic save - prevents Mongoose VersionError from double-save
+      await user.save();
 
       return NextResponse.json({
         success: true,
@@ -90,12 +91,13 @@ export async function POST(request) {
         });
       }
 
-      // Atomic charge + prize: deduct 10, get guaranteed prize, add star prizes
+      // Get guaranteed prize and calculate net star change
       const prize = getRandomPrize(true); // Paid spins always win something
 
       let starDelta = prize.type === 'star' ? prize.amount : 0;
       let netChange = starDelta - 10;
 
+      // Apply all changes in memory, then single save
       user.stars += netChange;
       await user.save();
 
