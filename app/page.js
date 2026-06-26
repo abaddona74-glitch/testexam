@@ -8400,6 +8400,11 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
     // Hint Logic
     const handleUseHint = (shouldBuy = false) => {
         if (isCameraGuardPreparing) return;
+        
+        // Hard/Insane/Impossible modes: no hints allowed (except godmode)
+        const diffConfig = DIFFICULTIES.find(d => d.id === test.difficultyMode);
+        if (diffConfig?.hints === 0 && !activatedCheats?.includes('godmode')) return;
+        
         const infiniteHints = activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode');
         
         let purchased = false;
@@ -10079,32 +10084,43 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                 </button>
                             )}
                             {/* Hint Button */}
-                            {(hintsLeft > 0 || extraHints > 0 || activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode')) ? (
+                            {DIFFICULTIES.find(d => d.id === test.difficultyMode)?.hints === 0 && !activatedCheats?.includes('godmode') ? (
                                 <button
-                                    onClick={handleUseHint}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 dark:bg-[#282b33] dark:hover:bg-[#323640] dark:text-yellow-500 dark:border-transparent rounded-lg transition-colors text-xs font-bold mr-2 animate-in fade-in"
-                                    title="Use a hint to remove one wrong answer"
+                                    disabled
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800/40 text-gray-400 border border-gray-200 dark:border-gray-700/50 rounded-lg text-xs font-bold mr-2 cursor-not-allowed"
+                                    title={`No hints available in ${DIFFICULTIES.find(d => d.id === test.difficultyMode)?.name || test.difficultyMode} mode — this difficulty does not allow hints`}
                                 >
-                                    <Lightbulb size={14} className="fill-yellow-500 text-yellow-500" />
-                                    <span>Use Hint ({(activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode')) ? '∞' : hintsLeft + extraHints})</span>
+                                    <Lightbulb size={14} className="text-gray-300 dark:text-gray-600" />
+                                    <span>No Hints</span>
                                 </button>
                             ) : (
-                                /* Buy Hint Button */
-                                <button
-                                    onClick={() => handleUseHint(true)}
-                                    className={clsx(
-                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-lg transition-colors text-xs font-bold mr-2",
-                                        userStars >= 5
-                                            ? "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 cursor-pointer"
-                                            : "bg-gray-50 dark:bg-gray-950 text-gray-400 border-gray-200 cursor-not-allowed"
-                                    )}
-                                    title="Buy a hint (5 stars) and use immediately"
-                                >
-                                    <div className='flex items-center gap-1'>
-                                        <span>⭐ 5</span>
-                                        <span>Use Hint</span>
-                                    </div>
-                                </button>
+                                (hintsLeft > 0 || extraHints > 0 || activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode')) ? (
+                                    <button
+                                        onClick={handleUseHint}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 dark:bg-[#282b33] dark:hover:bg-[#323640] dark:text-yellow-500 dark:border-transparent rounded-lg transition-colors text-xs font-bold mr-2 animate-in fade-in"
+                                        title="Use a hint to remove one wrong answer"
+                                    >
+                                        <Lightbulb size={14} className="fill-yellow-500 text-yellow-500" />
+                                        <span>Use Hint ({(activatedCheats?.includes('dontgiveup') || activatedCheats?.includes('godmode')) ? '∞' : hintsLeft + extraHints})</span>
+                                    </button>
+                                ) : (
+                                    /* Buy Hint Button */
+                                    <button
+                                        onClick={() => handleUseHint(true)}
+                                        className={clsx(
+                                            "flex items-center gap-1.5 px-3 py-1.5 border rounded-lg transition-colors text-xs font-bold mr-2",
+                                            userStars >= 5
+                                                ? "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 cursor-pointer"
+                                                : "bg-gray-50 dark:bg-gray-950 text-gray-400 border-gray-200 cursor-not-allowed"
+                                        )}
+                                        title="Buy a hint (5 stars) and use immediately"
+                                    >
+                                        <div className='flex items-center gap-1'>
+                                            <span>⭐ 5</span>
+                                            <span>Use Hint</span>
+                                        </div>
+                                    </button>
+                                )
                             )}
                             <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>
                             <button
