@@ -782,7 +782,7 @@ function InviteModal({ onClose, userName, addToast }) {
             const res = await fetch('/api/invite/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: userName }),
+                body: JSON.stringify({ name: userName, userId }),
             });
             const data = await res.json();
             if (data.success) {
@@ -918,7 +918,7 @@ function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast }) {
             const res = await fetch('/api/invite/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inviteCode, name: name.trim() }),
+                body: JSON.stringify({ inviteCode, name: name.trim(), userId }),
             });
             const data = await res.json();
             if (data.success) {
@@ -1014,7 +1014,7 @@ function CollectStarsModal({ inviteCode, userName, onClose, onCollected, addToas
             const res = await fetch('/api/invite/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inviteCode, name: userName }),
+                body: JSON.stringify({ inviteCode, name: userName, userId }),
             });
             const data = await res.json();
             if (data.success) {

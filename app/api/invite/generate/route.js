@@ -15,7 +15,7 @@ function generateInviteCode(length = 8) {
 export async function POST(request) {
   try {
     await dbConnect();
-    const { name } = await request.json();
+    const { name, userId } = await request.json();
 
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       return NextResponse.json(
@@ -34,6 +34,13 @@ export async function POST(request) {
       const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'test-exam.uz';
       const proto = request.headers.get('x-forwarded-proto') || 'https';
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${proto}://${host}`;
+      // Backfill inviterId for legacy referrals
+      if (!existing.inviterId && userId) {
+        await Referral.updateOne(
+          { _id: existing._id },
+          { $set: { inviterId: userId } }
+        );
+      }
       return NextResponse.json({
         success: true,
         inviteCode: existing.inviteCode,
@@ -54,6 +61,7 @@ export async function POST(request) {
     const referral = await Referral.create({
       inviteCode,
       inviterName: name.trim(),
+      inviterId: userId || null,
       bonusStars: 50,
       status: 'pending',
     });
@@ -105,6 +113,7 @@ export async function GET(request) {
       success: true,
       inviteCode: referral.inviteCode,
       inviterName: referral.inviterName,
+      inviterId: referral.inviterId || null,
       bonusStars: referral.bonusStars,
     });
   } catch (error) {

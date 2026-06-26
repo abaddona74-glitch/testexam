@@ -32,6 +32,8 @@ function getRandomPrize(forceLucky = false) {
 }
 
 // POST - execute a spin (free or paid)
+// Uses only atomic MongoDB operations (no .save()) to avoid
+// Mongoose document lifecycle issues with upserted documents
 export async function POST(request) {
   try {
     await dbConnect();
@@ -44,14 +46,15 @@ export async function POST(request) {
       );
     }
 
-    // Atomic upsert: ensure user exists
-    const user = await User.findOneAndUpdate(
-      { userName: name.trim() },
-      { $setOnInsert: { stars: 100 } },
-      { upsert: true, new: true, setDefaultsOnInsert: true, lean: false }
-    );
-
+    const trimmedName = name.trim();
     const todayStr = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+
+    // Ensure user exists (atomic upsert)
+    const user = await User.findOneAndUpdate(
+      { userName: trimmedName },
+      { $setOnInsert: { stars: 100 } },
+      { upsert: true, new: true, setDefaultsOnInsert: true, lean: true }
+    );
 
     if (type === 'free') {
       // Daily free spin check
@@ -63,27 +66,28 @@ export async function POST(request) {
         });
       }
 
-      // Mark today's spin as used (in-memory only, save at end)
-      user.lastSpinDate = todayStr;
-
       const prize = getRandomPrize(forceLucky);
 
-      // Apply star prizes (in-memory only)
+      // Atomic update: set lastSpinDate + optionally add stars
+      const updateOps = { $set: { lastSpinDate: todayStr } };
       if (prize.type === 'star') {
-        user.stars += prize.amount;
+        updateOps.$inc = { stars: prize.amount };
       }
 
-      // Single atomic save - prevents Mongoose VersionError from double-save
-      await user.save();
+      const updated = await User.findOneAndUpdate(
+        { userName: trimmedName },
+        updateOps,
+        { new: true, lean: true }
+      );
 
       return NextResponse.json({
         success: true,
         prize,
-        stars: user.stars,
+        stars: updated.stars,
         canSpinToday: false,
       });
     } else if (type === 'paid') {
-      // Paid spin costs 10 stars - always gives a non-empty prize (forceLucky)
+      // Paid spin costs 10 stars - always gives a non-empty prize
       if (user.stars < 10) {
         return NextResponse.json({
           success: false,
@@ -91,21 +95,30 @@ export async function POST(request) {
         });
       }
 
-      // Get guaranteed prize and calculate net star change
       const prize = getRandomPrize(true); // Paid spins always win something
 
       let starDelta = prize.type === 'star' ? prize.amount : 0;
       let netChange = starDelta - 10;
 
-      // Apply all changes in memory, then single save
-      user.stars += netChange;
-      await user.save();
+      // Atomic update: deduct 10, add prize stars, guard against negative balance
+      const updated = await User.findOneAndUpdate(
+        { userName: trimmedName, stars: { $gte: 10 } },
+        { $inc: { stars: netChange } },
+        { new: true, lean: true }
+      );
+
+      if (!updated) {
+        return NextResponse.json({
+          success: false,
+          message: 'Not enough stars (concurrent spin)',
+        });
+      }
 
       return NextResponse.json({
         success: true,
         prize,
-        stars: user.stars,
-        canSpinToday: user.lastSpinDate !== todayStr,
+        stars: updated.stars,
+        canSpinToday: updated.lastSpinDate !== todayStr,
       });
     }
 

@@ -13,6 +13,11 @@ const ReferralSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  inviterId: {
+    type: String,
+    default: null,
+    trim: true,
+  },
   inviteeName: {
     type: String,
     default: null,
