@@ -990,6 +990,134 @@ function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast }) {
     );
 }
 
+// Collect Stars Modal - appears after name is set when visiting via invite link
+function CollectStarsModal({ inviteCode, userName, onClose, onCollected, addToast }) {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [inviteData, setInviteData] = useState(null);
+    const [collected, setCollected] = useState(false);
+
+    useEffect(() => {
+        fetch(`/api/invite/generate?code=${inviteCode}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setInviteData(data);
+                else setError(data.message || 'Invalid invite code');
+            })
+            .catch(() => setError('Failed to verify invite code'));
+    }, [inviteCode]);
+
+    const handleCollect = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/invite/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inviteCode, name: userName }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCollected(true);
+                confetti({
+                    particleCount: 200,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    zIndex: 9999
+                });
+                addToast('Stars Collected!', data.message, 'success');
+                setTimeout(() => onCollected(data.newStars), 1200);
+            } else {
+                setError(data.message || 'Failed to collect stars');
+            }
+        } catch {
+            setError('Server error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (collected) {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border border-gray-100 dark:border-gray-700 animate-in zoom-in duration-300">
+                    <div className="text-5xl mb-4">🎉</div>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Stars Collected!</h2>
+                    <p className="text-gray-500 mb-4">
+                        You and {inviteData?.inviterName || 'your friend'} both received <strong className="text-yellow-600">+{inviteData?.bonusStars || 50} Stars</strong>!
+                    </p>
+                    <button
+                        onClick={onClose}
+                        className="px-8 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg transition-all"
+                    >
+                        Continue
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (error && !inviteData) {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl max-w-sm w-full mx-4 text-center">
+                    <div className="text-4xl mb-4">😢</div>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Invalid Invite</h2>
+                    <p className="text-gray-500 mb-4">{error}</p>
+                    <button onClick={onClose} className="px-6 py-2 bg-blue-500 text-white rounded-xl font-bold">
+                        OK
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border border-gray-100 dark:border-gray-700 animate-in zoom-in duration-300">
+                <div className="text-5xl mb-4">🎁</div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                    You've been invited!
+                </h2>
+                {inviteData && (
+                    <p className="text-gray-500 text-sm mb-2">
+                        <strong className="text-blue-600">{inviteData.inviterName}</strong> invited you
+                    </p>
+                )}
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-5 my-5 border-2 border-yellow-200 dark:border-yellow-700">
+                    <div className="text-4xl mb-1">⭐</div>
+                    <div className="text-3xl font-black text-yellow-600 dark:text-yellow-400">
+                        +{inviteData?.bonusStars || 50}
+                    </div>
+                    <div className="text-sm text-yellow-700 dark:text-yellow-500 font-medium mt-1">
+                        Bonus Stars
+                    </div>
+                </div>
+                <p className="text-gray-400 text-xs mb-5">
+                    Playing as <strong className="text-gray-600 dark:text-gray-300">{userName}</strong>
+                </p>
+                {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+                <button
+                    onClick={handleCollect}
+                    disabled={loading}
+                    className="w-full px-8 py-4 rounded-2xl font-black text-lg bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                    {loading ? (
+                        <Loader2 className="animate-spin" size={24} />
+                    ) : (
+                        <>
+                            <Gift size={24} /> Collect +{inviteData?.bonusStars || 50} Stars
+                        </>
+                    )}
+                </button>
+                <button onClick={onClose} className="w-full mt-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm underline decoration-gray-300 underline-offset-4">
+                    Maybe later
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function ToastContainer({ toasts, removeToast }) {
     return (
         <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
@@ -1378,6 +1506,12 @@ export default function Home() {
             console.error('Chat send error', e);
         }
     };
+
+    useEffect(() => {
+        if (isNameSet && pendingInviteCode && !showCollectStarsModal) {
+            setShowCollectStarsModal(true);
+        }
+    }, [isNameSet, pendingInviteCode, showCollectStarsModal]);
 
     // Chat polling
     useEffect(() => {
@@ -1841,6 +1975,7 @@ export default function Home() {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showInviteRegisterModal, setShowInviteRegisterModal] = useState(false);
     const [pendingInviteCode, setPendingInviteCode] = useState('');
+    const [showCollectStarsModal, setShowCollectStarsModal] = useState(false);
 
     // New States for Stars and Achievements
     const [userStars, setUserStars] = useState(0);
@@ -4304,6 +4439,24 @@ export default function Home() {
                                     }
                                 })
                                 .catch(() => {});
+                        }}
+                        addToast={addToast}
+                    />
+                )}
+                {showCollectStarsModal && isNameSet && pendingInviteCode && (
+                    <CollectStarsModal
+                        inviteCode={pendingInviteCode}
+                        userName={userName}
+                        onClose={() => {
+                            setShowCollectStarsModal(false);
+                            setPendingInviteCode('');
+                            window.history.replaceState({}, '', window.location.pathname);
+                        }}
+                        onCollected={(newStars) => {
+                            if (newStars !== undefined) setUserStars(newStars);
+                            setShowCollectStarsModal(false);
+                            setPendingInviteCode('');
+                            window.history.replaceState({}, '', window.location.pathname);
                         }}
                         addToast={addToast}
                     />
