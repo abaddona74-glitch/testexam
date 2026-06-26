@@ -769,7 +769,7 @@ function DailySpinner({ onClose, onReward, canSpinToday, userStars, onSpinStart,
 }
 
 // Invite Modal - Generate invite link
-function InviteModal({ onClose, userName, addToast }) {
+function InviteModal({ onClose, userName, addToast, userId }) {
     const [inviteUrl, setInviteUrl] = useState('');
     const [inviteCode, setInviteCode] = useState('');
     const [loading, setLoading] = useState(false);
@@ -890,7 +890,7 @@ function InviteModal({ onClose, userName, addToast }) {
 }
 
 // Invite Registration Modal - Register via invite link
-function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast }) {
+function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast, userId }) {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -991,7 +991,7 @@ function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast }) {
 }
 
 // Collect Stars Modal - appears after name is set when visiting via invite link
-function CollectStarsModal({ inviteCode, userName, onClose, onCollected, addToast }) {
+function CollectStarsModal({ inviteCode, userName, onClose, onCollected, addToast, userId }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [inviteData, setInviteData] = useState(null);
@@ -4415,6 +4415,7 @@ export default function Home() {
                         onClose={() => setShowInviteModal(false)}
                         userName={userName}
                         addToast={addToast}
+                        userId={userId}
                     />
                 )}
 
@@ -4443,6 +4444,7 @@ export default function Home() {
                                 .catch(() => {});
                         }}
                         addToast={addToast}
+                        userId={userId}
                     />
                 )}
                 {showCollectStarsModal && isNameSet && pendingInviteCode && (
@@ -4460,6 +4462,7 @@ export default function Home() {
                             setPendingInviteCode('');
                             window.history.replaceState({}, '', window.location.pathname);
                         }}
+                        userId={userId}
                         addToast={addToast}
                     />
                 )}
