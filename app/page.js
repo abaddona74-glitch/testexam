@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff, ClipboardPaste, Info, FileJson, Download, Pencil } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff, ClipboardPaste, Info, FileJson, Download, Pencil, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import clsx from 'clsx';
@@ -387,7 +387,7 @@ const createSafeAudio = (url) => {
     });
 };
 
-function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, nextSpin, forceLucky, soundVolume = 0.8 }) {
+function DailySpinner({ onClose, onReward, canSpinToday, userStars, onSpinStart, forceLucky, soundVolume = 0.8 }) {
     const [spinning, setSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [prize, setPrize] = useState(null);
@@ -518,7 +518,7 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
         }
     };
 
-    const handleSpin = (type) => {
+    const handleSpin = async (type) => {
         if (spinning) return;
         setPrize(null);
         setNeedsWinSoundTap(false);
@@ -527,17 +527,22 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
         // Prime audio on user gesture to reduce autoplay blocks later
         primeWinSound();
 
-        // Attempt to start spin
-        const success = onSpinStart(type);
-        if (!success) return;
+        // Attempt to start spin (now async - returns server prize or true/false)
+        const spinResult = await onSpinStart(type);
+        if (!spinResult) return;
 
         setSpinning(true);
         playSpinSound();
 
-        // Determine result based on weighted probability
+        // Determine result based on weighted probability or server response
         let selectedIndex = 0;
 
-        if (forceLucky) {
+        // If server returned a specific prize (not just true for dev mode), use it
+        const serverPrize = (typeof spinResult === 'object' && spinResult !== true && spinResult.id) ? spinResult : null;
+
+        if (serverPrize) {
+            selectedIndex = SPINNER_ITEMS.findIndex(i => i.id === serverPrize.id);
+        } else if (forceLucky) {
             const luckyItems = SPINNER_ITEMS.filter(i => i.type !== 'empty');
             const luckyItem = luckyItems[Math.floor(Math.random() * luckyItems.length)];
             selectedIndex = SPINNER_ITEMS.findIndex(i => i.id === luckyItem.id);
@@ -619,15 +624,10 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex flex-col items-start gap-1">
                                 <div className="text-xs font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-gray-500">
-                                    Spins: <span className={freeSpins > 0 || isDev ? "text-green-600 font-bold" : "text-gray-500"}>
-                                        {isDev ? "Infinite" : `${freeSpins}/10`}
+                                    Spin: <span className={canSpinToday || isDev ? "text-green-600 font-bold" : "text-red-500"}>
+                                        {isDev ? "Infinite" : (canSpinToday ? "Available" : "Used today")}
                                     </span>
                                 </div>
-                                {!isDev && freeSpins < 10 && nextSpin && (
-                                    <span className="text-[10px] text-gray-400 font-mono pl-1">
-                                        Next in: {nextSpin}
-                                    </span>
-                                )}
                             </div>
                             <div className="text-xs font-mono bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded text-yellow-700 dark:text-yellow-500">
                                 Stars: {userStars}
@@ -636,7 +636,7 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                         <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
                             Lucky Spin
                         </h2>
-                        <p className="text-gray-500 text-sm">Hourly free spins (Stack up to 10)</p>
+                        <p className="text-gray-500 text-sm">Daily free spin (1 per day)</p>
                     </div>
 
                     {/* Wheel Container */}
@@ -746,16 +746,15 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
 
                         <button
                             onClick={() => handleSpin('free')}
-                            disabled={freeSpins <= 0 || spinning}
+                            disabled={(!canSpinToday && !isDev) || spinning}
                             className={clsx(
                                 "px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 w-full flex items-center justify-center gap-2",
-                                freeSpins <= 0
+                                (!canSpinToday && !isDev)
                                     ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
                                     : "bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-green-500/25"
                             )}
                         >
                             {spinning ? 'Spinning...' : 'SPIN FREE'}
-                            {freeSpins > 0 && <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full">{freeSpins}</span>}
                         </button>
 
                         <button
@@ -780,6 +779,228 @@ function DailySpinner({ onClose, onReward, freeSpins, userStars, onSpinStart, ne
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+// Invite Modal - Generate invite link
+function InviteModal({ onClose, userName, addToast }) {
+    const [inviteUrl, setInviteUrl] = useState('');
+    const [inviteCode, setInviteCode] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const generateInvite = async () => {
+        if (!userName) return;
+        setLoading(true);
+        try {
+            const res = await fetch('/api/invite/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: userName }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setInviteUrl(data.inviteUrl);
+                setInviteCode(data.inviteCode);
+                addToast('Link generated!', 'Share this link with your friends', 'success');
+            } else {
+                addToast('Error', data.message || 'Failed to generate', 'error');
+            }
+        } catch {
+            addToast('Error', 'Server error', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const copyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(inviteUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // Fallback
+            const input = document.createElement('input');
+            input.value = inviteUrl;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    useEffect(() => {
+        generateInvite();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl max-w-sm w-full mx-4 border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                        🎁 Invite Friends
+                    </h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <p className="text-gray-500 text-sm mb-4">
+                    Share this link with your friends. When they register, you both get <strong className="text-yellow-600">+50 Stars</strong>!
+                </p>
+
+                {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                        <Loader2 className="animate-spin text-blue-500" size={32} />
+                    </div>
+                ) : inviteUrl ? (
+                    <>
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 mb-4 border border-gray-200 dark:border-gray-700">
+                            <div className="text-xs text-gray-400 mb-1">Your invite link:</div>
+                            <div className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all select-all">
+                                {inviteUrl}
+                            </div>
+                        </div>
+                        <div className="text-xs text-gray-400 mb-4">
+                            Code: <span className="font-mono font-bold text-blue-500">{inviteCode}</span>
+                        </div>
+                        <button
+                            onClick={copyLink}
+                            className={clsx(
+                                "w-full px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2",
+                                copied
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg"
+                            )}
+                        >
+                            {copied ? <><CheckCircle2 size={18} /> Copied!</> : <><Copy size={18} /> Copy Link</>}
+                        </button>
+                        <button
+                            onClick={() => {
+                                copyLink();
+                                const shareText = `\ud83c\udf81 Join me on ExamTest! Use my invite link to get +50 stars: ${inviteUrl}`;
+                                if (navigator.share) {
+                                    navigator.share({ title: 'ExamTest Invite', text: shareText, url: inviteUrl }).catch(() => {});
+                                }
+                            }}
+                            className="w-full mt-2 px-6 py-2 rounded-xl text-sm font-bold text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Share2 size={16} /> Share
+                        </button>
+                    </>
+                ) : (
+                    <div className="text-center py-4 text-red-500">Failed to generate link. Try again.</div>
+                )}
+
+                <button onClick={onClose} className="w-full mt-4 text-gray-400 hover:text-gray-600 text-sm underline">
+                    Close
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// Invite Registration Modal - Register via invite link
+function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast }) {
+    const [name, setName] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [inviteData, setInviteData] = useState(null);
+
+    useEffect(() => {
+        fetch(`/api/invite/generate?code=${inviteCode}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setInviteData(data);
+                else setError(data.message || 'Invalid invite code');
+            })
+            .catch(() => setError('Failed to verify invite code'));
+    }, [inviteCode]);
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        if (!name.trim() || name.trim().length < 2) {
+            setError('Name must be at least 2 characters');
+            return;
+        }
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/invite/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inviteCode, name: name.trim() }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                addToast('\ud83c\udf89 Welcome!', data.message, 'success');
+                onRegistered(name.trim());
+            } else {
+                setError(data.message || 'Registration failed');
+            }
+        } catch {
+            setError('Server error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (error && !inviteData) {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl max-w-sm w-full mx-4 text-center">
+                    <div className="text-4xl mb-4">\ud83d\ude22</div>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Invalid Invite</h2>
+                    <p className="text-gray-500 mb-4">{error}</p>
+                    <button onClick={onClose} className="px-6 py-2 bg-blue-500 text-white rounded-xl font-bold">
+                        OK
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl max-w-sm w-full mx-4 border border-gray-100 dark:border-gray-700">
+                <div className="text-center mb-6">
+                    <div className="text-4xl mb-2">\ud83c\udf81</div>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">You've been invited!</h2>
+                    {inviteData && (
+                        <p className="text-gray-500 text-sm mt-2">
+                            <strong>{inviteData.inviterName}</strong> invited you. Register to get <strong className="text-yellow-600">+{inviteData.bonusStars} Stars</strong>!
+                        </p>
+                    )}
+                </div>
+
+                <form onSubmit={handleRegister}>
+                    <input
+                        type="text"
+                        placeholder="Enter your name..."
+                        value={name}
+                        onChange={(e) => { setName(e.target.value); setError(''); }}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3"
+                        maxLength={30}
+                        autoFocus
+                    />
+                    {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+                    <button
+                        type="submit"
+                        disabled={loading || !name.trim()}
+                        className="w-full px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {loading ? <Loader2 className="animate-spin" size={20} /> : 'Register & Get Stars \u2b50'}
+                    </button>
+                </form>
+
+                <button onClick={onClose} className="w-full mt-4 text-gray-400 hover:text-gray-600 text-sm underline">
+                    Maybe later
+                </button>
             </div>
         </div>
     );
@@ -1629,8 +1850,13 @@ export default function Home() {
 
     // Spinner State
     const [showSpinner, setShowSpinner] = useState(false);
-    const [freeSpins, setFreeSpins] = useState(0);
-    const [lastAccrualTime, setLastAccrualTime] = useState(0);
+    const [canSpinToday, setCanSpinToday] = useState(false);
+    const [spinLoading, setSpinLoading] = useState(false);
+
+    // Invite State
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showInviteRegisterModal, setShowInviteRegisterModal] = useState(false);
+    const [pendingInviteCode, setPendingInviteCode] = useState('');
 
     // New States for Stars and Achievements
     const [userStars, setUserStars] = useState(0);
@@ -1754,8 +1980,7 @@ export default function Home() {
         if (!firstVisit) {
             firstVisit = Date.now().toString();
             localStorage.setItem('examApp_firstVisit', firstVisit);
-            // Give 100 bonus stars on first visit
-            localStorage.setItem('examApp_stars', '100');
+            // Give 100 bonus stars on first visit - server will handle via API
             setUserStars(100);
         }
         
@@ -1788,6 +2013,13 @@ export default function Home() {
             setUserName(storedName);
             setNameInput(storedName);
             setIsNameSet(true);
+        } else {
+            // Check for invite code in URL if no stored name
+            const params = new URLSearchParams(window.location.search);
+            const inviteFromUrl = params.get('invite');
+            if (inviteFromUrl) {
+                setPendingInviteCode(inviteFromUrl.toUpperCase().trim());
+            }
         }
 
         // 2. Load persisted progress
@@ -1798,9 +2030,7 @@ export default function Home() {
             } catch (e) { console.error("Failed to parse progress", e); }
         }
 
-        // Load Stars and Unlocks
-        const storedStars = localStorage.getItem('examApp_stars');
-        if (storedStars) setUserStars(parseInt(storedStars, 10));
+        // Stars now loaded from server-side API after userName is set
 
         const storedLeagues = localStorage.getItem('examApp_unlockedLeagues');
         if (storedLeagues) {
@@ -1850,69 +2080,25 @@ export default function Home() {
             }
         }
 
-        // Load Last Spin and Calculate Accrual
-        const loadSpins = () => {
-            const storedLastAccrual = parseInt(localStorage.getItem('examApp_lastAccrual') || '0');
-            const storedFreeSpins = parseInt(localStorage.getItem('examApp_freeSpins') || '0');
-
-            const now = Date.now();
-            let newFreeSpins = storedFreeSpins;
-            let newLastAccrual = storedLastAccrual;
-
-            // First time setup
-            if (storedLastAccrual === 0) {
-                newLastAccrual = now;
-                newFreeSpins = 1; // Start with 1 free spin
-                localStorage.setItem('examApp_lastAccrual', newLastAccrual);
-                localStorage.setItem('examApp_freeSpins', newFreeSpins);
-                setFreeSpins(newFreeSpins);
-                setLastAccrualTime(newLastAccrual);
-                return;
-            }
-
-            // Calculate Accrual
-            const msPassed = now - storedLastAccrual;
-            const hoursPassed = Math.floor(msPassed / (3600 * 1000));
-
-            if (hoursPassed > 0) {
-                if (newFreeSpins < 10) {
-                    const toAdd = Math.min(10 - newFreeSpins, hoursPassed);
-                    newFreeSpins += toAdd;
-                    newLastAccrual = storedLastAccrual + (hoursPassed * 3600 * 1000);
-
-                    localStorage.setItem('examApp_freeSpins', newFreeSpins);
-                    localStorage.setItem('examApp_lastAccrual', newLastAccrual);
-                } else {
-                    // If already full, reset timer to now so it starts counting when they spend one
-                    newLastAccrual = now;
-                    localStorage.setItem('examApp_lastAccrual', newLastAccrual);
+        // Load stars and spin status from server
+        const fetchStarsFromServer = async () => {
+            if (!storedName) return;
+            try {
+                const res = await fetch(`/api/stars?name=${encodeURIComponent(storedName)}`);
+                const data = await res.json();
+                if (data.success) {
+                    setUserStars(data.stars);
+                    setCanSpinToday(data.canSpinToday);
                 }
-            }
-
-            setFreeSpins(newFreeSpins);
-            setLastAccrualTime(newLastAccrual);
+            } catch {}
         };
+        fetchStarsFromServer();
 
         const updateBoosts = () => {
             const multEnd = parseInt(localStorage.getItem('examApp_multiplierEnd') || '0');
             const multVal = parseInt(localStorage.getItem('examApp_multiplierVal') || '1');
 
-            // Spin Timer Logic
-            const storedLastAccrual = parseInt(localStorage.getItem('examApp_lastAccrual') || '0');
-            const storedFreeSpins = parseInt(localStorage.getItem('examApp_freeSpins') || '0');
-            let nextSpinStr = '';
-
             const now = Date.now();
-
-            if (storedFreeSpins < 10 && storedLastAccrual > 0) {
-                const nextAccrual = storedLastAccrual + 3600000; // 1 hour
-                if (nextAccrual > now) {
-                    const left = nextAccrual - now;
-                    const m = Math.floor(left / 60000);
-                    const s = Math.floor((left % 60000) / 1000);
-                    nextSpinStr = `${m}:${s < 10 ? '0' + s : s}`;
-                }
-            }
 
             const details = [];
             let total = 1;
@@ -1958,13 +2144,12 @@ export default function Home() {
             setBoostInfo({
                 multiplier: total,
                 activeBoosts: details,
-                nextSpin: nextSpinStr,
                 active: details.length > 0
             });
 
         };
 
-        loadSpins();
+        // Load stars from server (already done above if storedName exists)
         updateBoosts(); // Initial check
 
         // 3. Fetch initial data
@@ -2043,7 +2228,6 @@ export default function Home() {
 
         // 4. Set up intervals
         const interval = setInterval(fetchGlobalActiveUsers, 5000);
-        const spinInterval = setInterval(loadSpins, 60000);
         const boostInterval = setInterval(updateBoosts, 1000); // Update boost timer every second
 
         // 5. Send heartbeat for "Browsing" status if we have a username
@@ -2063,7 +2247,6 @@ export default function Home() {
 
         return () => {
             clearInterval(interval);
-            clearInterval(spinInterval);
             clearInterval(boostInterval);
         };
     }, []);
@@ -2076,59 +2259,58 @@ export default function Home() {
     }, [soundVolume]);
 
     const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
-    const canSpin = isDevMode || freeSpins > 0;
+    const canSpin = isDevMode || canSpinToday;
 
-    const handleSpinStart = (type) => {
-        if (type === 'free') {
-            if (isDevMode) return true;
-            if (freeSpins > 0) {
-                const newCount = freeSpins - 1;
-                setFreeSpins(newCount);
-                localStorage.setItem('examApp_freeSpins', newCount.toString());
-                return true;
+    const handleSpinStart = async (type) => {
+        if (!userName) return false;
+        if (isDevMode) return true;
+        try {
+            const res = await fetch('/api/stars/spin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: userName, type }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setUserStars(data.stars);
+                setCanSpinToday(data.canSpinToday);
+                return data.prize;
             }
-        } else if (type === 'paid') {
-            if (userStars >= 10) {
-                const newTotal = userStars - 10;
-                setUserStars(newTotal);
-                localStorage.setItem('examApp_stars', newTotal.toString());
-                return true;
-            }
-        }
-        return false;
+            return false;
+        } catch { return false; }
     };
 
-    const updateUserStars = (amount) => {
-        // Apply Multiplier based on Achievements
+    const updateUserStars = async (amount) => {
+        if (!userName) return;
         let multiplier = 1;
-
-        // check for active time multiplier
         const multEnd = parseInt(localStorage.getItem('examApp_multiplierEnd') || '0');
         if (Date.now() < multEnd) {
             const val = parseInt(localStorage.getItem('examApp_multiplierVal') || '1');
             multiplier = Math.max(multiplier, val);
         }
-
         if (unlockedLeagues.includes('Mythic')) multiplier = Math.max(multiplier, 3);
         else if (unlockedLeagues.includes('Legendary')) multiplier = Math.max(multiplier, 2);
-
         const earned = amount * multiplier;
-        const newTotal = userStars + earned;
-
-        setUserStars(newTotal);
-        localStorage.setItem('examApp_stars', newTotal.toString());
-
-        // Optional: Visual feedback could be added here
+        try {
+            const res = await fetch('/api/stars', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: userName, amount: earned, operation: 'add' }),
+            });
+            const data = await res.json();
+            if (data.success) setUserStars(data.stars);
+        } catch {}
     };
 
-    const handleSpinReward = (prize) => {
+    const handleSpinReward = async (prize) => {
         if (prize.type === 'star') {
-            // Bypass multiplier for direct wins? Or apply it? 
-            // Usually spin rewards are fixed. So let's just add raw amount.
-            // But updateUserStars applies multiplier. let's create a raw add function or just manually add.
-            const newTotal = userStars + prize.amount;
-            setUserStars(newTotal);
-            localStorage.setItem('examApp_stars', newTotal.toString());
+            // Stars already added by server in handleSpinStart, just sync state
+            if (!userName) return;
+            try {
+                const res = await fetch(`/api/stars?name=${encodeURIComponent(userName)}`);
+                const data = await res.json();
+                if (data.success) setUserStars(data.stars);
+            } catch {}
         } else if (prize.type === 'hint') {
             const currentExtra = parseInt(localStorage.getItem('examApp_extraHints') || '0', 10);
             localStorage.setItem('examApp_extraHints', (currentExtra + prize.amount).toString());
@@ -2141,22 +2323,26 @@ export default function Home() {
 
     const [starFloaters, setStarFloaters] = useState([]);
 
-    const spendStars = (amount) => {
-        if (userStars >= amount) {
-            const newTotal = userStars - amount;
-            setUserStars(newTotal);
-            localStorage.setItem('examApp_stars', newTotal.toString());
-
-            // Add floating text animation
-            const id = Date.now();
-            setStarFloaters(prev => [...prev, { id, text: `-${amount}` }]);
-            setTimeout(() => {
-                setStarFloaters(prev => prev.filter(f => f.id !== id));
-            }, 1000); // Animation duration
-
-            return true;
-        }
-        return false;
+    const spendStars = async (amount) => {
+        if (!userName || userStars < amount) return false;
+        try {
+            const res = await fetch('/api/stars', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: userName, amount, operation: 'spend' }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setUserStars(data.stars);
+                const id = Date.now();
+                setStarFloaters(prev => [...prev, { id, text: `-${amount}` }]);
+                setTimeout(() => {
+                    setStarFloaters(prev => prev.filter(f => f.id !== id));
+                }, 1000);
+                return true;
+            }
+            return false;
+        } catch { return false; }
     };
 
     const updateUserUnlocks = (newLeagueName) => {
@@ -2817,13 +3003,21 @@ export default function Home() {
         }
     };
 
-    const handleNameSubmit = (e) => {
+    const handleNameSubmit = async (e) => {
         e.preventDefault();
         if (nameInput.trim()) {
             setUserName(nameInput);
             localStorage.setItem('examApp_userName', nameInput);
             setIsNameSet(true);
             setShowSettings(false);
+            try {
+                const res = await fetch(`/api/stars?name=${encodeURIComponent(nameInput)}`);
+                const data = await res.json();
+                if (data.success) {
+                    setUserStars(data.stars);
+                    setCanSpinToday(data.canSpinToday);
+                }
+            } catch {}
         }
     };
 
@@ -3624,17 +3818,25 @@ export default function Home() {
                             <button
                                 onClick={() => { playStartSound(); setShowSpinner(true); }}
                                 className="p-1.5 md:p-2 rounded-lg text-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors relative flex items-center gap-1"
-                                title="Hourly Spin"
+                                title="Daily Spin"
                             >
                                 <Gift size={18} className={clsx("md:w-5 md:h-5", canSpin ? "animate-bounce" : "")} />
                                 {canSpin && (
                                     <span className="absolute top-1 right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-red-500 rounded-full animate-ping" />
                                 )}
-                                {!canSpin && boostInfo?.nextSpin && (
-                                    <span className="text-[10px] font-mono font-medium hidden md:block">{boostInfo.nextSpin}</span>
+                                {!canSpin && !canSpinToday && (
+                                    <span className="text-[10px] font-mono font-medium hidden md:block">Come back tomorrow</span>
                                 )}
                             </button>
 
+                            <button
+                                onClick={() => { playStartSound(); setShowInviteModal(true); }}
+                                className="p-1.5 md:p-2 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors relative flex items-center gap-1"
+                                title="Invite Friends"
+                            >
+                                <Users size={18} className="md:w-5 md:h-5" />
+                                <span className="hidden md:inline text-xs font-medium ml-0.5">Invite</span>
+                            </button>
                             {/* Support Project - Hidden for now */}
                             {/* <button
                                 onClick={() => { playStartSound(); setShowDonateModal(true); }}
@@ -4073,15 +4275,50 @@ export default function Home() {
                     <DailySpinner
                         onClose={() => setShowSpinner(false)}
                         onReward={handleSpinReward}
-                        freeSpins={activatedCheats.includes('godmode') ? 9999 : freeSpins}
+                        canSpinToday={activatedCheats.includes('godmode') ? true : canSpinToday}
                         userStars={userStars}
                         onSpinStart={handleSpinStart}
-                        nextSpin={boostInfo?.nextSpin}
                         forceLucky={activatedCheats.includes('haveluckyday') || activatedCheats.includes('godmode')}
                         soundVolume={soundVolume}
                     />
                 )}
 
+
+                {showInviteModal && (
+                    <InviteModal
+                        onClose={() => setShowInviteModal(false)}
+                        userName={userName}
+                        addToast={addToast}
+                    />
+                )}
+
+                {pendingInviteCode && !isNameSet && (
+                    <InviteRegisterModal
+                        inviteCode={pendingInviteCode}
+                        onClose={() => {
+                            setPendingInviteCode('');
+                            window.history.replaceState({}, '', window.location.pathname);
+                        }}
+                        onRegistered={(registeredName) => {
+                            setUserName(registeredName);
+                            setNameInput(registeredName);
+                            setIsNameSet(true);
+                            localStorage.setItem('examApp_userName', registeredName);
+                            setPendingInviteCode('');
+                            window.history.replaceState({}, '', window.location.pathname);
+                            fetch(`/api/stars?name=` + encodeURIComponent(registeredName))
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        setUserStars(data.stars);
+                                        setCanSpinToday(data.canSpinToday);
+                                    }
+                                })
+                                .catch(() => {});
+                        }}
+                        addToast={addToast}
+                    />
+                )}
                 {/* Profile Modal with Radar Chart */}
                 {showProfile && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
