@@ -31,7 +31,9 @@ export async function POST(request) {
     }).lean();
 
     if (existing) {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://examtest.uz';
+      const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'test-exam.uz';
+      const proto = request.headers.get('x-forwarded-proto') || 'https';
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${proto}://${host}`;
       return NextResponse.json({
         success: true,
         inviteCode: existing.inviteCode,
@@ -56,7 +58,9 @@ export async function POST(request) {
       status: 'pending',
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://examtest.uz';
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'test-exam.uz';
+    const proto = request.headers.get('x-forwarded-proto') || 'https';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${proto}://${host}`;
     return NextResponse.json({
       success: true,
       inviteCode: referral.inviteCode,
