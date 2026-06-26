@@ -4,22 +4,14 @@ import User from '@/models/User';
 
 // Spin prize configuration - same as client-side SPINNER_ITEMS
 const SPINNER_ITEMS = [
-  { id: 'h10', label: '+10 Hints', type: 'hint', amount: 10, probability: 0.1 },
-  { id: 'e1', label: 'Try Again', type: 'empty', probability: 0.1 },
-  { id: 'h20', label: '+20 Hints', type: 'hint', amount: 20, probability: 0.05 },
-  { id: 'e2', label: 'Try Again', type: 'empty', probability: 0.1 },
-  { id: 's25', label: '+25 Stars', type: 'star', amount: 25, probability: 0.15 },
-  { id: 'e3', label: 'Try Again', type: 'empty', probability: 0.1 },
-  { id: 's50', label: '+50 Stars', type: 'star', amount: 50, probability: 0.1 },
-  { id: 'e4', label: 'Try Again', type: 'empty', probability: 0.1 },
-  { id: 's100', label: '+100 Stars', type: 'star', amount: 100, probability: 0.02 },
-  { id: 'e5', label: 'Try Again', type: 'empty', probability: 0.08 },
-  { id: 'm2x', label: '2x (1h)', type: 'multiplier', val: 2, duration: 3600000, probability: 0.05 },
-  { id: 'e6', label: 'Try Again', type: 'empty', probability: 0.1 },
-  { id: 'm3x', label: '3x (15m)', type: 'multiplier', val: 3, duration: 900000, probability: 0.02 },
-  { id: 'e7', label: 'Try Again', type: 'empty', probability: 0.08 },
-  { id: 's10', label: '+10 Stars', type: 'star', amount: 10, probability: 0.1 },
-  { id: 'e8', label: 'Try Again', type: 'empty', probability: 0.1 },
+  { id: 's20', label: '+20 Stars', type: 'star', amount: 20, probability: 0.2 },
+  { id: 'e1', label: 'Try Again', type: 'empty', probability: 0.2 },
+  { id: 'h5', label: '+5 Hints', type: 'hint', amount: 5, probability: 0.15 },
+  { id: 'e2', label: 'Try Again', type: 'empty', probability: 0.15 },
+  { id: 's45', label: '+45 Stars', type: 'star', amount: 45, probability: 0.12 },
+  { id: 'e3', label: 'Try Again', type: 'empty', probability: 0.08 },
+  { id: 's100', label: '+100 Stars', type: 'star', amount: 100, probability: 0.07 },
+  { id: 'h15', label: '+15 Hints', type: 'hint', amount: 15, probability: 0.03 },
 ];
 
 function getRandomPrize(forceLucky = false) {
@@ -52,14 +44,12 @@ export async function POST(request) {
       );
     }
 
-    let user = await User.findOne({ userName: name.trim() });
-
-    if (!user) {
-      user = await User.create({
-        userName: name.trim(),
-        stars: 100,
-      });
-    }
+    // Atomic upsert: ensure user exists
+    const user = await User.findOneAndUpdate(
+      { userName: name.trim() },
+      { $setOnInsert: { stars: 100, userName: name.trim() } },
+      { upsert: true, new: true, setDefaultsOnInsert: true, lean: false }
+    );
 
     const todayStr = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
 
@@ -79,7 +69,7 @@ export async function POST(request) {
 
       const prize = getRandomPrize(forceLucky);
 
-      // Apply star prizes directly
+      // Apply star prizes
       if (prize.type === 'star') {
         user.stars += prize.amount;
         await user.save();
@@ -92,7 +82,7 @@ export async function POST(request) {
         canSpinToday: false,
       });
     } else if (type === 'paid') {
-      // Paid spin costs 10 stars
+      // Paid spin costs 10 stars - always gives a non-empty prize (forceLucky)
       if (user.stars < 10) {
         return NextResponse.json({
           success: false,
@@ -100,14 +90,13 @@ export async function POST(request) {
         });
       }
 
-      user.stars -= 10;
-      const prize = getRandomPrize(forceLucky);
+      // Atomic charge + prize: deduct 10, get guaranteed prize, add star prizes
+      const prize = getRandomPrize(true); // Paid spins always win something
 
-      // Apply star prizes directly
-      if (prize.type === 'star') {
-        user.stars += prize.amount;
-      }
+      let starDelta = prize.type === 'star' ? prize.amount : 0;
+      let netChange = starDelta - 10;
 
+      user.stars += netChange;
       await user.save();
 
       return NextResponse.json({
@@ -145,11 +134,12 @@ export async function GET(request) {
       );
     }
 
-    let user = await User.findOne({ userName: name.trim() }).lean();
-
-    if (!user) {
-      user = { userName: name.trim(), stars: 100, lastSpinDate: null };
-    }
+    // Atomic upsert with lean: returns plain object, creates if not exists
+    const user = await User.findOneAndUpdate(
+      { userName: name.trim() },
+      { $setOnInsert: { stars: 100, userName: name.trim() } },
+      { upsert: true, new: true, setDefaultsOnInsert: true, lean: true }
+    );
 
     const todayStr = new Date().toISOString().split('T')[0];
     const canSpinToday = user.lastSpinDate !== todayStr;

@@ -348,22 +348,14 @@ function normalizeManualAnswer(value) {
 }
 
 const SPINNER_ITEMS = [
-    { id: 'h10', label: '+10 Hints', type: 'hint', amount: 10, color: 'bg-orange-100 text-orange-600', icon: Lightbulb, probability: 0.1 },
-    { id: 'e1', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
-    { id: 'h20', label: '+20 Hints', type: 'hint', amount: 20, color: 'bg-yellow-200 text-yellow-700', icon: Lightbulb, probability: 0.05 },
-    { id: 'e2', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
-    { id: 's25', label: '+25 Stars', type: 'star', amount: 25, color: 'bg-blue-100 text-blue-600', icon: Star, probability: 0.15 },
-    { id: 'e3', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
-    { id: 's50', label: '+50 Stars', type: 'star', amount: 50, color: 'bg-blue-200 text-blue-700', icon: Star, probability: 0.1 },
-    { id: 'e4', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
-    { id: 's100', label: '+100 Stars', type: 'star', amount: 100, color: 'bg-blue-600 text-white', icon: Star, probability: 0.02 },
-    { id: 'e5', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.08 },
-    { id: 'm2x', label: '2x (1h)', type: 'multiplier', val: 2, duration: 3600000, color: 'bg-purple-100 text-purple-600', icon: Zap, probability: 0.05 },
-    { id: 'e6', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
-    { id: 'm3x', label: '3x (15m)', type: 'multiplier', val: 3, duration: 900000, color: 'bg-rose-100 text-rose-600', icon: Zap, probability: 0.02 },
-    { id: 'e7', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.08 },
-    { id: 's10', label: '+10 Stars', type: 'star', amount: 10, color: 'bg-gray-100 text-gray-600', icon: Star, probability: 0.1 },
-    { id: 'e8', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.1 },
+    { id: 's20', label: '+20 Stars', type: 'star', amount: 20, color: 'bg-blue-100 text-blue-600', icon: Star, probability: 0.2 },
+    { id: 'e1', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.2 },
+    { id: 'h5', label: '+5 Hints', type: 'hint', amount: 5, color: 'bg-orange-100 text-orange-600', icon: Lightbulb, probability: 0.15 },
+    { id: 'e2', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.15 },
+    { id: 's45', label: '+45 Stars', type: 'star', amount: 45, color: 'bg-emerald-100 text-emerald-600', icon: Star, probability: 0.12 },
+    { id: 'e3', label: 'Try Again', type: 'empty', color: 'bg-gray-100 text-gray-400', icon: XCircle, probability: 0.08 },
+    { id: 's100', label: '+100 Stars', type: 'star', amount: 100, color: 'bg-purple-500 text-white', icon: Star, probability: 0.07 },
+    { id: 'h15', label: '+15 Hints', type: 'hint', amount: 15, color: 'bg-yellow-200 text-yellow-700', icon: Lightbulb, probability: 0.03 },
 ];
 
 /* Helper to prevent IDM (Internet Download Manager) from hijacking audio files */
@@ -659,23 +651,15 @@ function DailySpinner({ onClose, onReward, canSpinToday, userStars, onSpinStart,
                             <div className="absolute inset-0 rounded-full"
                                 style={{
                                     background: `conic-gradient(
-                                        from -11.25deg,
-                                        #fee2e2 0deg 22.5deg,   
-                                        #f3f4f6 22.5deg 45deg,  
-                                        #fef3c7 45deg 67.5deg,  
-                                        #f3f4f6 67.5deg 90deg, 
-                                        #dbeafe 90deg 112.5deg, 
-                                        #f3f4f6 112.5deg 135deg,
-                                        #d1fae5 135deg 157.5deg,
-                                        #f3f4f6 157.5deg 180deg,
-                                        #e0e7ff 180deg 202.5deg,
-                                        #f3f4f6 202.5deg 225deg,
-                                        #fae8ff 225deg 247.5deg,
-                                        #f3f4f6 247.5deg 270deg,
-                                        #ffe4e6 270deg 292.5deg,
-                                        #f3f4f6 292.5deg 315deg,
-                                        #fff1f2 315deg 337.5deg, 
-                                        #f3f4f6 337.5deg 360deg
+                                        from -22.5deg,
+                                        #fee2e2 0deg 45deg,
+                                        #f3f4f6 45deg 90deg,
+                                        #dbeafe 90deg 135deg,
+                                        #f3f4f6 135deg 180deg,
+                                        #d1fae5 180deg 225deg,
+                                        #f3f4f6 225deg 270deg,
+                                        #fae8ff 270deg 315deg,
+                                        #f3f4f6 315deg 360deg
                                     )`
                                 }}>
                             </div>
@@ -2265,10 +2249,11 @@ export default function Home() {
         if (!userName) return false;
         if (isDevMode) return true;
         try {
+            const forceLucky = activatedCheats?.includes('haveluckyday') || activatedCheats?.includes('godmode');
             const res = await fetch('/api/stars/spin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: userName, type }),
+                body: JSON.stringify({ name: userName, type, forceLucky }),
             });
             const data = await res.json();
             if (data.success) {
@@ -2276,8 +2261,15 @@ export default function Home() {
                 setCanSpinToday(data.canSpinToday);
                 return data.prize;
             }
+            // Show error if server rejected the spin
+            if (data.message) {
+                addToast('Spin failed', data.message, 'error');
+            }
             return false;
-        } catch { return false; }
+        } catch {
+            addToast('Spin failed', 'Could not connect to server. Check your internet.', 'error');
+            return false;
+        }
     };
 
     const updateUserStars = async (amount) => {
