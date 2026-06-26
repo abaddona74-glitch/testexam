@@ -1507,11 +1507,6 @@ export default function Home() {
         }
     };
 
-    useEffect(() => {
-        if (isNameSet && pendingInviteCode && !showCollectStarsModal) {
-            setShowCollectStarsModal(true);
-        }
-    }, [isNameSet, pendingInviteCode, showCollectStarsModal]);
 
     // Chat polling
     useEffect(() => {
@@ -1976,6 +1971,13 @@ export default function Home() {
     const [showInviteRegisterModal, setShowInviteRegisterModal] = useState(false);
     const [pendingInviteCode, setPendingInviteCode] = useState('');
     const [showCollectStarsModal, setShowCollectStarsModal] = useState(false);
+
+    // Auto-show collect stars modal when user has name and pending invite
+    useEffect(() => {
+        if (isNameSet && pendingInviteCode && !showCollectStarsModal) {
+            setShowCollectStarsModal(true);
+        }
+    }, [isNameSet, pendingInviteCode, showCollectStarsModal]);
 
     // New States for Stars and Achievements
     const [userStars, setUserStars] = useState(0);
