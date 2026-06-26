@@ -10001,7 +10001,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                         {Array.from({ length: totalQuestions }).map((_, i) => {
                             let statusColor = "bg-gray-200 dark:bg-gray-700"; // Default/Pending
                             if (i === currentIndex) {
-                                statusColor = "progress-wave shadow-[0_0_10px_rgba(37,99,235,0.5)] z-10 border-none"; // Current with wave animation
+                                statusColor = "progress-wave bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)] z-10"; // Current with wave animation
                             } else if (answers[i]) {
                                 statusColor = "bg-green-500"; // Answered
                             } else if (i < currentIndex) {
@@ -10125,8 +10125,8 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {question.id}</span>
                             <button
                                 onClick={() => setShowReportModal(true)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors mr-1 hover:bg-gray-100 p-1 rounded-lg"
-                                title="Back to listuestion"
+                                className="text-red-400 hover:text-red-600 transition-colors mr-1 hover:bg-red-50 dark:hover:bg-red-950/30 p-1 rounded-lg"
+                                title="Report Issue"
                             >
                                 <Flag size={14} />
                             </button>
