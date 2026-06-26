@@ -3802,10 +3802,6 @@ export default function Home() {
                                 <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                                     Exam Platform
                                 </h1>
-                                <p className="text-gray-500 text-[10px] md:text-xs mt-1">
-                                    <span className="hidden md:inline">Logged in as </span>
-                                    <span className="font-semibold text-gray-700 dark:text-gray-100">{userName}</span>
-                                </p>
                             </div>
                         </div>
                         <div className="flex gap-1 md:gap-2 items-center">
@@ -3930,10 +3926,11 @@ export default function Home() {
                                     setShowProfile(true);
                                     fetchProfileData();
                                 }}
-                                className="p-1.5 md:p-2 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                                className="p-1.5 md:p-2 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors flex items-center gap-1.5"
                                 title="My Profile"
                             >
                                 {isProfileLoading ? <Loader2 size={18} className="md:w-5 md:h-5 animate-spin" /> : <User size={18} className="md:w-5 md:h-5" />}
+                                <span className="hidden md:inline text-xs font-semibold text-gray-700 dark:text-gray-200">{userName}</span>
                             </button>
 
                             {view !== 'list' && (

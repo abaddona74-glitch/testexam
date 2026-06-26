@@ -24,6 +24,10 @@ export async function GET(request) {
         stars: 100,
       });
       user = user.toObject();
+    } else if (user.stars === 0) {
+      // Existing user with 0 stars gets initial 100 bonus (migration fix)
+      await User.updateOne({ userName: name.trim() }, { $set: { stars: 100 } });
+      user.stars = 100;
     }
 
     // Determine if user can spin today
