@@ -47,7 +47,7 @@ export async function POST(request) {
     // Atomic upsert: ensure user exists
     const user = await User.findOneAndUpdate(
       { userName: name.trim() },
-      { $setOnInsert: { stars: 100, userName: name.trim() } },
+      { $setOnInsert: { stars: 100 } },
       { upsert: true, new: true, setDefaultsOnInsert: true, lean: false }
     );
 
@@ -139,7 +139,7 @@ export async function GET(request) {
     // Atomic upsert with lean: returns plain object, creates if not exists
     const user = await User.findOneAndUpdate(
       { userName: name.trim() },
-      { $setOnInsert: { stars: 100, userName: name.trim() } },
+      { $setOnInsert: { stars: 100 } },
       { upsert: true, new: true, setDefaultsOnInsert: true, lean: true }
     );
 
