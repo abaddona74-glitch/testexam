@@ -30,6 +30,7 @@ export function proxy(request) {
     "frame-ancestors 'none'",
     "object-src 'none'",
     scriptSrc,
+    "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https: https://server.arcgisonline.com",
     "media-src 'self' blob:",
