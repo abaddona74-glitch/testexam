@@ -5,7 +5,7 @@ if (!globalThis._blockedCache) {
   globalThis._blockedCache = { ips: new Set(), deviceIds: new Set(), loaded: false };
 }
 
-export function middleware(request) {
+export function proxy(request) {
   const { nextUrl: url, geo } = request
   const isAdminApi = url.pathname.startsWith('/api/admin/');
   const isAdminAuthLogin = url.pathname === '/api/admin/auth/login';
@@ -20,7 +20,6 @@ export function middleware(request) {
   const city = geo?.city || request.headers.get('x-vercel-ip-city') || 'Unknown'
   const region = geo?.region || request.headers.get('x-vercel-ip-region') || 'Unknown'
 
-  const isDev = process.env.NODE_ENV !== 'production';
   // TensorFlow.js needs 'unsafe-eval' for model execution even in production
   const scriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com`;
 
@@ -31,6 +30,7 @@ export function middleware(request) {
     "frame-ancestors 'none'",
     "object-src 'none'",
     scriptSrc,
+    "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https: https://server.arcgisonline.com",
     "media-src 'self' blob:",
@@ -124,7 +124,7 @@ export function middleware(request) {
   return response;
 }
 
-// Middleware applies to all routes (including API) for IP blocking
+// Proxy applies to all routes (including API) for IP blocking
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*\\.js|logo\\.png|og-image\\.jpg).*)',
