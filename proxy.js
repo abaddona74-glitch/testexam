@@ -1,17 +1,28 @@
 import { NextResponse } from 'next/server'
 
-// In-memory blocked IP/device cache (loaded from DB via admin API)
 if (!globalThis._blockedCache) {
   globalThis._blockedCache = { ips: new Set(), deviceIds: new Set(), loaded: false };
 }
 
 export function proxy(request) {
+  const hostname = request.headers.get('host')
   const { nextUrl: url, geo } = request
+
+  // ─── admin.test-exam.uz subdomenini /admin ga yo'naltirish ───
+  if (hostname === 'admin.test-exam.uz') {
+    const rewriteUrl = url.clone()
+    if (!rewriteUrl.pathname.startsWith('/admin')) {
+      rewriteUrl.pathname = `/admin${rewriteUrl.pathname}`
+    }
+    const response = NextResponse.rewrite(rewriteUrl)
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+    return response
+  }
+
   const isAdminApi = url.pathname.startsWith('/api/admin/');
   const isAdminAuthLogin = url.pathname === '/api/admin/auth/login';
   const isAdminAuthSessionGet = url.pathname === '/api/admin/auth/session' && request.method === 'GET';
   
-  // Extract IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('x-real-ip')
     || '127.0.0.1';
@@ -20,7 +31,6 @@ export function proxy(request) {
   const city = geo?.city || request.headers.get('x-vercel-ip-city') || 'Unknown'
   const region = geo?.region || request.headers.get('x-vercel-ip-region') || 'Unknown'
 
-  // TensorFlow.js needs 'unsafe-eval' for model execution even in production
   const scriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com`;
 
   const csp = [
@@ -40,16 +50,12 @@ export function proxy(request) {
     "upgrade-insecure-requests",
   ].join('; ');
 
-  // ─── Admin API pre-check (cookie/session + CSRF) ─────────
   if (isAdminApi && !isAdminAuthLogin && !isAdminAuthSessionGet) {
     const sessionCookie = request.cookies.get('admin_session')?.value;
     if (!sessionCookie) {
       return new NextResponse(
         JSON.stringify({ error: 'Unauthorized' }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -61,16 +67,12 @@ export function proxy(request) {
       if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
         return new NextResponse(
           JSON.stringify({ error: 'Invalid CSRF token' }),
-          {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' }
-          }
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
         );
       }
     }
   }
 
-  // ─── IP Blocking Check ──────────────────────────────
   const blockedCache = globalThis._blockedCache;
   if (blockedCache.loaded && blockedCache.ips.has(ip)) {
     return new NextResponse(
@@ -78,14 +80,10 @@ export function proxy(request) {
         error: 'Access Denied', 
         message: 'Sizning IP manzilingiz bloklangan. Admin bilan bog\'laning.' 
       }),
-      { 
-        status: 403, 
-        headers: { 'Content-Type': 'application/json' } 
-      }
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  // ─── Security: Basic injection detection in URL ─────
   const urlStr = url.pathname + url.search;
   const suspiciousPatterns = [
     /<script/i, /javascript:/i, /UNION\s+SELECT/i,
@@ -95,8 +93,6 @@ export function proxy(request) {
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(urlStr)) {
       console.warn(`⚠️ Suspicious request from ${ip}: ${urlStr}`);
-      // Don't block yet, just log (actual blocking happens in API routes)
-      // But block obvious attacks
       return new NextResponse(
         JSON.stringify({ error: 'Suspicious request blocked' }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -104,12 +100,10 @@ export function proxy(request) {
     }
   }
 
-  // Log to console (visible in Vercel logs)
   if (!url.pathname.startsWith('/api/')) {
     console.log(`[${ip}] ${country}/${city} → ${url.pathname}`)
   }
 
-  // Add IP and geo info to headers for downstream API routes
   const response = NextResponse.next();
   response.headers.set('x-client-ip', ip);
   response.headers.set('x-geo-country', country);
@@ -124,7 +118,6 @@ export function proxy(request) {
   return response;
 }
 
-// Proxy applies to all routes (including API) for IP blocking
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*\\.js|logo\\.png|og-image\\.jpg).*)',
