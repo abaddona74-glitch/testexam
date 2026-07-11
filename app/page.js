@@ -1182,6 +1182,12 @@ export default function Home() {
     const [leaderboard, setLeaderboard] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('today'); // Filter state
     const [showSettings, setShowSettings] = useState(false);
+    const [progressPhone, setProgressPhone] = useState('');
+    const [progressOtp, setProgressOtp] = useState('');
+    const [progressOtpPurpose, setProgressOtpPurpose] = useState('save');
+    const [progressOtpSent, setProgressOtpSent] = useState(false);
+    const [progressOtpLoading, setProgressOtpLoading] = useState(false);
+    const [progressOtpMessage, setProgressOtpMessage] = useState('');
     const [performanceMode, setPerformanceMode] = useState(() => {
         if (typeof window === 'undefined') return 'high';
         try {
@@ -3150,6 +3156,94 @@ export default function Home() {
         }
     };
 
+    const requestProgressOtp = async (purpose) => {
+        if (!progressPhone.trim()) {
+            addToast('Phone required', 'Enter your phone number with country code.', 'error');
+            return;
+        }
+
+        setProgressOtpLoading(true);
+        setProgressOtpMessage('');
+        setProgressOtpPurpose(purpose);
+        setProgressOtp('');
+
+        try {
+            const progress = JSON.parse(localStorage.getItem('examApp_progress') || '{}');
+            const res = await fetch('/api/progress-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    purpose,
+                    phone: progressPhone,
+                    progress,
+                    userName,
+                    userId,
+                }),
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Failed to send verification code');
+            }
+
+            setProgressOtpSent(true);
+            setProgressOtpMessage('6-digit verification code sent.');
+            addToast('Code sent', 'Check SMS on your phone.', 'success');
+        } catch (err) {
+            setProgressOtpSent(false);
+            setProgressOtpMessage(err.message || 'Failed to send verification code');
+            addToast('SMS Error', err.message || 'Failed to send verification code', 'error');
+        } finally {
+            setProgressOtpLoading(false);
+        }
+    };
+
+    const verifyProgressOtp = async (e) => {
+        e.preventDefault();
+        if (!/^\d{6}$/.test(progressOtp.trim())) {
+            addToast('Invalid code', 'Enter the 6-digit code from SMS.', 'error');
+            return;
+        }
+
+        setProgressOtpLoading(true);
+        setProgressOtpMessage('');
+
+        try {
+            const res = await fetch('/api/progress-otp', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    purpose: progressOtpPurpose,
+                    phone: progressPhone,
+                    code: progressOtp,
+                }),
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Verification failed');
+            }
+
+            if (progressOtpPurpose === 'restore') {
+                const restoredProgress = data.progress || {};
+                setSavedProgress(restoredProgress);
+                localStorage.setItem('examApp_progress', JSON.stringify(restoredProgress));
+                addToast('Progress restored', 'Saved test progress loaded on this device.', 'success');
+            } else {
+                addToast('Progress saved', 'Your progress is linked to this phone number.', 'success');
+            }
+
+            setProgressOtp('');
+            setProgressOtpSent(false);
+            setProgressOtpMessage('');
+        } catch (err) {
+            setProgressOtpMessage(err.message || 'Verification failed');
+            addToast('Verification failed', err.message || 'Verification failed', 'error');
+        } finally {
+            setProgressOtpLoading(false);
+        }
+    };
+
     const handleStartFreeDemo = async () => {
         // isLoading is generic, maybe add a specific loading state or just use isLoading
         // But since isLoading covers the whole page usually, let's just use it or a local minimal loading
@@ -4184,6 +4278,72 @@ export default function Home() {
                                      }}>
                                     <code className="text-xs text-gray-600 dark:text-gray-300 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono">{userId}</code>
                                     <Copy size={14} className="text-gray-400 group-hover:text-blue-500" />
+                                </div>
+                            </div>
+
+                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Save Your Progress
+                                </label>
+                                <div className="space-y-3">
+                                    <input
+                                        type="tel"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                                        placeholder="+998901234567"
+                                        value={progressPhone}
+                                        onChange={(e) => {
+                                            setProgressPhone(e.target.value);
+                                            setProgressOtpSent(false);
+                                            setProgressOtp('');
+                                            setProgressOtpMessage('');
+                                        }}
+                                    />
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            disabled={progressOtpLoading}
+                                            onClick={() => requestProgressOtp('save')}
+                                            className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            {progressOtpLoading && progressOtpPurpose === 'save' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                            Save
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={progressOtpLoading}
+                                            onClick={() => requestProgressOtp('restore')}
+                                            className="bg-gray-900 hover:bg-black disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                        >
+                                            {progressOtpLoading && progressOtpPurpose === 'restore' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                                            Restore
+                                        </button>
+                                    </div>
+
+                                    {progressOtpSent && (
+                                        <form onSubmit={verifyProgressOtp} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength={6}
+                                                className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-gray-100 tracking-[0.25em] font-mono"
+                                                placeholder="000000"
+                                                value={progressOtp}
+                                                onChange={(e) => setProgressOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                            />
+                                            <button
+                                                type="submit"
+                                                disabled={progressOtpLoading}
+                                                className="px-4 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold transition-colors flex items-center justify-center"
+                                            >
+                                                {progressOtpLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                                            </button>
+                                        </form>
+                                    )}
+
+                                    <div className="text-[11px] text-gray-400">
+                                        SMS verification uses httpSMS. Use international format with country code.
+                                        {progressOtpMessage && <span className="block mt-1 text-gray-500 dark:text-gray-300">{progressOtpMessage}</span>}
+                                    </div>
                                 </div>
                             </div>
 
