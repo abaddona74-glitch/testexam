@@ -1,0 +1,10 @@
+
+> exam-test-app@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.2.10 (webpack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.1.138:3001
+- Environments: .env
+✓ Ready in 1012ms
+[?25h

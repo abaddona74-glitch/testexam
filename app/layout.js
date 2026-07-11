@@ -2,6 +2,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import PerformancePolyfill from "@/components/performance-polyfill";
+import ExtensionGuard from "@/components/extension-guard";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -89,7 +90,7 @@ export default function RootLayout({ children }) {
           disableTransitionOnChange
         >
           <ScrollActivity />
-          {children}
+          <ExtensionGuard>{children}</ExtensionGuard>
           <InstallPrompt />
           <SpeedInsights />
           <footer className="py-8 mt-8 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800">
