@@ -96,7 +96,28 @@ export async function GET(request) {
           },
           { $sort: { percentage: -1, difficultyRank: -1, score: -1, duration: 1 } },
           { $skip: skip },
-          { $limit: limit }
+          { $limit: limit },
+          // 🔐 SECURITY: Remove sensitive data (correct answers)
+          {
+              $project: {
+                  name: 1,
+                  testId: 1,
+                  category: 1,
+                  testName: 1,
+                  score: 1,
+                  total: 1,
+                  difficulty: 1,
+                  duration: 1,
+                  date: 1,
+                  country: 1,
+                  city: 1,
+                  region: 1,
+                  percentage: 1,
+                  difficultyRank: 1,
+                  // ❌ questions: 0 (contains correct_answer)
+                  // ❌ answers: 0 (user answers - privacy)
+              }
+          }
       ]);
       
       return NextResponse.json({

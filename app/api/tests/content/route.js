@@ -3,6 +3,7 @@ import path from 'path';
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Test from '@/models/Test';
+import { obfuscateTestContent } from '@/lib/test-security';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,9 +12,14 @@ export async function GET(request) {
     const id = searchParams.get('id');
     const password = searchParams.get('password');
     const bypass = searchParams.get('bypass');
+    const sessionId = searchParams.get('sessionId'); // Client yuborgan unique session ID
 
     if (!id) {
         return NextResponse.json({ error: "Test ID is required" }, { status: 400 });
+    }
+
+    if (!sessionId) {
+        return NextResponse.json({ error: "Session ID is required" }, { status: 400 });
     }
 
     await dbConnect();
@@ -27,8 +33,11 @@ export async function GET(request) {
                 if (!isAdminBypass && test.isPrivate && test.password && test.password !== password) {
                     return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
                 }
+                // 🔐 To'g'ri javoblarni server'da saqlash, client'ga yubormaslik
+                const obfuscated = obfuscateTestContent(test.content, sessionId);
                 return NextResponse.json({ 
-                    content: test.content,
+                    content: obfuscated.test,
+                    meta: obfuscated.meta,
                     translations: {} // DB tests currently don't support multi-lang efficiently in this schema
                 });
             }
@@ -116,9 +125,19 @@ export async function GET(request) {
             const langs = Object.keys(variants);
             const primaryLang = langs.includes('en') ? 'en' : langs[0];
             
+            // 🔐 To'g'ri javoblarni server'da saqlash
+            const obfuscated = obfuscateTestContent(variants[primaryLang], sessionId);
+            
+            // Tarjimalarni ham obfuscate qilamiz
+            const obfuscatedTranslations = {};
+            for (const [lang, content] of Object.entries(variants)) {
+                obfuscatedTranslations[lang] = obfuscateTestContent(content, `${sessionId}-${lang}`).test;
+            }
+            
             return NextResponse.json({
-                content: variants[primaryLang],
-                translations: variants
+                content: obfuscated.test,
+                meta: obfuscated.meta,
+                translations: obfuscatedTranslations
             });
         }
 
