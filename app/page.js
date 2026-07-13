@@ -10719,7 +10719,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             End Test Now
                         </button>
 
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-wrap justify-end gap-2 items-end">
                             <button
                                 onClick={toggleVoiceControl}
                                 disabled={isCameraGuardPreparing}
@@ -10735,7 +10735,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             </button>
 
                             {isStudyMode && (
-                                <>
+                                <div className="flex flex-col items-end gap-1.5">
                                     <LazyYandexCaptcha onToken={setCaptchaToken} />
                                     <button
                                     onClick={handleAskAI}
@@ -10746,7 +10746,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                     {isAiLoading ? <Loader2 size={18} className="animate-spin" /> : <Bot size={18} />}
                                     <span className="hidden sm:inline">Ask AI</span>
                                 </button>
-                                </>
+                                </div>
                             )}
                             {isStudyMode && isStudyComplete && currentIndex < totalQuestions - 1 && (
                                 <button
