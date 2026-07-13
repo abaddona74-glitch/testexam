@@ -33,10 +33,10 @@ export async function POST(req) {
     // 1. Verify Yandex SmartCaptcha
      const captchaResult = await verifyCaptcha(captchaToken, ip);
      if (!captchaResult.success) {
-       return NextResponse.json(
-        { error: "Bot detected", details: captchaResult.error || "captcha_failed", score: captchaResult.score },
-        { status: 403 }
-       );
+        return NextResponse.json(
+         { error: "Bot detected", details: captchaResult.error || "captcha_failed", score: captchaResult.score, yandexResponse: captchaResult.details },
+         { status: 403 }
+        );
      }
 
     const apiKey = process.env.GOOGLE_API_KEY;
