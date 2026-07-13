@@ -2017,7 +2017,7 @@ export default function Home() {
         let cancelled = false;
         setSpectatorContentLoading(true);
 
-        fetch(`/api/tests/content?id=${encodeURIComponent(normalizedTestId)}`)
+        fetch(`/api/tests/content?id=${encodeURIComponent(normalizedTestId)}&sessionId=${encodeURIComponent(sessionId)}`)
             .then((res) => {
                 if (!res.ok) throw new Error('Failed to load spectator content');
                 return res.json();
@@ -3393,16 +3393,17 @@ export default function Home() {
         }
     };
 
-    const ensureTestContent = async (test, password = '') => {
+    const ensureTestContent = async (test, password = '', sessId = null) => {
         if (test.content) return test;
         
+        const sid = sessId || sessionId;
         // Use baseId if available to avoid looking for "TestID_en" when file is "TestID.json"
         const fetchId = test.baseId || test.id;
 
         try {
              // addToast('Loading...', 'Downloading test data', 'info'); 
              
-             let url = `/api/tests/content?id=${encodeURIComponent(fetchId)}`;
+             let url = `/api/tests/content?id=${encodeURIComponent(fetchId)}&sessionId=${encodeURIComponent(sid)}`;
              if (password) url += `&password=${encodeURIComponent(password)}`;
              
              const res = await fetch(url);
@@ -3651,7 +3652,7 @@ export default function Home() {
         try {
             const hasSudo = activatedCheats.includes('sudo_access');
             const sudoParam = hasSudo || isGodmode ? '&bypass=sudo_access' : '';
-            const data = await fetch(`/api/tests/content?id=${test.mongoId}${sudoParam}`).then(r => r.json());
+            const data = await fetch(`/api/tests/content?id=${test.mongoId}${sudoParam}&sessionId=${encodeURIComponent(sessionId)}`).then(r => r.json());
             if (data.error) throw new Error(data.error);
             setEditingTest(test);
             setEditTestJson(JSON.stringify(data.content, null, 2));
