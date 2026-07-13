@@ -22,10 +22,11 @@ export default function YandexCaptcha({ onToken, visible = false }) {
     );
 
     return (
-        <div className="yandex-captcha-wrapper">
+        <div className="fixed bottom-0 right-0 z-[9999]" style={{ lineHeight: 0 }}>
             <SmartCaptcha
                 sitekey={sitekey}
                 onSuccess={handleSuccess}
+                host="smartcaptcha.yandexcloud.net"
                 invisible={!visible}
             />
         </div>
