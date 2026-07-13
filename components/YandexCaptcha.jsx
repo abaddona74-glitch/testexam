@@ -3,7 +3,7 @@
 import { SmartCaptcha } from '@yandex/smart-captcha';
 import { useState, useCallback } from 'react';
 
-export default function YandexCaptcha({ onToken, visible = false }) {
+export default function YandexCaptcha({ onToken }) {
     const [token, setToken] = useState('');
     const sitekey = process.env.NEXT_PUBLIC_YCAPTCHA_SITEKEY;
 
@@ -27,7 +27,6 @@ export default function YandexCaptcha({ onToken, visible = false }) {
                 sitekey={sitekey}
                 onSuccess={handleSuccess}
                 host="smartcaptcha.yandexcloud.net"
-                invisible={!visible}
             />
         </div>
     );
