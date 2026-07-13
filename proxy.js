@@ -31,7 +31,7 @@ export function proxy(request) {
   const city = geo?.city || request.headers.get('x-vercel-ip-city') || 'Unknown'
   const region = geo?.region || request.headers.get('x-vercel-ip-region') || 'Unknown'
 
-  const scriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com`;
+  const scriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://smartcaptcha.yandexcloud.net https://yastatic.net https://va.vercel-scripts.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com`;
 
   const csp = [
     "default-src 'self'",
@@ -45,8 +45,8 @@ export function proxy(request) {
     "img-src 'self' data: blob: https: https://server.arcgisonline.com",
     "media-src 'self' blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev https://cdn.jsdelivr.net npm",
-    "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
+    "connect-src 'self' https://smartcaptcha.yandexcloud.net https://yastatic.net https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev https://cdn.jsdelivr.net npm",
+    "frame-src https://smartcaptcha.yandexcloud.net",
     "upgrade-insecure-requests",
   ].join('; ');
 

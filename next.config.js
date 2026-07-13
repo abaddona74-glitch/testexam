@@ -54,19 +54,19 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://va.vercel-scripts.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://smartcaptcha.yandexcloud.net https://yastatic.net https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://www.google.com https://*.vercel-scripts.com",
-              "frame-src https://www.google.com",
+              "connect-src 'self' https://smartcaptcha.yandexcloud.net https://yastatic.net https://*.vercel-scripts.com",
+              "frame-src https://smartcaptcha.yandexcloud.net",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
               "frame-ancestors 'self'",
               "upgrade-insecure-requests"
             ].join('; ')
-          }
+          },
         ],
       },
     ];

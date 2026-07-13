@@ -14,6 +14,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
 import { sanitizeMarkdownText } from '@/lib/sanitize';
 import CountryFlag from '@/components/CountryFlag';
+import YandexCaptcha from '@/components/YandexCaptcha';
 import DeviceTierBadge from '@/components/DeviceTierBadge';
 import { isAutoDetected, getStoredDeviceTier } from '@/lib/device-tier';
 
@@ -8521,6 +8522,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
     // AI Help State
     const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [captchaToken, setCaptchaToken] = useState(null);
     const [isAiLoading, setIsAiLoading] = useState(false);
     
     // Voice Control State
@@ -8568,19 +8570,9 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         setAiAnalysis(null);
         
         try {
-            // Get reCAPTCHA token if available
-            let token = null;
-            if (typeof window !== 'undefined' && window.grecaptcha && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
-                try {
-                    await new Promise((resolve) => window.grecaptcha.ready(resolve));
-                    token = await window.grecaptcha.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY, { action: 'ai_help' });
-                } catch (e) {
-                    console.error("Recaptcha execution failed", e);
-                }
-            }
-
-            if (!token && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
-                setAiAnalysis("reCAPTCHA token olinmadi. Iltimos sahifani yangilang va qayta urinib ko\'ring.");
+            // Yandex SmartCaptcha token
+            if (!captchaToken) {
+                setAiAnalysis("Captcha token olinmadi. Iltimos bir necha soniya kuting va qayta urinib ko'ring.");
                 return;
             }
 
@@ -8590,7 +8582,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                 body: JSON.stringify({
                     question: currentQ.question,
                     options: currentQ.shuffledOptions.map(o => ({ id: o.id, text: o.text })),
-                    recaptchaToken: token
+                    captchaToken: captchaToken
                 })
             });
             
@@ -10739,7 +10731,9 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             </button>
 
                             {isStudyMode && (
-                                <button
+                                <>
+                                    <YandexCaptcha onToken={setCaptchaToken} />
+                                    <button
                                     onClick={handleAskAI}
                                     disabled={isAiLoading || isCameraGuardPreparing}
                                     className="px-4 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50"

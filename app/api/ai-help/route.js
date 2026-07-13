@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
-import { verifyRecaptcha } from "@/lib/recaptcha";
+import { verifyCaptcha } from "@/lib/yandex-captcha";
 import { logActivity, extractRequestInfo } from "@/lib/activity-logger";
 import { detectDDoS } from "@/lib/security";
 
@@ -16,7 +16,7 @@ export async function POST(req) {
         );
     }
 
-    const { question, options, recaptchaToken, userName, studyMode, testName } = await req.json();
+    const { question, options, captchaToken, userName, studyMode, testName } = await req.json();
 
     const reqInfo = extractRequestInfo(req);
 
@@ -30,11 +30,11 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
-    // 1. Verify reCAPTCHA (if configured)
-     const recaptchaResult = await verifyRecaptcha(recaptchaToken);
-     if (!recaptchaResult.success) {
+    // 1. Verify Yandex SmartCaptcha
+     const captchaResult = await verifyCaptcha(captchaToken);
+     if (!captchaResult.success) {
        return NextResponse.json(
-        { error: "Bot detected", details: recaptchaResult.error || "recaptcha_failed", score: recaptchaResult.score },
+        { error: "Bot detected", details: captchaResult.error || "captcha_failed", score: captchaResult.score },
         { status: 403 }
        );
      }

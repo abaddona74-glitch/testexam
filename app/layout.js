@@ -1,6 +1,5 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import PerformancePolyfill from "@/components/performance-polyfill";
 import ExtensionGuard from "@/components/extension-guard";
 
@@ -76,13 +75,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <PerformancePolyfill />
-        {/* Load reCAPTCHA script only if key is present to avoid errors */}
-        {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
-          <Script
-             src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
-             strategy="afterInteractive"
-          />
-        )}
+        {/* Yandex SmartCaptcha — component orqali yuklanadi (layout.js dan script olib tashlandi) */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
