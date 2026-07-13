@@ -8527,6 +8527,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
     // AI Help State
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [captchaToken, setCaptchaToken] = useState(null);
+    const [captchaKey, setCaptchaKey] = useState(0);
     const [isAiLoading, setIsAiLoading] = useState(false);
     
     // Voice Control State
@@ -8608,6 +8609,9 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             setAiAnalysis("Error connecting to AI service.");
         } finally {
             setIsAiLoading(false);
+            // Captcha token bir marta ishlatilgan - yangilash
+            setCaptchaToken(null);
+            setCaptchaKey((k) => k + 1);
         }
     };
 
@@ -10736,7 +10740,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
                             {isStudyMode && (
                                 <>
-                                    <LazyYandexCaptcha onToken={setCaptchaToken} />
+                                    <LazyYandexCaptcha key={captchaKey} onToken={setCaptchaToken} />
                                     <button
                                     onClick={handleAskAI}
                                     disabled={isAiLoading || isCameraGuardPreparing}
