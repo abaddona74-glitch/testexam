@@ -14,7 +14,6 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
 import { sanitizeMarkdownText } from '@/lib/sanitize';
 import CountryFlag from '@/components/CountryFlag';
-import YandexCaptcha from '@/components/YandexCaptcha';
 import DeviceTierBadge from '@/components/DeviceTierBadge';
 import { isAutoDetected, getStoredDeviceTier } from '@/lib/device-tier';
 
@@ -22,6 +21,10 @@ import JsonImageUploader from '@/components/JsonImageUploader';
 import LoadingScreen, { getStoredLoadingAnimation, setStoredLoadingAnimation, LOADING_ANIMATIONS } from '@/components/loading-screen';
 const LazyLiquidGlassClock = dynamic(
     () => import('@/components/liquid-clock').then((m) => m.LiquidGlassClock),
+    { ssr: false, loading: () => null }
+);
+const LazyYandexCaptcha = dynamic(
+    () => import('@/components/YandexCaptcha'),
     { ssr: false, loading: () => null }
 );
 
@@ -10732,7 +10735,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
                             {isStudyMode && (
                                 <>
-                                    <YandexCaptcha onToken={setCaptchaToken} />
+                                    <LazyYandexCaptcha onToken={setCaptchaToken} />
                                     <button
                                     onClick={handleAskAI}
                                     disabled={isAiLoading || isCameraGuardPreparing}
@@ -10742,6 +10745,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                                     {isAiLoading ? <Loader2 size={18} className="animate-spin" /> : <Bot size={18} />}
                                     <span className="hidden sm:inline">Ask AI</span>
                                 </button>
+                                </>
                             )}
                             {isStudyMode && isStudyComplete && currentIndex < totalQuestions - 1 && (
                                 <button
