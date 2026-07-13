@@ -18,10 +18,12 @@ export default function YandexCaptcha({ onToken, visible = false }) {
     if (token) return null;
 
     return (
-        <SmartCaptcha
-            sitekey={sitekey}
-            onSuccess={handleSuccess}
-            invisible={!visible}
-        />
+        <div className="fixed bottom-0 right-0 z-[9999]" style={{ lineHeight: 0 }}>
+            <SmartCaptcha
+                sitekey={sitekey}
+                onSuccess={handleSuccess}
+                invisible={!visible}
+            />
+        </div>
     );
 }
