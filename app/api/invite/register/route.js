@@ -8,14 +8,20 @@ export async function POST(request) {
     await dbConnect();
     const { inviteCode, name, userId } = await request.json();
 
-    if (!inviteCode || !name || typeof name !== 'string' || name.trim().length < 2) {
+    if (!inviteCode || !name || typeof name !== 'string') {
       return NextResponse.json(
         { success: false, message: 'Invite code and valid name are required' },
         { status: 400 }
       );
     }
-
     const trimmedName = name.trim();
+    if (trimmedName.length < 2 || trimmedName.length > 20) {
+      return NextResponse.json(
+        { success: false, message: 'Name must be 2–20 characters' },
+        { status: 400 }
+      );
+    }
+
     const upperCode = inviteCode.toUpperCase().trim();
 
     // 1. Find the referral
