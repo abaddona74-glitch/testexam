@@ -12,7 +12,7 @@ export function proxy(request) {
   if (hostname === 'admin.test-exam.uz') {
     // API marshrutlarini o'zgartirmaymiz – ular original /api/admin/... da qoladi
     // va middleware tekshiruvlaridan (session, block, CSP) o'tadi
-    if (!url.pathname.startsWith('/admin') && !url.pathname.startsWith('/api/')) {
+    if (!url.pathname.startsWith('/admin') && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/tiles/')) {
       const rewriteUrl = url.clone()
       rewriteUrl.pathname = `/admin${rewriteUrl.pathname}`
       const response = NextResponse.rewrite(rewriteUrl)
