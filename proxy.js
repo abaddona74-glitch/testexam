@@ -10,13 +10,15 @@ export function proxy(request) {
 
   // ─── admin.test-exam.uz subdomenini /admin ga yo'naltirish ───
   if (hostname === 'admin.test-exam.uz') {
-    const rewriteUrl = url.clone()
-    if (!rewriteUrl.pathname.startsWith('/admin')) {
+    // API marshrutlarini o'zgartirmaymiz – ular original /api/admin/... da qoladi
+    // va middleware tekshiruvlaridan (session, block, CSP) o'tadi
+    if (!url.pathname.startsWith('/admin') && !url.pathname.startsWith('/api/')) {
+      const rewriteUrl = url.clone()
       rewriteUrl.pathname = `/admin${rewriteUrl.pathname}`
+      const response = NextResponse.rewrite(rewriteUrl)
+      response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+      return response
     }
-    const response = NextResponse.rewrite(rewriteUrl)
-    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
-    return response
   }
 
   const isAdminApi = url.pathname.startsWith('/api/admin/');

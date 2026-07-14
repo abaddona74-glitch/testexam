@@ -371,6 +371,25 @@ export default function AdminPage() {
   const [blocklist, setBlocklist] = useState([]);
   const [blockForm, setBlockForm] = useState({ ip: '', deviceId: '', userName: '', reason: '', duration: 'permanent' });
 
+  // User detail modal
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userDetail, setUserDetail] = useState(null);
+  const [userDetailLoading, setUserDetailLoading] = useState(false);
+
+  const fetchUserDetail = useCallback(async (userName) => {
+    if (!userName) return;
+    setUserDetailLoading(true);
+    setUserDetail(null);
+    try {
+      const data = await api(`/api/admin/users/detail?userName=${encodeURIComponent(userName)}`);
+      setUserDetail(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUserDetailLoading(false);
+    }
+  }, [api]);
+
   // PromoCodes state
   const [promoCodes, setPromoCodes] = useState([]);
   const [promoForm, setPromoForm] = useState({ code: '', action: '', description: '' });
@@ -2374,7 +2393,7 @@ export default function AdminPage() {
                     </thead>
                     <tbody>
                       {usersData.users.map((user, i) => (
-                        <tr key={user.userName} className="border-b dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                        <tr key={user.userName} className="border-b dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer" onClick={() => { setSelectedUser(user.userName); fetchUserDetail(user.userName); }}>
                           <td className="py-2 px-2">
                             <div className="font-medium">{user.userName}</div>
                             {user.userId && <div className="text-[10px] text-gray-400 font-mono">{user.userId}</div>}
@@ -2458,6 +2477,152 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+      {/* User Detail Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto" onClick={() => { setSelectedUser(null); setUserDetail(null); }}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-4xl w-full my-8 animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                👤 {selectedUser}
+                {userDetail?.activeSession ? <span className="w-2 h-2 rounded-full bg-green-500" title="Online" /> : <span className="w-2 h-2 rounded-full bg-gray-400" title="Offline" />}
+              </h2>
+              <button onClick={() => { setSelectedUser(null); setUserDetail(null); }} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+
+            {userDetailLoading ? (
+              <div className="p-8 text-center text-gray-400">Loading user data...</div>
+            ) : userDetail ? (
+              <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Stars</div>
+                    <div className="text-xl font-bold text-yellow-500">{userDetail.user?.stars ?? '—'}</div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Tests</div>
+                    <div className="text-xl font-bold">{userDetail.stats?.testCompletes ?? 0} / {userDetail.stats?.testStarts ?? 0}</div>
+                    <div className="text-[10px] text-gray-400">completed / started</div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">AI Requests</div>
+                    <div className="text-xl font-bold text-blue-500">{userDetail.stats?.aiRequests ?? 0}</div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Cheat Violations</div>
+                    <div className={`text-xl font-bold ${userDetail.stats?.cheatViolations > 0 ? 'text-red-500' : 'text-gray-400'}`}>{userDetail.stats?.cheatViolations ?? 0}</div>
+                  </div>
+                </div>
+
+                {/* IPs */}
+                <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3">
+                  <h4 className="font-semibold text-sm mb-2">🌐 IP Addresses</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(userDetail.ips || []).map((ip, i) => (
+                      <span key={i} className="text-xs font-mono bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded" title={`${ip.count} activities`}>
+                        {ip._id} <span className="text-gray-400">({ip.count})</span>
+                      </span>
+                    ))}
+                    {(userDetail.ips || []).length === 0 && <span className="text-xs text-gray-400">No IP data</span>}
+                  </div>
+                </div>
+
+                {/* Active Session (if online) */}
+                {userDetail.activeSession && (
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3">
+                    <h4 className="font-semibold text-sm mb-2">🟢 Active Session</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                      <div><span className="text-gray-500">Status:</span> {userDetail.activeSession.status}</div>
+                      <div><span className="text-gray-500">Device:</span> {userDetail.activeSession.device}</div>
+                      <div><span className="text-gray-500">IP:</span> {userDetail.activeSession.ip}</div>
+                      <div><span className="text-gray-500">Location:</span> {[userDetail.activeSession.country, userDetail.activeSession.city].filter(Boolean).join(', ') || '—'}</div>
+                      <div><span className="text-gray-500">GPS:</span> {userDetail.activeSession.lat ? `${userDetail.activeSession.lat}, ${userDetail.activeSession.lng} (±${userDetail.activeSession.gpsAccuracy}m)` : '—'}</div>
+                      <div><span className="text-gray-500">GPS Source:</span> {userDetail.activeSession.locationSource || '—'}</div>
+                      <div><span className="text-gray-500">Camera:</span> {userDetail.activeSession.cameraStatus || '—'}{userDetail.activeSession.hasCameraSnapshot ? ' 📸' : ''}</div>
+                      <div><span className="text-gray-500">Theme:</span> {userDetail.activeSession.theme}</div>
+                      <div><span className="text-gray-500">Stars:</span> {userDetail.activeSession.stars}</div>
+                      {userDetail.activeSession.testId && (
+                        <>
+                          <div><span className="text-gray-500">Test:</span> {userDetail.activeSession.testId.substring(0, 12)}...</div>
+                          <div><span className="text-gray-500">Progress:</span> {userDetail.activeSession.progress}/{userDetail.activeSession.total}</div>
+                          <div><span className="text-gray-500">Difficulty:</span> {userDetail.activeSession.difficulty}</div>
+                        </>
+                      )}
+                      <div className="col-span-2"><span className="text-gray-500">Last seen:</span> {new Date(userDetail.activeSession.lastUpdated).toLocaleString()}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Browsers / OS */}
+                <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3">
+                  <h4 className="font-semibold text-sm mb-2">💻 Browsers & Devices</h4>
+                  <div className="space-y-1.5">
+                    {(userDetail.userAgents || []).map((ua, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span><span className="font-medium">{ua.browser}</span> on <span className="font-medium">{ua.os}</span></span>
+                        <span className="text-gray-400 text-[10px]">{ua.count} visits | Last: {new Date(ua.lastSeen).toLocaleDateString()}</span>
+                      </div>
+                    ))}
+                    {(userDetail.userAgents || []).length === 0 && <span className="text-xs text-gray-400">No browser data</span>}
+                  </div>
+                </div>
+
+                {/* Test History */}
+                {(userDetail.leaderboardEntries || []).length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3">
+                    <h4 className="font-semibold text-sm mb-2">📝 Test History</h4>
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {userDetail.leaderboardEntries.map((e, i) => (
+                        <div key={i} className="flex items-center justify-between text-xs py-1 border-b dark:border-gray-600/30 last:border-0">
+                          <span className="truncate max-w-[250px]">{e.testName}</span>
+                          <span className="text-gray-500">{e.score}/{e.total} • {e.difficulty}</span>
+                          <span className="text-gray-400 text-[10px]">{new Date(e.date).toLocaleDateString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Activity */}
+                <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3">
+                  <h4 className="font-semibold text-sm mb-2">📋 Recent Activity (last 50)</h4>
+                  <div className="space-y-1 max-h-60 overflow-y-auto">
+                    {userDetail.recentActivities.map((a, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs py-1 border-b dark:border-gray-600/30 last:border-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-1.5 py-0.5 rounded font-mono ${a.isSuspicious ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 'bg-gray-200 dark:bg-gray-600'}`}>{a.type}</span>
+                          {a.path && <span className="text-gray-400">{a.path}</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {a.country && <span className="text-gray-400">{a.country}</span>}
+                          <span className="text-gray-400">{new Date(a.createdAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {userDetail.recentActivities.length === 0 && <span className="text-xs text-gray-400">No activity</span>}
+                  </div>
+                </div>
+
+                {/* Same IP Users */}
+                {(userDetail.sameIPUsers || []).length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3">
+                    <h4 className="font-semibold text-sm mb-2 text-red-600">⚠️ Same IP Users</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {userDetail.sameIPUsers.map((u, i) => (
+                        <span key={i} className="text-xs font-mono bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-0.5 rounded">{u.userName}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-red-400">Failed to load user data</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Confirm Modal */}
       <ConfirmModal
