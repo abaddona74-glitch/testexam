@@ -74,19 +74,16 @@ export default function YandexCaptcha({ onToken, trigger }) {
 
     const isDark = resolvedTheme === 'dark';
 
+    if (obtained) return null;
+
     return (
-        <div style={{ height: 0, overflow: 'visible' }}>
-            {obtained ? null : (
-                <InvisibleSmartCaptcha
-                    sitekey={sitekey}
-                    onSuccess={handleSuccess}
-                    host="smartcaptcha.yandexcloud.net"
-                    hideShield
-                    visible={trigger}
-                    theme={isDark ? 'dark' : 'light'}
-                    style={isDark ? darkStyle : lightStyle}
-                />
-            )}
-        </div>
+        <InvisibleSmartCaptcha
+            sitekey={sitekey}
+            onSuccess={handleSuccess}
+            host="smartcaptcha.yandexcloud.net"
+            hideShield
+            visible={trigger}
+            theme={isDark ? 'dark' : 'light'}
+        />
     );
 }

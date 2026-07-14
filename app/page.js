@@ -10757,18 +10757,15 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             </button>
 
                             {isStudyMode && (
-                                <>
-                                    <LazyYandexCaptcha trigger={captchaTriggered} onToken={onCaptchaToken} />
-                                    <button
-                                    onClick={handleAskAI}
-                                    disabled={isAiLoading || isCameraGuardPreparing}
-                                    className="px-4 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50"
-                                    title="Get AI Help"
-                                >
-                                    {isAiLoading ? <Loader2 size={18} className="animate-spin" /> : <Bot size={18} />}
-                                    <span className="hidden sm:inline">Ask AI</span>
-                                </button>
-                                </>
+                                <button
+                                onClick={handleAskAI}
+                                disabled={isAiLoading || isCameraGuardPreparing}
+                                className="px-4 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50"
+                                title="Get AI Help"
+                            >
+                                {isAiLoading ? <Loader2 size={18} className="animate-spin" /> : <Bot size={18} />}
+                                <span className="hidden sm:inline">Ask AI</span>
+                            </button>
                             )}
                             {isStudyMode && isStudyComplete && currentIndex < totalQuestions - 1 && (
                                 <button
@@ -10805,6 +10802,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
                             )}
                         </div>
                     </div>
+                    {isStudyMode && <LazyYandexCaptcha trigger={captchaTriggered} onToken={onCaptchaToken} />}
                 </div>
             </div>
 
