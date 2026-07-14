@@ -1,7 +1,7 @@
 'use client';
 
 import { InvisibleSmartCaptcha } from '@yandex/smart-captcha';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 
 const lightStyle = {
@@ -71,6 +71,11 @@ export default function YandexCaptcha({ onToken, trigger }) {
         setObtained(true);
         onToken?.(t);
     }, [onToken]);
+
+    // Trigger qayta kelsa (2-marta Ask AI), captcha-ni qayta ko'rsat
+    useEffect(() => {
+        if (trigger) setObtained(false);
+    }, [trigger]);
 
     const isDark = resolvedTheme === 'dark';
 
