@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { logActivity, extractRequestInfo } from '../../../lib/activity-logger';
 import { isBlocked } from '../admin/block/route';
+import dbConnect from '@/lib/mongodb';
+import SessionStore from '@/models/SessionStore';
 
 if (!global.activeSessions) {
     global.activeSessions = {};
 }
 let activeSessions = global.activeSessions;
 
-// 🌐 IP dan to'liq lokatsiya ma'lumotlarini olish (country, lat, lng, city)
 async function getLocationFromIP(ip) {
   try {
     const isLocal = !ip || ip === '::1' || ip === '127.0.0.1' || ip.includes('::ffff:');
@@ -32,6 +33,108 @@ async function getLocationFromIP(ip) {
   }
 }
 
+async function cleanStaleSessions(now) {
+  const BROWSING_TTL_MS = 30 * 1000;
+  const AFK_TTL_MS = 2 * 60 * 1000;
+  const IN_TEST_TTL_MS = 3 * 60 * 1000;
+
+  // Clean in-memory
+  Object.keys(activeSessions).forEach(key => {
+    const session = activeSessions[key];
+    const ttl = session?.status === 'afk'
+      ? AFK_TTL_MS
+      : (session?.status === 'in-test' || session?.testId) ? IN_TEST_TTL_MS : BROWSING_TTL_MS;
+    if (!session?.lastUpdated || (now - session.lastUpdated > ttl)) {
+      delete activeSessions[key];
+    }
+  });
+}
+
+async function loadSessionsFromDB() {
+  try {
+    await dbConnect();
+    const cutoff = new Date(Date.now() - 3 * 60 * 1000);
+    const docs = await SessionStore.find({ lastUpdated: { $gte: cutoff } }).lean();
+    for (const doc of docs) {
+      activeSessions[doc.sessionId || doc.userId] = {
+        testId: doc.testId,
+        userId: doc.userId,
+        sessionId: doc.sessionId,
+        name: doc.name || 'Registering...',
+        progress: doc.progress || 0,
+        total: doc.total || 0,
+        difficulty: doc.difficulty || null,
+        status: doc.status || 'browsing',
+        device: doc.device || 'desktop',
+        ip: doc.ip,
+        country: doc.country || 'UZ',
+        lat: doc.lat || null,
+        lng: doc.lng || null,
+        city: doc.city || null,
+        locationSource: doc.locationSource || null,
+        gpsAccuracy: doc.gpsAccuracy || null,
+        cameraStatus: doc.cameraStatus || null,
+        cameraSnapshot: doc.cameraSnapshot || null,
+        cameraUpdatedAt: doc.cameraUpdatedAt || null,
+        stars: doc.stars || 0,
+        theme: doc.theme || 'light',
+        lastUpdated: doc.lastUpdated?.getTime() || Date.now(),
+      };
+    }
+  } catch (e) {
+    console.error('Failed to load sessions from DB:', e.message);
+  }
+}
+
+async function saveSessionToDB(session) {
+  try {
+    await dbConnect();
+    const key = session.sessionId || session.userId;
+    await SessionStore.findOneAndUpdate(
+      { sessionId: key },
+      {
+        $set: {
+          userId: session.userId,
+          name: session.name,
+          ip: session.ip,
+          country: session.country,
+          city: session.city,
+          lat: session.lat,
+          lng: session.lng,
+          locationSource: session.locationSource,
+          gpsAccuracy: session.gpsAccuracy,
+          cameraStatus: session.cameraStatus,
+          cameraSnapshot: session.cameraSnapshot,
+          cameraUpdatedAt: session.cameraUpdatedAt,
+          device: session.device,
+          status: session.status,
+          testId: session.testId,
+          difficulty: session.difficulty,
+          progress: session.progress,
+          total: session.total,
+          stars: session.stars,
+          theme: session.theme,
+          lastUpdated: new Date(),
+          startedAt: session.startedAt ? new Date(session.startedAt) : undefined,
+          startedTestId: session.startedTestId,
+        },
+      },
+      { upsert: true }
+    );
+  } catch (e) {
+    console.error('Failed to save session to DB:', e.message);
+  }
+}
+
+async function removeSessionFromDB(key) {
+  try {
+    await dbConnect();
+    await SessionStore.deleteOne({ sessionId: key });
+  } catch (e) {
+    console.error('Failed to remove session from DB:', e.message);
+  }
+}
+
 // 📥 GET
 export async function GET(request) {
   try {
@@ -39,19 +142,13 @@ export async function GET(request) {
     const testId = searchParams.get('testId');
 
     const now = Date.now();
-    const BROWSING_TTL_MS = 30 * 1000;
-    const AFK_TTL_MS = 2 * 60 * 1000;
-    const IN_TEST_TTL_MS = 3 * 60 * 1000;
 
-    Object.keys(activeSessions).forEach(key => {
-      const session = activeSessions[key];
-      const ttl = session?.status === 'afk'
-        ? AFK_TTL_MS
-        : (session?.status === 'in-test' || session?.testId) ? IN_TEST_TTL_MS : BROWSING_TTL_MS;
-      if (!session?.lastUpdated || (now - session.lastUpdated > ttl)) {
-        delete activeSessions[key];
-      }
-    });
+    // Agar in-memory bo'sh bo'lsa (cold start), DB dan yuklaymiz
+    if (Object.keys(activeSessions).length === 0) {
+      await loadSessionsFromDB();
+    }
+
+    await cleanStaleSessions(now);
 
     let sessions = Object.values(activeSessions);
 
@@ -83,7 +180,6 @@ export async function GET(request) {
 
     const finalUsers = Object.values(uniqueUsers);
 
-    // ✅ FIX: Country ni ONLAYN tekshiramiz
     const updatedUsers = await Promise.all(
       finalUsers.map(async (user) => {
         let result = {
@@ -94,7 +190,6 @@ export async function GET(request) {
           locationSource: user.locationSource || 'ip',
         };
 
-        // Agar country yo'q yoki noto'g'ri bo'lsa, API dan so'raymiz
         if (!result.country || result.country === 'XX' || result.country.length !== 2) {
           const location = await getLocationFromIP(user.ip);
           result.country = location.country;
@@ -124,7 +219,7 @@ export async function GET(request) {
   }
 }
 
-// 📤 POST - ENG MUHIM QISM: To'g'ri IP va Country saqlash
+// 📤 POST
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -140,39 +235,30 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Blocked' }, { status: 403 });
     }
 
-    // ✅ FIX: Cloudflare headerlaridan TO'G'RI IP va Country olamiz
     const headers = request.headers;
 
-    // Real client IP: Cloudflare cf-connecting-ip dan
     const realIp = headers.get('cf-connecting-ip')
       || reqInfo.ip
       || headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || 'unknown';
 
-    // Real country: Cloudflare cf-ipcountry dan
     const realCountry = headers.get('cf-ipcountry')
       || headers.get('x-vercel-ip-country')
       || null;
 
-    // Real coordinates: Cloudflare cf-iplatitude / cf-iplongitude / cf-ipcity dan
-    // (requires "Add visitor location headers" Managed Transform in Cloudflare dashboard)
     const realLat = parseFloat(headers.get('cf-iplatitude')) || null;
     const realLng = parseFloat(headers.get('cf-iplongitude')) || null;
     const realCity = headers.get('cf-ipcity') || null;
 
-    // Client GPS coordinates (from browser Geolocation API)
-    // If GPS provided, it's more accurate than Cloudflare IP location
     const gpsLat = body?.gpsLat ? parseFloat(body.gpsLat) : null;
     const gpsLng = body?.gpsLng ? parseFloat(body.gpsLng) : null;
     const gpsAccuracy = body?.gpsAccuracy ? parseFloat(body.gpsAccuracy) : null;
 
-    // Priority: GPS > Cloudflare > ipwho.is fallback
     let finalLat = gpsLat || realLat || null;
     let finalLng = gpsLng || realLng || null;
     let finalCity = realCity || null;
     let locationSource = gpsLat ? 'gps' : (realLat ? 'cloudflare' : null);
 
-    // For Cloudflare, city is available from header
     if (gpsLat) {
       locationSource = 'gps';
     } else if (realLat) {
@@ -188,7 +274,7 @@ export async function POST(request) {
       ? cameraSnapshot
       : null;
 
-    activeSessions[key] = {
+    const sessionData = {
       testId, userId, sessionId,
       name: name || 'Registering...',
       progress: progress || 0,
@@ -196,13 +282,13 @@ export async function POST(request) {
       difficulty: difficulty || null,
       status: resolvedStatus,
       device: device || 'desktop',
-      ip: realIp,                    // ✅ REAL client IP
-      country: realCountry || 'UZ',  // ✅ TO'G'RI country saqlanadi
-      lat: finalLat,                 // 📍 Latitude (GPS > Cloudflare > ipwho.is)
-      lng: finalLng,                 // 📍 Longitude
-      city: finalCity,               // 🏙️ City
-      locationSource: locationSource, // 'gps' | 'cloudflare' | 'ipwhois' | null
-      gpsAccuracy: gpsAccuracy,      // GPS accuracy in meters (if from GPS)
+      ip: realIp,
+      country: realCountry || 'UZ',
+      lat: finalLat,
+      lng: finalLng,
+      city: finalCity,
+      locationSource: locationSource,
+      gpsAccuracy: gpsAccuracy,
       currentAnswer: currentAnswer || null,
       visualState: visualState || null,
       cameraStatus: cameraStatus || null,
@@ -213,6 +299,12 @@ export async function POST(request) {
       questionId: questionId || null,
       lastUpdated: Date.now()
     };
+
+    // In-memory (instant)
+    activeSessions[key] = sessionData;
+
+    // MongoDB (async, non-blocking)
+    saveSessionToDB(sessionData);
 
     if (testId && status === 'in-test' && progress === 0) {
       logActivity({
@@ -236,10 +328,12 @@ export async function DELETE(request) {
 
   if (sessionId && activeSessions[sessionId]) {
     delete activeSessions[sessionId];
+    removeSessionFromDB(sessionId);
   } else if (userId) {
     Object.keys(activeSessions).forEach(key => {
       if (activeSessions[key].userId === userId) {
         delete activeSessions[key];
+        removeSessionFromDB(key);
       }
     });
   }
