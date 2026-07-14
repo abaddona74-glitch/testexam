@@ -912,8 +912,13 @@ function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast, user
 
     const handleRegister = async (e) => {
         e.preventDefault();
-        if (!name.trim() || name.trim().length < 2) {
-            setError('Name must be at least 2 characters');
+        const trimmed = name.trim();
+        if (trimmed.length < 2 || trimmed.length > 20) {
+            setError('Name must be 2–20 characters');
+            return;
+        }
+        if (!/^[a-zA-Z][a-zA-Z0-9_ ]{1,19}$/.test(trimmed)) {
+            setError('Name must start with a letter and contain only letters, numbers, spaces and underscores');
             return;
         }
         setLoading(true);
@@ -973,7 +978,9 @@ function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast, user
                         value={name}
                         onChange={(e) => { setName(e.target.value); setError(''); }}
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3"
-                        maxLength={30}
+                        maxLength={20}
+                        pattern="[a-zA-Z][a-zA-Z0-9_ ]{1,19}"
+                        title="Start with a letter, use only letters, numbers, spaces and underscores"
                         autoFocus
                     />
                     {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
@@ -3145,6 +3152,10 @@ export default function Home() {
     const handleNameSubmit = async (e) => {
         e.preventDefault();
         const trimmed = nameInput.trim().slice(0, 20);
+        if (!/^[a-zA-Z][a-zA-Z0-9_ ]{1,19}$/.test(trimmed)) {
+            alert('Name must start with a letter and contain only letters, numbers, spaces and underscores');
+            return;
+        }
         if (trimmed) {
             setUserName(trimmed);
             localStorage.setItem('examApp_userName', trimmed);
@@ -3922,6 +3933,8 @@ export default function Home() {
                             type="text"
                             required
                             maxLength={20}
+                            pattern="[a-zA-Z][a-zA-Z0-9_ ]{1,19}"
+                            title="Start with a letter, use only letters, numbers, spaces and underscores"
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                             placeholder="Your full name"
                             value={nameInput}
@@ -4237,6 +4250,8 @@ export default function Home() {
                                     type="text"
                                     required
                                     maxLength={20}
+                                    pattern="[a-zA-Z][a-zA-Z0-9_ ]{1,19}"
+                                    title="Start with a letter, use only letters, numbers, spaces and underscores"
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                                     placeholder="Your full name"
                                     value={nameInput}

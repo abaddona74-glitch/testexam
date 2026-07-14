@@ -21,6 +21,12 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    if (!/^[a-zA-Z][a-zA-Z0-9_ ]{1,19}$/.test(trimmedName)) {
+      return NextResponse.json(
+        { success: false, message: 'Name must start with a letter and contain only letters, numbers, spaces and underscores' },
+        { status: 400 }
+      );
+    }
 
     const upperCode = inviteCode.toUpperCase().trim();
 
