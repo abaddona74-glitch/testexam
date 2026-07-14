@@ -24,6 +24,9 @@ export default function ExtensionGuard({ children }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Admin subdomain yoki /admin yo'lida adblock tekshiruvini o'tkazib yuboramiz
+    if (window.location.hostname === 'admin.test-exam.uz' || window.location.pathname.startsWith('/admin')) return;
+
     let cancelled = false;
 
     const check = async () => {
