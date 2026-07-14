@@ -30,7 +30,7 @@ export function proxy(request) {
     || request.headers.get('x-real-ip')
     || '127.0.0.1';
 
-  const country = geo?.country || request.headers.get('x-vercel-ip-country') || 'Unknown'
+  const country = request.headers.get('cf-ipcountry') || geo?.country || request.headers.get('x-vercel-ip-country') || 'Unknown'
   const city = geo?.city || request.headers.get('x-vercel-ip-city') || 'Unknown'
   const region = geo?.region || request.headers.get('x-vercel-ip-region') || 'Unknown'
 
