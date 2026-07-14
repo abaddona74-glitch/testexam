@@ -3144,9 +3144,10 @@ export default function Home() {
 
     const handleNameSubmit = async (e) => {
         e.preventDefault();
-        if (nameInput.trim()) {
-            setUserName(nameInput);
-            localStorage.setItem('examApp_userName', nameInput);
+        const trimmed = nameInput.trim().slice(0, 50);
+        if (trimmed) {
+            setUserName(trimmed);
+            localStorage.setItem('examApp_userName', trimmed);
             setIsNameSet(true);
             setShowSettings(false);
             try {
@@ -3920,6 +3921,7 @@ export default function Home() {
                         <input
                             type="text"
                             required
+                            maxLength={50}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                             placeholder="Your full name"
                             value={nameInput}
@@ -4234,6 +4236,7 @@ export default function Home() {
                                 <input
                                     type="text"
                                     required
+                                    maxLength={50}
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                                     placeholder="Your full name"
                                     value={nameInput}
@@ -4592,10 +4595,11 @@ export default function Home() {
                             window.history.replaceState({}, '', window.location.pathname);
                         }}
                         onRegistered={(registeredName) => {
-                            setUserName(registeredName);
-                            setNameInput(registeredName);
+                            const trimmed = registeredName.trim().slice(0, 50);
+                            setUserName(trimmed);
+                            setNameInput(trimmed);
                             setIsNameSet(true);
-                            localStorage.setItem('examApp_userName', registeredName);
+                            localStorage.setItem('examApp_userName', trimmed);
                             setPendingInviteCode('');
                             window.history.replaceState({}, '', window.location.pathname);
                             fetch(`/api/stars?name=` + encodeURIComponent(registeredName))
