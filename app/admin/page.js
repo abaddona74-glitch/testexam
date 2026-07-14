@@ -866,29 +866,32 @@ export default function AdminPage() {
             <p className="text-gray-400 mt-2 text-sm">test-exam.uz boshqaruv paneli</p>
           </div>
           {error && <div className="bg-red-500/20 text-red-300 p-3 rounded-lg text-sm mb-4">{error}</div>}
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Admin parol..."
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              className="w-full p-3 pr-10 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <form onSubmit={e => { e.preventDefault(); handleLogin(); }}>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                autoComplete="current-password"
+                placeholder="Admin parol..."
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full p-3 pr-10 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              type="submit"
+              className="w-full mt-4 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition"
             >
-              {showPassword ? '🙈' : '👁️'}
+              Kirish
             </button>
-          </div>
-          <button
-            onClick={handleLogin}
-            className="w-full mt-4 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition"
-          >
-            Kirish
-          </button>
+          </form>
         </div>
       </div>
     );
