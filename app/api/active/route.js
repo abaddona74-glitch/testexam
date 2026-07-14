@@ -303,8 +303,8 @@ export async function POST(request) {
     // In-memory (instant)
     activeSessions[key] = sessionData;
 
-    // MongoDB (async, non-blocking)
-    saveSessionToDB(sessionData);
+    // MongoDB (await — boshqa instance'lar ham ko'rishi uchun)
+    await saveSessionToDB(sessionData);
 
     if (testId && status === 'in-test' && progress === 0) {
       logActivity({

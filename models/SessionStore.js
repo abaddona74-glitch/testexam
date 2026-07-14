@@ -29,7 +29,8 @@ const SessionStoreSchema = new mongoose.Schema({
   timestamps: false,
 });
 
-SessionStoreSchema.index({ lastUpdated: 1 }, { expireAfterSeconds: 300 });
+// TTL: MongoDB avtomatik tozalaydi (safety net). Asosiy cleanup GET handlerda lastUpdated bo'yicha.
+SessionStoreSchema.index({ lastUpdated: 1 }, { expireAfterSeconds: 180 });
 SessionStoreSchema.index({ name: 1 });
 SessionStoreSchema.index({ userId: 1 });
 
