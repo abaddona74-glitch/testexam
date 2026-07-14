@@ -3144,7 +3144,7 @@ export default function Home() {
 
     const handleNameSubmit = async (e) => {
         e.preventDefault();
-        const trimmed = nameInput.trim().slice(0, 50);
+        const trimmed = nameInput.trim().slice(0, 20);
         if (trimmed) {
             setUserName(trimmed);
             localStorage.setItem('examApp_userName', trimmed);
@@ -3921,7 +3921,7 @@ export default function Home() {
                         <input
                             type="text"
                             required
-                            maxLength={50}
+                            maxLength={20}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                             placeholder="Your full name"
                             value={nameInput}
@@ -4236,7 +4236,7 @@ export default function Home() {
                                 <input
                                     type="text"
                                     required
-                                    maxLength={50}
+                                    maxLength={20}
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                                     placeholder="Your full name"
                                     value={nameInput}
@@ -4595,7 +4595,7 @@ export default function Home() {
                             window.history.replaceState({}, '', window.location.pathname);
                         }}
                         onRegistered={(registeredName) => {
-                            const trimmed = registeredName.trim().slice(0, 50);
+                            const trimmed = registeredName.trim().slice(0, 20);
                             setUserName(trimmed);
                             setNameInput(trimmed);
                             setIsNameSet(true);
