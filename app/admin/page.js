@@ -24,6 +24,7 @@ const TABS = [
   { id: 'blocklist', label: '🚫 Block List', icon: '🚫' },
   { id: 'profanity', label: '🤬 So\'z filtr', icon: '🤬' },
   { id: 'insane-cam', label: '🤳 Insane/Impossible', icon: '🤳' },
+  { id: 'users', label: '👥 Users', icon: '👥' },
 ];
 
 // ─── Utility Components ────────────────────────────────────────
@@ -535,7 +536,23 @@ export default function AdminPage() {
     }
   }, [api]);
 
-  // ─── Fetch insane/impossible completed tests from leaderboard ─
+  const [usersData, setUsersData] = useState(null);
+  const [usersSortBy, setUsersSortBy] = useState('lastSeen');
+  const [usersSortOrder, setUsersSortOrder] = useState('desc');
+  const [usersSearch, setUsersSearch] = useState('');
+
+  const fetchUsers = useCallback(async (searchTerm) => {
+    try {
+      const params = new URLSearchParams({ sortBy: usersSortBy, sortOrder: usersSortOrder });
+      if (searchTerm || usersSearch) params.set('search', searchTerm || usersSearch);
+      const data = await api(`/api/admin/users?${params}`);
+      setUsersData(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [api, usersSortBy, usersSortOrder, usersSearch]);
+
+  // ── Fetch insane/impossible completed tests from leaderboard ─
   const fetchInsaneHistory = useCallback(async () => {
     setInsaneHistoryLoading(true);
     try {
@@ -577,6 +594,7 @@ export default function AdminPage() {
     if (activeTab === 'blocklist') fetchBlocklist();
     if (activeTab === 'profanity') fetchProfanity();
     if (activeTab === 'insane-cam') fetchInsaneHistory();
+    if (activeTab === 'users') fetchUsers();
   }, [isAuthed, activeTab, period]);
 
   // Real-time polling — runs on ALL tabs, every 3 seconds (reads from memory, not DB)
@@ -2308,6 +2326,135 @@ export default function AdminPage() {
                 Jami filtrdagi so'zlar: <span className="font-bold text-lg text-red-500">{profanityData?.total || 0}</span>
               </p>
             </div>
+          </div>
+        )}
+
+        {/* ─── USERS TAB ─── */}
+        {activeTab === 'users' && (
+          <div className="space-y-4">
+            {/* Search & Stats */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <input
+                  placeholder="Search by name, ID, or IP..."
+                  value={usersSearch}
+                  onChange={e => { setUsersSearch(e.target.value); fetchUsers(e.target.value); }}
+                  className="flex-1 min-w-[200px] px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                />
+                <span className="text-sm text-gray-500">Total: <b>{usersData?.total || 0}</b></span>
+                <span className="text-sm text-gray-500">IP groups: <b>{usersData?.ipStats?.length || 0}</b></span>
+              </div>
+
+              {!usersData ? (
+                <p className="text-center text-gray-400 py-8">Loading...</p>
+              ) : usersData.users.length === 0 ? (
+                <p className="text-center text-gray-400 py-8">No users found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b dark:border-gray-700">
+                        <th className="text-left py-2 px-2 cursor-pointer hover:text-blue-500" onClick={() => { setUsersSortBy('lastSeen'); setUsersSortOrder(usersSortOrder === 'desc' ? 'asc' : 'desc'); }}>
+                          User {usersSortBy === 'lastSeen' ? (usersSortOrder === 'desc' ? '↓' : '↑') : ''}
+                        </th>
+                        <th className="text-left py-2 px-2">IPs</th>
+                        <th className="text-left py-2 px-2">Multi-IP</th>
+                        <th className="text-center py-2 px-2 cursor-pointer hover:text-blue-500" onClick={() => { setUsersSortBy('stars'); setUsersSortOrder(usersSortOrder === 'desc' ? 'asc' : 'desc'); }}>
+                          ★ {usersSortBy === 'stars' ? (usersSortOrder === 'desc' ? '↓' : '↑') : ''}
+                        </th>
+                        <th className="text-center py-2 px-2 cursor-pointer hover:text-blue-500" onClick={() => { setUsersSortBy('testCompletes'); setUsersSortOrder(usersSortOrder === 'desc' ? 'asc' : 'desc'); }}>
+                          Tests {usersSortBy === 'testCompletes' ? (usersSortOrder === 'desc' ? '↓' : '↑') : ''}
+                        </th>
+                        <th className="text-center py-2 px-2">Activity</th>
+                        <th className="text-center py-2 px-2">Cheat</th>
+                        <th className="text-left py-2 px-2">Browser / OS</th>
+                        <th className="text-left py-2 px-2">Last Seen</th>
+                        <th className="text-center py-2 px-2">Online</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usersData.users.map((user, i) => (
+                        <tr key={user.userName} className="border-b dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <td className="py-2 px-2">
+                            <div className="font-medium">{user.userName}</div>
+                            {user.userId && <div className="text-[10px] text-gray-400 font-mono">{user.userId}</div>}
+                            {user.registeredAt && <div className="text-[10px] text-gray-400">Since: {new Date(user.registeredAt).toLocaleDateString()}</div>}
+                          </td>
+                          <td className="py-2 px-2">
+                            <div className="flex flex-wrap gap-1">
+                              {user.ips.slice(0, 3).map(ip => (
+                                <span key={ip} className="text-[10px] font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">{ip}</span>
+                              ))}
+                              {user.ips.length > 3 && <span className="text-[10px] text-gray-400">+{user.ips.length - 3}</span>}
+                            </div>
+                          </td>
+                          <td className="py-2 px-2">
+                            {user.multiAccountIps.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {user.accountCountOnIps.map(a => (
+                                  <span key={a.ip} className="text-[10px] font-mono bg-red-100 dark:bg-red-900/30 text-red-600 px-1 rounded" title={`${a.count} accounts: ${a.accounts.join(', ')}`}>
+                                    {a.ip}:{a.count}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : <span className="text-xs text-gray-400">—</span>}
+                          </td>
+                          <td className="text-center py-2 px-2">
+                            <span className="font-bold text-yellow-500">{user.stars}</span>
+                          </td>
+                          <td className="text-center py-2 px-2">
+                            <div className="font-medium">{user.testCompletes}</div>
+                            <div className="text-[10px] text-gray-400">{user.testStarts} started</div>
+                          </td>
+                          <td className="text-center py-2 px-2">
+                            <div className="text-xs">{user.totalActivities}</div>
+                            {user.aiRequests > 0 && <div className="text-[10px] text-blue-400">AI: {user.aiRequests}</div>}
+                          </td>
+                          <td className="text-center py-2 px-2">
+                            {user.cheatViolations > 0 ? (
+                              <span className="text-red-500 font-bold">{user.cheatViolations} ⚠</span>
+                            ) : <span className="text-xs text-gray-400">—</span>}
+                          </td>
+                          <td className="py-2 px-2">
+                            <div className="text-xs">{user.browsers.join(', ') || '—'}</div>
+                            <div className="text-[10px] text-gray-400">{user.os.join(', ') || '—'}</div>
+                          </td>
+                          <td className="py-2 px-2">
+                            <div className="text-xs whitespace-nowrap">
+                              {user.lastSeen ? new Date(user.lastSeen).toLocaleString() : '—'}
+                            </div>
+                            {user.countries.length > 0 && <div className="text-[10px] text-gray-400">{user.countries.join(', ')}</div>}
+                          </td>
+                          <td className="text-center py-2 px-2">
+                            {user.isOnline ? (
+                              <span className="inline-block w-2 h-2 rounded-full bg-green-500" title="Online" />
+                            ) : (
+                              <span className="inline-block w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600" title="Offline" />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* IP Sharing Groups */}
+            {usersData?.ipStats?.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+                <h3 className="font-bold text-gray-800 dark:text-white mb-3">🔄 IP Sharing (multi-account)</h3>
+                <div className="space-y-2">
+                  {usersData.ipStats.map(stat => (
+                    <div key={stat.ip} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                      <span className="font-mono text-xs">{stat.ip}</span>
+                      <span className="text-xs text-red-500 font-bold">{stat.accountCount} accounts</span>
+                      <span className="text-xs text-gray-500">{stat.accounts.join(', ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
