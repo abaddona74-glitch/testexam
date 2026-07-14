@@ -58,7 +58,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru https://yastatic.net https://*.vercel-scripts.com",
+              "connect-src 'self' https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru https://yastatic.net https://yandex.ru https://*.vercel-scripts.com",
               "frame-src https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru",
               "object-src 'none'",
               "base-uri 'self'",
