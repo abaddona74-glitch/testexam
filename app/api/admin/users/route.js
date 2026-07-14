@@ -74,10 +74,12 @@ export async function GET(request) {
         }
 
         // 3. Get active sessions (current online status)
-        const activeSessions = global.activeSessions || new Map();
+        const activeSessions = global.activeSessions;
         const activeUserNames = new Set();
-        for (const [, session] of activeSessions) {
-            if (session.name) activeUserNames.add(session.name);
+        if (activeSessions) {
+            for (const session of Object.values(activeSessions)) {
+                if (session.name) activeUserNames.add(session.name);
+            }
         }
 
         // 4. Count IP sharing

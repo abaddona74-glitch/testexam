@@ -90,7 +90,7 @@ export async function GET(request) {
         let activeSession = null;
         const sessions = global.activeSessions;
         if (sessions) {
-            for (const [, session] of sessions) {
+            for (const session of Object.values(sessions)) {
                 if (session.name === userName) {
                     activeSession = {
                         status: session.status,
