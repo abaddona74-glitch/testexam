@@ -8527,8 +8527,20 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
     // AI Help State
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [captchaToken, setCaptchaToken] = useState(null);
-    const [captchaKey, setCaptchaKey] = useState(0);
+    const [captchaTriggered, setCaptchaTriggered] = useState(false);
     const [isAiLoading, setIsAiLoading] = useState(false);
+    const captchaPendingRef = useRef(false);
+    const onCaptchaToken = useCallback((t) => {
+        setCaptchaToken(t);
+        setCaptchaTriggered(false);
+        // If captcha was pending (triggered by Ask AI), proceed with API call
+        if (captchaPendingRef.current) {
+            captchaPendingRef.current = false;
+            setIsAiLoading(true);
+            // Small delay to let state settle before doAskAI runs
+            setTimeout(() => doAskAI(t), 50);
+        }
+    }, []);
     
     // Voice Control State
     const [isListening, setIsListening] = useState(false);
@@ -8566,31 +8578,21 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
         setAiAnalysis(null);
     }, [currentIndex]);
 
-    const handleAskAI = async () => {
-        if (isCameraGuardPreparing) return;
+    const doAskAI = async (token) => {
         const currentQ = test.questions[currentIndex];
         if (!currentQ) return;
-        
-        setIsAiLoading(true);
-        setAiAnalysis(null);
-        
-        try {
-            // Yandex SmartCaptcha token
-            if (!captchaToken) {
-                setAiAnalysis("Captcha token olinmadi. Iltimos bir necha soniya kuting va qayta urinib ko'ring.");
-                return;
-            }
 
+        try {
             const response = await fetch('/api/ai-help', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     question: currentQ.question,
                     options: currentQ.shuffledOptions.map(o => ({ id: o.id, text: o.text })),
-                    captchaToken: captchaToken
+                    captchaToken: token
                 })
             });
-            
+
             const data = await response.json().catch(() => ({}));
             if (!response.ok && response.status === 429) {
                 setAiAnalysis("AI limitga yetdi. Birozdan keyin qayta urinib ko'ring.");
@@ -8609,9 +8611,25 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
             setAiAnalysis("Error connecting to AI service.");
         } finally {
             setIsAiLoading(false);
-            // Captcha token bir marta ishlatilgan - yangilash
             setCaptchaToken(null);
-            setCaptchaKey((k) => k + 1);
+        }
+    };
+
+    const handleAskAI = () => {
+        if (isCameraGuardPreparing) return;
+        const currentQ = test.questions[currentIndex];
+        if (!currentQ) return;
+
+        setAiAnalysis(null);
+
+        if (captchaToken) {
+            setIsAiLoading(true);
+            doAskAI(captchaToken);
+        } else {
+            // Captcha token yo'q - trigger captcha challenge
+            captchaPendingRef.current = true;
+            setCaptchaTriggered(true);
+            setIsAiLoading(true);
         }
     };
 
@@ -10740,7 +10758,7 @@ function TestRunner({ test, userName, userId, sessionId, userCountry, userLocati
 
                             {isStudyMode && (
                                 <>
-                                    <LazyYandexCaptcha key={captchaKey} onToken={setCaptchaToken} />
+                                    <LazyYandexCaptcha trigger={captchaTriggered} onToken={onCaptchaToken} />
                                     <button
                                     onClick={handleAskAI}
                                     disabled={isAiLoading || isCameraGuardPreparing}

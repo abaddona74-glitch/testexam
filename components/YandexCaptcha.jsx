@@ -1,6 +1,6 @@
 'use client';
 
-import { SmartCaptcha } from '@yandex/smart-captcha';
+import { InvisibleSmartCaptcha } from '@yandex/smart-captcha';
 import { useState, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 
@@ -35,18 +35,18 @@ const lightStyle = {
 const darkStyle = {
     'text-color-primary': '#dfdfe0',
     'focus-color': 'rgb(250, 192, 0)',
-    'base-background-color': '#313036',
-    'base-border': '1px solid #d9d9d9',
+    'base-background-color': '#030712',
+    'base-border': '1px solid #6b6b72',
     'base-border-radius': '11px',
     'popup-border-radius': '24px',
-    'base-checkbox-background-color': '#313036',
+    'base-checkbox-background-color': '#030712',
     'base-checkbox-background-color-error': 'rgba(255, 51, 51, 0.12)',
     'base-checkbox-background-color-checked': '#5c81d1',
     'base-checkbox-check-mark-color': '#fff',
     'base-checkbox-border': '2px solid #6b6b72',
     'base-checkbox-spin-color': '#5c81d1',
-    'popup-image-container-background-color': '#414148',
-    'popup-textinput-background-color': '#313036',
+    'popup-image-container-background-color': '#1e1f2b',
+    'popup-textinput-background-color': '#030712',
     'popup-textinput-border': '2px solid #ffffff26',
     'popup-textinput-border-focus': '2px solid #ffffff50',
     'popup-textinput-text-color': '#ffffff80',
@@ -55,41 +55,38 @@ const darkStyle = {
     'popup-action-button-text-color': '#fff',
     'popup-listen-button-background-color': '#fff',
     'popup-listen-button-text-color': 'red',
-    'popup-tooltip-text-color': '#313036',
+    'popup-tooltip-text-color': '#030712',
     'popup-tooltip-background-color': '#adafb6',
     'base-error-color': '#f33',
 };
 
-export default function YandexCaptcha({ onToken }) {
-    const [token, setToken] = useState('');
+export default function YandexCaptcha({ onToken, trigger }) {
+    const [obtained, setObtained] = useState(false);
     const { resolvedTheme } = useTheme();
     const sitekey = process.env.NEXT_PUBLIC_YCAPTCHA_SITEKEY;
 
     if (!sitekey) return null;
 
     const handleSuccess = useCallback((t) => {
-        setToken(t);
+        setObtained(true);
         onToken?.(t);
     }, [onToken]);
-
-    if (token) return (
-        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 select-none">
-            <span className="w-2 h-2 rounded-full bg-green-500" />
-            Verified
-        </div>
-    );
 
     const isDark = resolvedTheme === 'dark';
 
     return (
-        <div className="fixed bottom-0 right-0 z-[9999]" style={{ lineHeight: 0 }}>
-            <SmartCaptcha
-                sitekey={sitekey}
-                onSuccess={handleSuccess}
-                host="smartcaptcha.yandexcloud.net"
-                theme={isDark ? 'dark' : 'light'}
-                style={isDark ? darkStyle : lightStyle}
-            />
+        <div style={{ height: 0, overflow: 'visible' }}>
+            {obtained ? null : (
+                <InvisibleSmartCaptcha
+                    sitekey={sitekey}
+                    onSuccess={handleSuccess}
+                    host="smartcaptcha.yandexcloud.net"
+                    hideShield
+                    visible={trigger}
+                    theme={isDark ? 'dark' : 'light'}
+                    style={isDark ? darkStyle : lightStyle}
+                />
+            )}
         </div>
     );
 }
