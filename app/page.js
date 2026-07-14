@@ -918,7 +918,7 @@ function InviteRegisterModal({ inviteCode, onClose, onRegistered, addToast, user
             return;
         }
         if (!/^[a-zA-Z][a-zA-Z0-9_ ]{1,19}$/.test(trimmed)) {
-            setError('Name must start with a letter and contain only letters, numbers, spaces and underscores');
+            setError('Name must start with a letter. Only letters, numbers, spaces and underscores (_) allowed. No special characters (@ / # $ % ^ & * etc.)');
             return;
         }
         setLoading(true);
@@ -1189,6 +1189,7 @@ export default function Home() {
     const [userId, setUserId] = useState(''); // Unique Session ID
     const sessionId = useMemo(() => 'sess_' + Math.random().toString(36).substr(2, 9), []);
     const [nameInput, setNameInput] = useState('');
+    const [nameError, setNameError] = useState('');
     const [isNameSet, setIsNameSet] = useState(false);
     const [leaderboard, setLeaderboard] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('today'); // Filter state
@@ -3151,9 +3152,10 @@ export default function Home() {
 
     const handleNameSubmit = async (e) => {
         e.preventDefault();
+        setNameError('');
         const trimmed = nameInput.trim().slice(0, 20);
         if (!/^[a-zA-Z][a-zA-Z0-9_ ]{1,19}$/.test(trimmed)) {
-            alert('Name must start with a letter and contain only letters, numbers, spaces and underscores');
+            setNameError('Name must start with a letter. Only letters, numbers, spaces and underscores (_) allowed. No special characters (@ / # $ % ^ & * etc.)');
             return;
         }
         if (trimmed) {
@@ -3938,8 +3940,9 @@ export default function Home() {
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                             placeholder="Your full name"
                             value={nameInput}
-                            onChange={(e) => setNameInput(e.target.value)}
+                            onChange={(e) => { setNameInput(e.target.value); setNameError(''); }}
                         />
+                        {nameError && <p className="text-red-500 text-sm mb-3">{nameError}</p>}
                         <button
                             type="submit"
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
@@ -4255,8 +4258,9 @@ export default function Home() {
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-gray-900 dark:text-gray-100"
                                     placeholder="Your full name"
                                     value={nameInput}
-                                    onChange={(e) => setNameInput(e.target.value)}
+                                    onChange={(e) => { setNameInput(e.target.value); setNameError(''); }}
                                 />
+                                {nameError && <p className="text-red-500 text-sm mb-3">{nameError}</p>}
                                 <button
                                     type="submit"
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
