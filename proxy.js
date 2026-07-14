@@ -25,7 +25,8 @@ export function proxy(request) {
   const isAdminAuthLogin = url.pathname === '/api/admin/auth/login';
   const isAdminAuthSessionGet = url.pathname === '/api/admin/auth/session' && request.method === 'GET';
   
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  const ip = request.headers.get('cf-connecting-ip')
+    || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('x-real-ip')
     || '127.0.0.1';
 
