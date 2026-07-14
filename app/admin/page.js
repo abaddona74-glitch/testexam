@@ -376,20 +376,6 @@ export default function AdminPage() {
   const [userDetail, setUserDetail] = useState(null);
   const [userDetailLoading, setUserDetailLoading] = useState(false);
 
-  const fetchUserDetail = useCallback(async (userName) => {
-    if (!userName) return;
-    setUserDetailLoading(true);
-    setUserDetail(null);
-    try {
-      const data = await api(`/api/admin/users/detail?userName=${encodeURIComponent(userName)}`);
-      setUserDetail(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUserDetailLoading(false);
-    }
-  }, [api]);
-
   // PromoCodes state
   const [promoCodes, setPromoCodes] = useState([]);
   const [promoForm, setPromoForm] = useState({ code: '', action: '', description: '' });
@@ -485,6 +471,22 @@ export default function AdminPage() {
 
     return payload;
   }, [csrfToken]);
+
+  // ─── User Detail Fetcher ─────────────────────────────────
+
+  const fetchUserDetail = useCallback(async (userName) => {
+    if (!userName) return;
+    setUserDetailLoading(true);
+    setUserDetail(null);
+    try {
+      const data = await api(`/api/admin/users/detail?userName=${encodeURIComponent(userName)}`);
+      setUserDetail(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUserDetailLoading(false);
+    }
+  }, [api]);
 
   // ─── Data Fetchers ────────────────────────────────────────
 
