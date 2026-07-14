@@ -154,11 +154,11 @@ function parseUserAgents(userAgents) {
         else if (ua.includes('Opera')) browsers.add('Opera');
         else browsers.add('Other');
 
-        if (ua.includes('Windows')) os.add('Windows');
+        if (ua.includes('Android')) os.add('Android');
+        else if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) os.add('iOS');
+        else if (ua.includes('Windows')) os.add('Windows');
         else if (ua.includes('Mac OS')) os.add('macOS');
         else if (ua.includes('Linux')) os.add('Linux');
-        else if (ua.includes('Android')) os.add('Android');
-        else if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) os.add('iOS');
         else os.add('Other');
     }
     return {

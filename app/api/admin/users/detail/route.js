@@ -192,10 +192,10 @@ function parseBrowser(ua) {
 
 function parseOS(ua) {
     if (!ua) return 'Unknown';
-    if (ua.includes('Windows')) return 'Windows';
-    if (ua.includes('Mac OS')) return 'macOS';
-    if (ua.includes('Linux') && !ua.includes('Android')) return 'Linux';
     if (ua.includes('Android')) return 'Android';
     if (ua.includes('iPhone') || ua.includes('iPad') || ua.includes('iOS')) return 'iOS';
+    if (ua.includes('Windows')) return 'Windows';
+    if (ua.includes('Mac OS')) return 'macOS';
+    if (ua.includes('Linux')) return 'Linux';
     return 'Other';
 }
