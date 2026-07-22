@@ -3,9 +3,11 @@ import mongoose from 'mongoose';
 const ProgressBackupSchema = new mongoose.Schema({
   phone: {
     type: String,
-    required: true,
-    unique: true,
-    index: true,
+    default: undefined,
+  },
+  email: {
+    type: String,
+    default: undefined,
   },
   progress: {
     type: mongoose.Schema.Types.Mixed,
@@ -19,6 +21,11 @@ const ProgressBackupSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  contactType: {
+    type: String,
+    enum: ['phone', 'email'],
+    default: 'phone',
+  },
   verifiedAt: {
     type: Date,
     default: Date.now,
@@ -28,6 +35,9 @@ const ProgressBackupSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+ProgressBackupSchema.index({ phone: 1 }, { unique: true, sparse: true });
+ProgressBackupSchema.index({ email: 1 }, { unique: true, sparse: true });
 
 ProgressBackupSchema.pre('save', function (next) {
   this.updatedAt = new Date();

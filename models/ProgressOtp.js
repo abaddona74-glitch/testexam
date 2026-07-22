@@ -3,8 +3,16 @@ import mongoose from 'mongoose';
 const ProgressOtpSchema = new mongoose.Schema({
   phone: {
     type: String,
-    required: true,
-    index: true,
+    default: undefined,
+  },
+  email: {
+    type: String,
+    default: undefined,
+  },
+  contactType: {
+    type: String,
+    enum: ['phone', 'email'],
+    default: 'phone',
   },
   codeHash: {
     type: String,

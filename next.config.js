@@ -58,7 +58,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru https://yastatic.net https://yandex.ru https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev npm",
+              "connect-src 'self' https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru https://yastatic.net https://yandex.ru https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev https://api.openweathermap.org npm",
               "frame-src https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru",
               "object-src 'none'",
               "base-uri 'self'",

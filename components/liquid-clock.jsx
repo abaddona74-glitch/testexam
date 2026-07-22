@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import clsx from 'clsx';
+import { WeatherWidget } from '@/components/weather-widget';
 
 export const LiquidGlassClock = () => {
     const [time, setTime] = useState(null);
@@ -57,6 +58,9 @@ export const LiquidGlassClock = () => {
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 px-1 rounded text-gray-500 dark:text-gray-400">
                     {ampm}
+                </span>
+                <span className="ml-3 pl-3 border-l border-gray-300 dark:border-gray-600 flex items-center">
+                    <WeatherWidget className="text-base font-medium" />
                 </span>
             </div>
 

@@ -1195,11 +1195,19 @@ export default function Home() {
     const [filterPeriod, setFilterPeriod] = useState('today'); // Filter state
     const [showSettings, setShowSettings] = useState(false);
     const [progressPhone, setProgressPhone] = useState('');
+    const [progressEmail, setProgressEmail] = useState('');
+    const [progressContactType, setProgressContactType] = useState('phone');
     const [progressOtp, setProgressOtp] = useState('');
     const [progressOtpPurpose, setProgressOtpPurpose] = useState('save');
     const [progressOtpSent, setProgressOtpSent] = useState(false);
     const [progressOtpLoading, setProgressOtpLoading] = useState(false);
     const [progressOtpMessage, setProgressOtpMessage] = useState('');
+    const [showTransferOtp, setShowTransferOtp] = useState(false);
+    const [transferNewEmail, setTransferNewEmail] = useState('');
+    const [transferOtp, setTransferOtp] = useState('');
+    const [transferOtpSent, setTransferOtpSent] = useState(false);
+    const [transferOtpLoading, setTransferOtpLoading] = useState(false);
+    const [transferOtpMessage, setTransferOtpMessage] = useState('');
     const [performanceMode, setPerformanceMode] = useState(() => {
         if (typeof window === 'undefined') return 'high';
         try {
@@ -3175,8 +3183,12 @@ export default function Home() {
     };
 
     const requestProgressOtp = async (purpose) => {
-        if (!progressPhone.trim()) {
+        if (progressContactType === 'phone' && !progressPhone.trim()) {
             addToast('Phone required', 'Enter your phone number with country code.', 'error');
+            return;
+        }
+        if (progressContactType === 'email' && !progressEmail.trim()) {
+            addToast('Email required', 'Enter your email address.', 'error');
             return;
         }
 
@@ -3187,30 +3199,42 @@ export default function Home() {
 
         try {
             const progress = JSON.parse(localStorage.getItem('examApp_progress') || '{}');
+            const body = {
+                purpose,
+                contactType: progressContactType,
+                progress,
+                userName,
+                userId,
+            };
+            if (progressContactType === 'email') {
+                body.email = progressEmail.trim();
+            } else {
+                body.phone = progressPhone;
+            }
             const res = await fetch('/api/progress-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    purpose,
-                    phone: progressPhone,
-                    progress,
-                    userName,
-                    userId,
-                }),
+                body: JSON.stringify(body),
             });
             const data = await res.json();
 
             if (!res.ok || !data.success) {
+                if (data.alreadyLinked) {
+                    throw new Error(data.message);
+                }
                 throw new Error(data.message || 'Failed to send verification code');
             }
 
             setProgressOtpSent(true);
+            const label = progressContactType === 'email' ? 'email' : 'phone';
             setProgressOtpMessage('6-digit verification code sent.');
-            addToast('Code sent', 'Check SMS on your phone.', 'success');
+            addToast('Code sent', `Check your ${label}.`, 'success');
         } catch (err) {
             setProgressOtpSent(false);
             setProgressOtpMessage(err.message || 'Failed to send verification code');
-            addToast('SMS Error', err.message || 'Failed to send verification code', 'error');
+            const label = progressContactType === 'email' ? 'Email' : 'SMS';
+            const isLinked = err.message?.includes('already linked');
+            addToast(isLinked ? 'Already Linked' : `${label} Error`, err.message || 'Failed to send verification code', isLinked ? 'warning' : 'error');
         } finally {
             setProgressOtpLoading(false);
         }
@@ -3219,7 +3243,7 @@ export default function Home() {
     const verifyProgressOtp = async (e) => {
         e.preventDefault();
         if (!/^\d{6}$/.test(progressOtp.trim())) {
-            addToast('Invalid code', 'Enter the 6-digit code from SMS.', 'error');
+            addToast('Invalid code', 'Enter the 6-digit code.', 'error');
             return;
         }
 
@@ -3227,14 +3251,20 @@ export default function Home() {
         setProgressOtpMessage('');
 
         try {
+            const body = {
+                purpose: progressOtpPurpose,
+                contactType: progressContactType,
+                code: progressOtp,
+            };
+            if (progressContactType === 'email') {
+                body.email = progressEmail.trim();
+            } else {
+                body.phone = progressPhone;
+            }
             const res = await fetch('/api/progress-otp', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    purpose: progressOtpPurpose,
-                    phone: progressPhone,
-                    code: progressOtp,
-                }),
+                body: JSON.stringify(body),
             });
             const data = await res.json();
 
@@ -3248,7 +3278,8 @@ export default function Home() {
                 localStorage.setItem('examApp_progress', JSON.stringify(restoredProgress));
                 addToast('Progress restored', 'Saved test progress loaded on this device.', 'success');
             } else {
-                addToast('Progress saved', 'Your progress is linked to this phone number.', 'success');
+                const label = progressContactType === 'email' ? 'email' : 'phone number';
+                addToast('Progress saved', `Your progress is linked to this ${label}.`, 'success');
             }
 
             setProgressOtp('');
@@ -3259,6 +3290,67 @@ export default function Home() {
             addToast('Verification failed', err.message || 'Verification failed', 'error');
         } finally {
             setProgressOtpLoading(false);
+        }
+    };
+
+    const handleTransferSend = async (newEmail) => {
+        setTransferOtpLoading(true);
+        setTransferOtpMessage('');
+        setTransferOtp('');
+        try {
+            const res = await fetch('/api/account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'transfer-send', userName, newEmail }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Failed to send code');
+            }
+            setTransferOtpSent(true);
+            setTransferOtpMessage('Verification code sent to new email');
+            addToast('Code sent', 'Check your new email inbox.', 'success');
+        } catch (err) {
+            setTransferOtpMessage(err.message);
+            setShowTransferOtp(false);
+            addToast('Error', err.message, 'error');
+        } finally {
+            setTransferOtpLoading(false);
+        }
+    };
+
+    const handleTransferVerify = async () => {
+        if (!/^\d{6}$/.test(transferOtp.trim())) {
+            addToast('Invalid code', 'Enter the 6-digit code.', 'error');
+            return;
+        }
+        setTransferOtpLoading(true);
+        setTransferOtpMessage('');
+        try {
+            const res = await fetch('/api/account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'transfer-verify',
+                    userName,
+                    newEmail: transferNewEmail,
+                    code: transferOtp,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Verification failed');
+            }
+            setShowTransferOtp(false);
+            setTransferOtp('');
+            setTransferOtpSent(false);
+            setTransferOtpMessage('');
+            addToast('Transfer complete', 'Account transferred to new email.', 'success');
+        } catch (err) {
+            setTransferOtpMessage(err.message);
+            addToast('Transfer failed', err.message, 'error');
+        } finally {
+            setTransferOtpLoading(false);
         }
     };
 
@@ -4051,7 +4143,6 @@ export default function Home() {
                             </div>
                         </div>
                         <div className="flex gap-1 md:gap-2 items-center">
-                            {/* Liquid Glass Clock (PC only) */}
                             <div className="mr-4">
                                 {!isLowPerformance ? <LazyLiquidGlassClock /> : null}
                             </div>
@@ -4272,13 +4363,28 @@ export default function Home() {
                             <form onSubmit={handlePromoSubmit}>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Promo Code</label>
                                 <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-gray-900 dark:text-gray-100"
-                                        placeholder="Enter cheat code..."
-                                        value={promoInput}
-                                        onChange={(e) => setPromoInput(e.target.value)}
-                                    />
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                                            placeholder="Enter cheat code..."
+                                            value={promoInput}
+                                            onChange={(e) => setPromoInput(e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                try {
+                                                    const text = await navigator.clipboard.readText();
+                                                    if (text) setPromoInput(text);
+                                                } catch {}
+                                            }}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md"
+                                            title="Paste"
+                                        >
+                                            <ClipboardPaste size={15} />
+                                        </button>
+                                    </div>
                                     <button
                                         type="submit"
                                         className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 rounded-lg transition-colors"
@@ -4313,18 +4419,79 @@ export default function Home() {
                                     Save Your Progress
                                 </label>
                                 <div className="space-y-3">
-                                    <input
-                                        type="tel"
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-gray-100"
-                                        placeholder="+998901234567"
-                                        value={progressPhone}
-                                        onChange={(e) => {
-                                            setProgressPhone(e.target.value);
-                                            setProgressOtpSent(false);
-                                            setProgressOtp('');
-                                            setProgressOtpMessage('');
-                                        }}
-                                    />
+                                    <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setProgressContactType('phone'); setProgressOtpSent(false); setProgressOtp(''); setProgressOtpMessage(''); }}
+                                            className={`flex-1 py-2 text-sm font-medium transition ${
+                                                progressContactType === 'phone'
+                                                    ? 'bg-emerald-600 text-white'
+                                                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                            }`}
+                                        >
+                                            📱 Phone
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setProgressContactType('email'); setProgressOtpSent(false); setProgressOtp(''); setProgressOtpMessage(''); }}
+                                            className={`flex-1 py-2 text-sm font-medium transition ${
+                                                progressContactType === 'email'
+                                                    ? 'bg-emerald-600 text-white'
+                                                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                            }`}
+                                        >
+                                            ✉️ Email
+                                        </button>
+                                    </div>
+
+                                    {progressContactType === 'phone' ? (
+                                        <input
+                                            type="tel"
+                                            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                                            placeholder="+998901234567"
+                                            value={progressPhone}
+                                            onChange={(e) => {
+                                                setProgressPhone(e.target.value);
+                                                setProgressOtpSent(false);
+                                                setProgressOtp('');
+                                                setProgressOtpMessage('');
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all overflow-hidden">
+                                            <input
+                                                type="text"
+                                                className="flex-1 px-4 py-3 outline-none border-0 text-gray-900 dark:text-gray-100 dark:bg-gray-700"
+                                                placeholder="username"
+                                                value={progressEmail.split('@')[0]}
+                                                onChange={(e) => {
+                                                    const name = e.target.value.replace(/[^a-zA-Z0-9._-]/g, '');
+                                                    const domain = progressEmail.includes('@') ? '@' + progressEmail.split('@')[1] : '@gmail.com';
+                                                    setProgressEmail(name + domain);
+                                                    setProgressOtpSent(false);
+                                                    setProgressOtp('');
+                                                    setProgressOtpMessage('');
+                                                }}
+                                            />
+                                            <select
+                                                value={progressEmail.includes('@') ? progressEmail.split('@')[1] : 'gmail.com'}
+                                                onChange={(e) => {
+                                                    const name = progressEmail.split('@')[0];
+                                                    setProgressEmail(name + '@' + e.target.value);
+                                                }}
+                                                className="px-2 py-3 bg-gray-50 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm outline-none border-0 border-l border-gray-200 dark:border-gray-500 cursor-pointer"
+                                            >
+                                                <option value="gmail.com">@gmail.com</option>
+                                                <option value="mail.ru">@mail.ru</option>
+                                                <option value="yandex.ru">@yandex.ru</option>
+                                                <option value="yahoo.com">@yahoo.com</option>
+                                                <option value="outlook.com">@outlook.com</option>
+                                                <option value="icloud.com">@icloud.com</option>
+                                                <option value="bk.ru">@bk.ru</option>
+                                            </select>
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             type="button"
@@ -4348,15 +4515,39 @@ export default function Home() {
 
                                     {progressOtpSent && (
                                         <form onSubmit={verifyProgressOtp} className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                maxLength={6}
-                                                className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-gray-100 tracking-[0.25em] font-mono"
-                                                placeholder="000000"
-                                                value={progressOtp}
-                                                onChange={(e) => setProgressOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                            />
+                                            <div className="relative flex-1">
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    maxLength={6}
+                                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-gray-100 tracking-[0.25em] font-mono"
+                                                    placeholder="000000"
+                                                    value={progressOtp}
+                                                    onChange={(e) => setProgressOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                    onPaste={(e) => {
+                                                        const pasted = e.clipboardData?.getData('text') || '';
+                                                        const cleaned = pasted.replace(/\D/g, '').slice(0, 6);
+                                                        if (cleaned) {
+                                                            e.preventDefault();
+                                                            setProgressOtp(cleaned);
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        try {
+                                                            const text = await navigator.clipboard.readText();
+                                                            const cleaned = text.replace(/\D/g, '').slice(0, 6);
+                                                            if (cleaned) setProgressOtp(cleaned);
+                                                        } catch { /* clipboard read not allowed */ }
+                                                    }}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md"
+                                                    title="Paste code"
+                                                >
+                                                    <ClipboardPaste size={15} />
+                                                </button>
+                                            </div>
                                             <button
                                                 type="submit"
                                                 disabled={progressOtpLoading}
@@ -4368,10 +4559,82 @@ export default function Home() {
                                     )}
 
                                     <div className="text-[11px] text-gray-400">
-                                        SMS verification uses httpSMS. Use international format with country code.
+                                        {progressContactType === 'phone'
+                                            ? 'SMS verification. Use international format with country code.'
+                                            : 'Email verification. Check your inbox for the code.'}
                                         {progressOtpMessage && <span className="block mt-1 text-gray-500 dark:text-gray-300">{progressOtpMessage}</span>}
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* ─── Account Actions ─── */}
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!confirm('Are you sure you want to unlink your email/phone? You will need to link a new one to save progress.')) return;
+                                            try {
+                                                const res = await fetch('/api/account', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ action: 'unlink', userName }),
+                                                });
+                                                const data = await res.json();
+                                                if (data.success) {
+                                                    addToast('Unlinked', 'Account unlinked successfully', 'success');
+                                                } else {
+                                                    addToast('Error', data.message || 'Failed to unlink', 'error');
+                                                }
+                                            } catch (err) {
+                                                addToast('Error', err.message, 'error');
+                                            }
+                                        }}
+                                        className="flex-1 py-2 text-sm font-medium bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+                                    >
+                                        Unlink Account
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newEmail = prompt('Enter new email address to transfer to:');
+                                            if (!newEmail || !newEmail.includes('@')) return;
+                                            setTransferNewEmail(newEmail);
+                                            setShowTransferOtp(true);
+                                            setTransferOtpSent(false);
+                                            handleTransferSend(newEmail);
+                                        }}
+                                        className="flex-1 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
+                                    >
+                                        Transfer Account
+                                    </button>
+                                </div>
+
+                                {showTransferOtp && (
+                                    <div className="mt-3 space-y-2">
+                                        <p className="text-xs text-gray-500">Verification code sent to <strong>{transferNewEmail}</strong></p>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength={6}
+                                                className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 outline-none text-center tracking-[0.25em] font-mono text-sm"
+                                                placeholder="000000"
+                                                value={transferOtp}
+                                                onChange={(e) => setTransferOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                            />
+                                            <button
+                                                type="button"
+                                                disabled={transferOtpLoading || transferOtp.length !== 6}
+                                                onClick={() => handleTransferVerify()}
+                                                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-semibold rounded-lg text-sm transition"
+                                            >
+                                                {transferOtpLoading ? <Loader2 size={16} className="animate-spin" /> : 'Verify'}
+                                            </button>
+                                        </div>
+                                        {transferOtpMessage && <p className="text-xs text-gray-500">{transferOtpMessage}</p>}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">

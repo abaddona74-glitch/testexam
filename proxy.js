@@ -48,7 +48,7 @@ export function proxy(request) {
     "img-src 'self' data: blob: https: https://server.arcgisonline.com",
     "media-src 'self' blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru https://yastatic.net https://yandex.ru https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev https://cdn.jsdelivr.net npm",
+    "connect-src 'self' https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru https://yastatic.net https://yandex.ru https://va.vercel-scripts.com https://vitals.vercel-insights.com https://ipapi.co https://cloudflareinsights.com https://cdn.jsdelivr.net https://unpkg.com https://storage.googleapis.com https://tfhub.dev https://www.kaggle.com https://mediapipe.dev https://api.openweathermap.org https://cdn.jsdelivr.net npm",
     "frame-src https://smartcaptcha.yandexcloud.net https://smartcaptcha.cloud.yandex.ru",
     "upgrade-insecure-requests",
   ].join('; ');

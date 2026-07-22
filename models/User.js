@@ -7,13 +7,18 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     trim: true,
   },
+  email: {
+    type: String,
+    default: '',
+    index: true,
+  },
   stars: {
     type: Number,
-    default: 100, // Initial bonus 100 stars
+    default: 100,
     min: 0,
   },
   lastSpinDate: {
-    type: String, // Store date as 'YYYY-MM-DD' ISO date string for daily spin check
+    type: String,
     default: null,
   },
   createdAt: {
