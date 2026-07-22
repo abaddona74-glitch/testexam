@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff, ClipboardPaste, Info, FileJson, Download, Pencil, Share2 } from 'lucide-react';
+import { ArrowRight, Loader2, Upload, Play, CheckCircle2, XCircle, RefreshCcw, User, Save, List, Trophy, AlertTriangle, Settings, Crown, Gem, Shield, Swords, Flag, MessageSquare, ArrowLeft, Clock, Folder, Smartphone, Monitor, Eye, EyeOff, X, Heart, CreditCard, Calendar, Lightbulb, Ghost, Skull, Zap, ChevronUp, ChevronDown, Star, Moon, Sun, ChevronRight, ChevronLeft, Gift, Lock, LockOpen, Key, Reply, BookOpen, Copy, Search, HelpCircle, Sparkles, Bot, Send, MessageCircle, Users, Mic, MicOff, ClipboardPaste, Info, FileJson, Download, Pencil, Share2, ListPlus } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import clsx from 'clsx';
@@ -18,6 +18,7 @@ import DeviceTierBadge from '@/components/DeviceTierBadge';
 import { isAutoDetected, getStoredDeviceTier } from '@/lib/device-tier';
 
 import JsonImageUploader from '@/components/JsonImageUploader';
+import TestCreator from '@/components/TestCreator';
 import LoadingScreen, { getStoredLoadingAnimation, setStoredLoadingAnimation, LOADING_ANIMATIONS } from '@/components/loading-screen';
 const LazyLiquidGlassClock = dynamic(
     () => import('@/components/liquid-clock').then((m) => m.LiquidGlassClock),
@@ -2059,7 +2060,7 @@ export default function Home() {
     // Upload State
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadFolder, setUploadFolder] = useState('');
-    const [uploadMode, setUploadMode] = useState('file'); // 'file' | 'text'
+    const [uploadMode, setUploadMode] = useState('manual'); // 'manual' | 'file' | 'text'
     const [uploadModeDirection, setUploadModeDirection] = useState(1);
     const [lectureText, setLectureText] = useState('');
     const [lectureFile, setLectureFile] = useState(null);
@@ -2082,7 +2083,7 @@ export default function Home() {
 
     const handleUploadModeChange = useCallback((nextMode) => {
         if (nextMode === uploadMode) return;
-        const modeOrder = { file: 0, text: 1 };
+        const modeOrder = { manual: 0, file: 1, text: 2 };
         const direction = modeOrder[nextMode] > modeOrder[uploadMode] ? 1 : -1;
         setUploadModeDirection(direction);
         setUploadMode(nextMode);
@@ -5263,16 +5264,27 @@ export default function Home() {
                             </h2>
 
                             {/* Mode Switcher */}
-                            <div className="relative grid grid-cols-2 gap-2 mb-6 bg-gray-100 dark:bg-gray-900 p-1 rounded-lg overflow-hidden">
+                            <div className="relative grid grid-cols-3 gap-2 mb-6 bg-gray-100 dark:bg-gray-900 p-1 rounded-lg overflow-hidden">
                                 <motion.div
                                     className="absolute top-1 left-1 bottom-1 rounded-md bg-white dark:bg-gray-700 shadow-sm"
-                                    style={{ width: 'calc(50% - 0.25rem)' }}
-                                    animate={{ x: uploadMode === 'file' ? '0%' : '100%' }}
+                                    style={{ width: 'calc(33.33% - 0.25rem)' }}
+                                    animate={{ x: uploadMode === 'manual' ? '0%' : uploadMode === 'file' ? '100%' : '200%' }}
                                     transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.5 }}
                                 />
                                 <button
+                                    onClick={() => handleUploadModeChange('manual')}
+                                    className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                                        uploadMode === 'manual'
+                                            ? 'text-blue-600 dark:text-blue-400'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                    } relative z-10`}
+                                >
+                                    <ListPlus size={14} className="inline mr-1" /> Create
+                                </button>
+                                <button
                                     onClick={() => handleUploadModeChange('file')}
                                     className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                                        !isGodmode && !hasAdminRights ? 'hidden' :
                                         uploadMode === 'file'
                                             ? 'text-blue-600 dark:text-blue-400'
                                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -5288,10 +5300,19 @@ export default function Home() {
                                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                                     } relative z-10`}
                                 >
-                                    Generate from Text
+                                    <Sparkles size={14} className="inline mr-1" /> AI Generate
                                 </button>
                             </div>
 
+                            {uploadMode === 'manual' ? (
+                                <TestCreator
+                                    folders={folders}
+                                    userId={userId}
+                                    isGodmode={isGodmode}
+                                    onClose={() => setShowUploadModal(false)}
+                                    onUploaded={() => { fetchTests(); setShowUploadModal(false); }}
+                                />
+                            ) : (
                             <AnimatePresence mode="wait" custom={uploadModeDirection} initial={false}>
                                 {uploadMode === 'file' ? (
                                 <motion.form
@@ -5514,6 +5535,7 @@ export default function Home() {
                                 </motion.form>
                             )}
                             </AnimatePresence>
+                            )}
                         </div>
                     </div>
                 )}
